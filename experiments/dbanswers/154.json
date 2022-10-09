@@ -1,0 +1,145 @@
+[
+    {
+        "table": "payment_methods",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "customer_payment_methods",
+        "columns": [
+            "id",
+            "customer_id",
+            "payment_method_code",
+            "credit_card_number",
+            "details"
+        ]
+    },
+    {
+        "table": "customers",
+        "columns": [
+            "id",
+            "organisation_or_person",
+            "organisation_name",
+            "gender",
+            "first_name",
+            "middle_name",
+            "last_name",
+            "email_address",
+            "login_name",
+            "login_password",
+            "phone_number",
+            "address_line_1",
+            "address_line_2",
+            "address_line_3",
+            "address_line_4",
+            "town_city",
+            "county",
+            "country"
+        ]
+    },
+    {
+        "table": "product_types",
+        "columns": [
+            "code",
+            "parent_product_type_code",
+            "description"
+        ]
+    },
+    {
+        "table": "products",
+        "columns": [
+            "id",
+            "product_type_code",
+            "name",
+            "price",
+            "color",
+            "size",
+            "description",
+            "other_details"
+        ]
+    },
+    {
+        "table": "order_status_codes",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "orders",
+        "columns": [
+            "id",
+            "customer_id",
+            "order_status_code",
+            "date_order_placed",
+            "details"
+        ]
+    },
+    {
+        "table": "invoices",
+        "columns": [
+            "number",
+            "order_id",
+            "invoice_status_code",
+            "date",
+            "details"
+        ]
+    },
+    {
+        "table": "shipments",
+        "columns": [
+            "id",
+            "order_id",
+            "invoice_number",
+            "tracking_number",
+            "date",
+            "details"
+        ]
+    },
+    {
+        "table": "order_items",
+        "columns": [
+            "id",
+            "product_id",
+            "order_id",
+            "order_item_status_code",
+            "quality",
+            "price",
+            "rma_number",
+            "rma_issued_by",
+            "rma_issued_date",
+            "other_details"
+        ]
+    },
+    {
+        "table": "invoice_status_codes",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "payments",
+        "columns": [
+            "id",
+            "date",
+            "amount"
+        ]
+    },
+    {
+        "table": "shipment_items",
+        "columns": [
+            "shipment_id",
+            "order_item_id"
+        ]
+    },
+    {
+        "table": "order_item_status_codes",
+        "columns": [
+            "code",
+            "description"
+        ]
+    }
+]

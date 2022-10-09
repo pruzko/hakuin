@@ -1,0 +1,113 @@
+[
+    {
+        "table": "associates",
+        "columns": [
+            "id",
+            "first_name",
+            "middle_name",
+            "last_name",
+            "other_details"
+        ]
+    },
+    {
+        "table": "ebola_victims",
+        "columns": [
+            "id",
+            "victim_status_code",
+            "first_name",
+            "middle_name",
+            "last_name",
+            "address",
+            "date_first_suspected",
+            "date_confirmed",
+            "date_of_death",
+            "other_details"
+        ]
+    },
+    {
+        "table": "victim_status",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "locations",
+        "columns": [
+            "id",
+            "name",
+            "other_details"
+        ]
+    },
+    {
+        "table": "victims_movements",
+        "columns": [
+            "victim_id",
+            "location_id",
+            "date_arrived",
+            "date_departed"
+        ]
+    },
+    {
+        "table": "hospital",
+        "columns": [
+            "id",
+            "hospital_location_id",
+            "name",
+            "other_details"
+        ]
+    },
+    {
+        "table": "ebola_victims_associates",
+        "columns": [
+            "victim_id",
+            "associate_id",
+            "date_from"
+        ]
+    },
+    {
+        "table": "physical_contact",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "victims_in_hospital",
+        "columns": [
+            "victim_id",
+            "hospital_id"
+        ]
+    },
+    {
+        "table": "possible_treatments",
+        "columns": [
+            "code",
+            "description",
+            "effectiveness"
+        ]
+    },
+    {
+        "table": "victim_associate_contacts",
+        "columns": [
+            "id",
+            "associate_id",
+            "physical_contact_code",
+            "victim_id",
+            "contact_start_datetime",
+            "contact_end_datetime",
+            "comments"
+        ]
+    },
+    {
+        "table": "actual_treatments",
+        "columns": [
+            "victim_id",
+            "hospital_id",
+            "possible_treatment_code",
+            "date_time_from",
+            "date_time_to",
+            "result"
+        ]
+    }
+]

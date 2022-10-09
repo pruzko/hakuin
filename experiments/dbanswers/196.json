@@ -1,0 +1,135 @@
+[
+    {
+        "table": "organisation_relstionships",
+        "columns": [
+            "organisation_1_id",
+            "organisation_2_id",
+            "from_date",
+            "type_code",
+            "to_date",
+            "other_details"
+        ]
+    },
+    {
+        "table": "organisations",
+        "columns": [
+            "id",
+            "category_code",
+            "type_code",
+            "name",
+            "phone",
+            "description",
+            "other_details"
+        ]
+    },
+    {
+        "table": "organisation_categories",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "organisation_addresses",
+        "columns": [
+            "organisation_id",
+            "id",
+            "from_date",
+            "to_date"
+        ]
+    },
+    {
+        "table": "events",
+        "columns": [
+            "id",
+            "event_type_code",
+            "organisation_id",
+            "from_date",
+            "to_date",
+            "name",
+            "objective",
+            "description",
+            "results",
+            "other_details"
+        ]
+    },
+    {
+        "table": "event_types",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "skills",
+        "columns": [
+            "code",
+            "category_code",
+            "description"
+        ]
+    },
+    {
+        "table": "addresses",
+        "columns": [
+            "id",
+            "line_1_number_building",
+            "line_2_number_street",
+            "line_3_area_locality",
+            "city_town",
+            "state_province_county",
+            "country",
+            "other_details"
+        ]
+    },
+    {
+        "table": "people_addresses",
+        "columns": [
+            "person_id",
+            "address_id",
+            "from_date",
+            "to_date"
+        ]
+    },
+    {
+        "table": "people",
+        "columns": [
+            "id",
+            "master_status_code",
+            "master_person_id",
+            "organisation_id",
+            "from_date",
+            "to_date",
+            "first_name",
+            "middle_name",
+            "last_name",
+            "gender",
+            "date_of_birth",
+            "other_details"
+        ]
+    },
+    {
+        "table": "people_skills",
+        "columns": [
+            "person_id",
+            "skill_code",
+            "skill_level"
+        ]
+    },
+    {
+        "table": "roles",
+        "columns": [
+            "code",
+            "desciption"
+        ]
+    },
+    {
+        "table": "people_roles",
+        "columns": [
+            "person_id",
+            "people_role_code",
+            "date_from",
+            "date_to",
+            "comments"
+        ]
+    }
+]

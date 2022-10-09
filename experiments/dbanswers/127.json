@@ -1,0 +1,61 @@
+[
+    {
+        "table": "collection_subsets",
+        "columns": [
+            "id",
+            "name",
+            "details"
+        ]
+    },
+    {
+        "table": "collections",
+        "columns": [
+            "id",
+            "catalog_id",
+            "parent_collection_id",
+            "name",
+            "description"
+        ]
+    },
+    {
+        "table": "document_objects",
+        "columns": [
+            "id",
+            "parent_document_object_id",
+            "owner",
+            "description",
+            "other_details"
+        ]
+    },
+    {
+        "table": "document_subsets",
+        "columns": [
+            "id",
+            "name",
+            "details"
+        ]
+    },
+    {
+        "table": "collection_subset_members",
+        "columns": [
+            "collection_id",
+            "related_collection_id",
+            "id"
+        ]
+    },
+    {
+        "table": "documents_in_collections",
+        "columns": [
+            "document_object_id",
+            "collection_id"
+        ]
+    },
+    {
+        "table": "document_subset_memebers",
+        "columns": [
+            "document_object_id",
+            "related_document_object_id",
+            "id"
+        ]
+    }
+]

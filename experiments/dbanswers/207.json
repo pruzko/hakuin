@@ -1,0 +1,119 @@
+[
+    {
+        "table": "payment_methods",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "violaters",
+        "columns": [
+            "id",
+            "violater_address_id",
+            "payment_method_code",
+            "name",
+            "phone",
+            "emai",
+            "date_of_first_violation",
+            "other_details"
+        ]
+    },
+    {
+        "table": "addresses",
+        "columns": [
+            "address_id",
+            "line_1_number_building",
+            "line_2_number_street",
+            "line_3_area_locality_suburb",
+            "line_4_other",
+            "town_city",
+            "zip_postcode",
+            "state_province_county",
+            "other_details"
+        ]
+    },
+    {
+        "table": "vehicle_manufacturers",
+        "columns": [
+            "code",
+            "name"
+        ]
+    },
+    {
+        "table": "vehicles",
+        "columns": [
+            "licence_number",
+            "manufacturer_code",
+            "vehicle_type_code",
+            "year_of_manufacture",
+            "details",
+            "model"
+        ]
+    },
+    {
+        "table": "violater_vehicles",
+        "columns": [
+            "violater_id",
+            "vehicle_licence_number"
+        ]
+    },
+    {
+        "table": "officers",
+        "columns": [
+            "badge_number",
+            "address_id",
+            "gender",
+            "date_of_birth",
+            "first_name",
+            "middie_name",
+            "last_name",
+            "other_details"
+        ]
+    },
+    {
+        "table": "vehicle_types",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "violations",
+        "columns": [
+            "id",
+            "violater_id",
+            "vehicle_licence_number",
+            "document_type_code",
+            "officer_badge_number",
+            "datetime_violation",
+            "datetime_order_delivered",
+            "other_details"
+        ]
+    },
+    {
+        "table": "document_types",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "tickets",
+        "columns": [
+            "number",
+            "ticket_status_code",
+            "violation_id",
+            "date_cancelled",
+            "date_paid",
+            "other_details"
+        ]
+    },
+    {
+        "table": "ticket_status",
+        "columns": [
+            "code",
+            "description"
+        ]
+    }
+]

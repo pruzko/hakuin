@@ -1,0 +1,117 @@
+[
+    {
+        "table": "uniforms",
+        "columns": [
+            "id",
+            "name",
+            "description"
+        ]
+    },
+    {
+        "table": "football_clubs",
+        "columns": [
+            "id",
+            "clothing_id",
+            "jargon_id",
+            "name",
+            "description",
+            "colours",
+            "other_details"
+        ]
+    },
+    {
+        "table": "reference_material",
+        "columns": [
+            "id",
+            "club_id",
+            "person_id",
+            "source",
+            "title",
+            "description"
+        ]
+    },
+    {
+        "table": "jargon",
+        "columns": [
+            "id",
+            "phrase",
+            "meaning"
+        ]
+    },
+    {
+        "table": "value_systems",
+        "columns": [
+            "id",
+            "name",
+            "description"
+        ]
+    },
+    {
+        "table": "games",
+        "columns": [
+            "id",
+            "club_id",
+            "location_id",
+            "opponent_club_id",
+            "value_system_id",
+            "date",
+            "description",
+            "result"
+        ]
+    },
+    {
+        "table": "club_personnel",
+        "columns": [
+            "id",
+            "club_id",
+            "name",
+            "title",
+            "gender",
+            "address",
+            "email_address",
+            "home_phone_number",
+            "cell_mobile_phone_number",
+            "other_details"
+        ]
+    },
+    {
+        "table": "positions",
+        "columns": [
+            "id",
+            "name",
+            "description"
+        ]
+    },
+    {
+        "table": "locations",
+        "columns": [
+            "id",
+            "name",
+            "address",
+            "description"
+        ]
+    },
+    {
+        "table": "deliverables",
+        "columns": [
+            "id",
+            "name",
+            "description"
+        ]
+    },
+    {
+        "table": "games_deliverables",
+        "columns": [
+            "games_id",
+            "deliverable_id"
+        ]
+    },
+    {
+        "table": "game_players",
+        "columns": [
+            "games_id",
+            "person_id",
+            "position_id"
+        ]
+    }
+]

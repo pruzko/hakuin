@@ -1,0 +1,183 @@
+[
+    {
+        "table": "banks",
+        "columns": [
+            "id",
+            "name",
+            "details"
+        ]
+    },
+    {
+        "table": "addresses",
+        "columns": [
+            "id",
+            "line_1",
+            "line_2",
+            "city",
+            "zip_postcode",
+            "state_provice_county",
+            "country",
+            "other_details"
+        ]
+    },
+    {
+        "table": "address_types",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "student_addresses",
+        "columns": [
+            "student_id",
+            "address_id",
+            "date_from",
+            "address_type_code",
+            "date_to"
+        ]
+    },
+    {
+        "table": "students",
+        "columns": [
+            "id",
+            "name",
+            "phone_email",
+            "other_details"
+        ]
+    },
+    {
+        "table": "accounts",
+        "columns": [
+            "id",
+            "account_type_code",
+            "bank_id",
+            "student_id",
+            "account_number",
+            "other_details"
+        ]
+    },
+    {
+        "table": "credit_cards",
+        "columns": [
+            "number",
+            "card_type_code",
+            "student_id",
+            "details"
+        ]
+    },
+    {
+        "table": "fees_status",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "fees_types",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "student_fees_due",
+        "columns": [
+            "id",
+            "merchant_id",
+            "student_id",
+            "fees_status_code",
+            "fees_type_code",
+            "amount",
+            "due_date",
+            "collected_date",
+            "comments",
+            "other_details"
+        ]
+    },
+    {
+        "table": "student_fees_collected",
+        "columns": [
+            "id",
+            "credit_card_number",
+            "payment_method_code",
+            "student_id",
+            "amount",
+            "due_date",
+            "collected_date",
+            "comments",
+            "details"
+        ]
+    },
+    {
+        "table": "merchants",
+        "columns": [
+            "id",
+            "name",
+            "details"
+        ]
+    },
+    {
+        "table": "banks_interfaces",
+        "columns": [
+            "id",
+            "account_id",
+            "student_fees_id",
+            "details"
+        ]
+    },
+    {
+        "table": "payment_methods",
+        "columns": [
+            "code",
+            "descriptions"
+        ]
+    },
+    {
+        "table": "merchants_interfaces",
+        "columns": [
+            "id",
+            "merchant_id",
+            "student_fees_id",
+            "details"
+        ]
+    },
+    {
+        "table": "student_fines",
+        "columns": [
+            "id",
+            "status_code",
+            "amount_due",
+            "payment_due_date",
+            "other_details"
+        ]
+    },
+    {
+        "table": "student_loans",
+        "columns": [
+            "id",
+            "guarantor_id",
+            "standard_load_id",
+            "initial_loan_amount",
+            "load_period",
+            "regular_repayment_amount",
+            "first_repayment_date",
+            "last_payment_date",
+            "other_details"
+        ]
+    },
+    {
+        "table": "student_tuition_fees",
+        "columns": [
+            "id",
+            "details"
+        ]
+    },
+    {
+        "table": "other_fees",
+        "columns": [
+            "id",
+            "details"
+        ]
+    }
+]

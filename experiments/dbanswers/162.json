@@ -1,0 +1,143 @@
+[
+    {
+        "table": "medication_type",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "medications",
+        "columns": [
+            "id",
+            "medication_type_code",
+            "name",
+            "cost",
+            "description",
+            "other_details"
+        ]
+    },
+    {
+        "table": "doctors",
+        "columns": [
+            "id",
+            "address_id",
+            "first_name",
+            "last_name",
+            "gender",
+            "phone",
+            "email",
+            "other_details"
+        ]
+    },
+    {
+        "table": "addresses",
+        "columns": [
+            "id",
+            "line_1_number_building",
+            "line_2_number_street",
+            "line_3_area_locality",
+            "city",
+            "zip_postcode",
+            "state_provice_county",
+            "country",
+            "other_details"
+        ]
+    },
+    {
+        "table": "customers",
+        "columns": [
+            "id",
+            "address_id",
+            "first_name",
+            "last_name",
+            "phone",
+            "date_originally_joined",
+            "credit_card_number",
+            "date_card_expiry",
+            "other_details"
+        ]
+    },
+    {
+        "table": "pharmaceutical_companies",
+        "columns": [
+            "id",
+            "name",
+            "other_details"
+        ]
+    },
+    {
+        "table": "brand_name_medications",
+        "columns": [
+            "id",
+            "company_id",
+            "name",
+            "cost",
+            "description"
+        ]
+    },
+    {
+        "table": "generic_medications",
+        "columns": [
+            "id",
+            "details"
+        ]
+    },
+    {
+        "table": "prescriptions",
+        "columns": [
+            "id",
+            "customer_id",
+            "doctor_id",
+            "prescription_status_code",
+            "payment_method_code",
+            "received",
+            "renewal",
+            "sent_to_doctor",
+            "sent_to_company",
+            "filled",
+            "details"
+        ]
+    },
+    {
+        "table": "payment_methods",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "prescription_status",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "generic_to_brand_name_correspondence",
+        "columns": [
+            "generic_medication_id",
+            "brand_medication_id"
+        ]
+    },
+    {
+        "table": "prescription_items",
+        "columns": [
+            "prescription_id",
+            "medication_id",
+            "quantity",
+            "instructions_to_customer"
+        ]
+    },
+    {
+        "table": "items_ordered",
+        "columns": [
+            "prescription_id",
+            "medication_id",
+            "date_ordered",
+            "quantity_ordered",
+            "date_received",
+            "quantity_received"
+        ]
+    }
+]

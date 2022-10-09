@@ -1,0 +1,150 @@
+[
+    {
+        "table": "associates",
+        "columns": [
+            "person_id",
+            "associate_person_id",
+            "date_association_started"
+        ]
+    },
+    {
+        "table": "titles",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "incident_outcomes",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "people",
+        "columns": [
+            "id",
+            "address_id",
+            "title_code",
+            "first_name",
+            "middle_name",
+            "last_name",
+            "date_of_birth",
+            "date_in",
+            "date_out",
+            "phone_number",
+            "cell_phone",
+            "email_address",
+            "comments",
+            "other_details"
+        ]
+    },
+    {
+        "table": "shifts",
+        "columns": [
+            "id",
+            "description",
+            "start_time",
+            "end_time"
+        ]
+    },
+    {
+        "table": "officer_shifts",
+        "columns": [
+            "officer_id",
+            "shift_id",
+            "date_started",
+            "date_sended"
+        ]
+    },
+    {
+        "table": "addresses",
+        "columns": [
+            "id",
+            "line_1",
+            "line_2",
+            "city",
+            "zip_postcode",
+            "state_province_county",
+            "country"
+        ]
+    },
+    {
+        "table": "officers",
+        "columns": [
+            "id",
+            "dept_code",
+            "rank_code",
+            "badge_number",
+            "date_became_officer",
+            "other_details"
+        ]
+    },
+    {
+        "table": "incident_status",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "incident_types",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "incidents",
+        "columns": [
+            "id",
+            "outcome_code",
+            "status_code",
+            "type_code",
+            "date_time_incident_started",
+            "date_time_incident_ended",
+            "description",
+            "other_details"
+        ]
+    },
+    {
+        "table": "people_in_incidents",
+        "columns": [
+            "person_id",
+            "incident_id",
+            "role_code"
+        ]
+    },
+    {
+        "table": "ranks",
+        "columns": [
+            "code",
+            "name",
+            "description"
+        ]
+    },
+    {
+        "table": "roles",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "departments",
+        "columns": [
+            "code",
+            "parent_dept_code",
+            "description"
+        ]
+    },
+    {
+        "table": "officers_in_incidents",
+        "columns": [
+            "officer_id",
+            "incident_id",
+            "role_code"
+        ]
+    }
+]

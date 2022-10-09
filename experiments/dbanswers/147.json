@@ -1,0 +1,108 @@
+[
+    {
+        "table": "addresses",
+        "columns": [
+            "id",
+            "details"
+        ]
+    },
+    {
+        "table": "locations",
+        "columns": [
+            "id",
+            "address_id",
+            "other_details"
+        ]
+    },
+    {
+        "table": "occupational_health_regulations",
+        "columns": [
+            "id",
+            "details"
+        ]
+    },
+    {
+        "table": "party_types",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "event_outcomes",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "event_types",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "events",
+        "columns": [
+            "id",
+            "event_outcome_code",
+            "event_type_code",
+            "location_id",
+            "occupational_health_regulations_id",
+            "start_date",
+            "end_date",
+            "other_details"
+        ]
+    },
+    {
+        "table": "party",
+        "columns": [
+            "id",
+            "party_type_code",
+            "description"
+        ]
+    },
+    {
+        "table": "roles",
+        "columns": [
+            "code",
+            "name",
+            "description"
+        ]
+    },
+    {
+        "table": "service_types",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "services",
+        "columns": [
+            "id",
+            "service_type_code",
+            "name",
+            "description",
+            "other_details"
+        ]
+    },
+    {
+        "table": "services_in_events",
+        "columns": [
+            "event_id",
+            "service_id"
+        ]
+    },
+    {
+        "table": "party_and_roles_in_events",
+        "columns": [
+            "id",
+            "event_id",
+            "party_id",
+            "role_id",
+            "details"
+        ]
+    }
+]

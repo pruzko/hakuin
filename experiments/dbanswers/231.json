@@ -1,0 +1,90 @@
+[
+    {
+        "table": "countries",
+        "columns": [
+            "code",
+            "name",
+            "currency",
+            "languages_spoken",
+            "usd_exchange_rate",
+            "usd_exchange_date"
+        ]
+    },
+    {
+        "table": "organization_types",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "organizations",
+        "columns": [
+            "id",
+            "organization_type_code",
+            "details"
+        ]
+    },
+    {
+        "table": "location_types",
+        "columns": [
+            "code",
+            "country_code",
+            "description"
+        ]
+    },
+    {
+        "table": "product_and_service_types",
+        "columns": [
+            "code",
+            "description"
+        ]
+    },
+    {
+        "table": "products_and_services",
+        "columns": [
+            "id",
+            "product_svc_type_code",
+            "details",
+            "quantity"
+        ]
+    },
+    {
+        "table": "shipments",
+        "columns": [
+            "id",
+            "from_organization_id",
+            "to_organization_id",
+            "details"
+        ]
+    },
+    {
+        "table": "locations",
+        "columns": [
+            "id",
+            "location_type_code",
+            "address",
+            "other_details"
+        ]
+    },
+    {
+        "table": "shipments_products_and_services",
+        "columns": [
+            "shipment_id",
+            "product_svc_id",
+            "quantity"
+        ]
+    },
+    {
+        "table": "movement_locations",
+        "columns": [
+            "id",
+            "shipment_id",
+            "from_location_id",
+            "to_location_id",
+            "date_started",
+            "date_completed",
+            "other_details"
+        ]
+    }
+]
