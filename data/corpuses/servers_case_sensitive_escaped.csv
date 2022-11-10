@@ -1,0 +1,181 @@
+[14TPAWNDB001],1
+[2016Instance],1
+[20Z2\SQLEXPRESS],1
+[211_TEST],1
+[:destroy],1
+[@server1-SERVER-01],1
+[ABC\SQCENTRE],1
+[ALT-STG-SQL-ATLNTA1\DWH],2
+[AN-UATSQL03\DWH],1
+[AOR-AOSQL01],1
+[ARGTPAWN-DB-DWH],1
+[ASH-CCSASSQLP],1
+[AVANTISERVER\NCL_MASTER],8
+[Amazon IP],1
+[BHXSQL2014-DEV],7
+[BR150\sp_BRVM124],1
+[BR150\sp_BRVM130],1
+[CCSBC-DW1],1
+[CHH-SLAMDB],3
+[CHICAGOLAPTOP\MSSQLSERVER],2
+[CNCTC-WEB01],19
+[COMPANY-SQL01],9
+[CSVP0007\WWE037],7
+[Computer2\SqlExpress],4
+[DB-SERVER-2],2
+[DB2-LINKED-SERVER],1
+[DBN-SERVER],1
+[DC-SQL-V2],3
+[DCA-DB-326\MSBI_RS],3
+[DELL-PC],1
+[DESKTOP-509LB9L\MSSQLSERVER01],3
+[DOENRICH-SQL],6
+[DPS-ABC1DE2\SQLEXPRESS],1
+[DWH-INF],1
+[Dest\Instance],1
+[ECPAY-PC],1
+[EXPLORER\SQLEXPRESS2014],2
+[FIG-SQL-SRV],4
+[FRACTALSERVER\FRACTASQLEXPRESS],1
+[FS25-W2K8\SQLEXPRESS],7
+[FS25-w2k8\SQLEXPRESS],2
+[GBIPS-I-DB324D],2
+[GBIPS-I-DB48D\SQL2008R2],44
+[GC-DEV-TEST\TEST2008R2],5
+[HDE-SERVER],2
+[HP-5CD6071],1
+[HQSQLHOM01\SQLHOM01],5
+[HVV-CENTRALOPSDB],1
+[IMAN-SQL],3
+[INDEL-NVDVCBI02],17
+[IS-SERVER_SQL\SVILUPPO],1
+[JDEPSQL1\JDEProd],2
+[JMDNJ-ACCELSQL],16
+[JMNYC-AMTDB],91
+[LHR-CCSASSQLP],1
+[LINK-RC],1
+[LINK-SERVER],2
+[LINKED INSTANCE],3
+[LINKED SERVER],7
+[LINKED-SERVER],4
+[LIVESERVER\LIVEINSTANCE],20
+[LOCALHOST\SQLEXPRESS],1
+[LS-DLPlus],12
+[Link Server],1
+[Linked OLE DB Server],1
+[Linked-Server-Name],1
+[LinkedServerObject-Spain],1
+[Local Server],1
+[MCSOWS20\SQL2008],1
+[MIS-028],1
+[MM\PLUSREPORT5],25
+[MY-LINKED-SERVER],1
+[MYSERVERNAME\SQLSERVICEINSTANCE],1
+[MY_COMPUTER_NAME\SQLEXPRESS],1
+[My Local Server],1
+[My_Machine\SQLEXPRESS],1
+[NEWTON-DB],2
+[Online server_name],1
+[PARKWAY-TRAIN],1
+[PC89450\SQLEXPRESS],1
+[PHRIZ-WEBAPP01],20
+[PRN-CCWSASSQLP],1
+[PRODYCHDBX3\X3V7],1
+[PROD\SQL01],4
+[PWSQL0001-US],1
+[Prod_Server\Instance],1
+[REMOTE-DB],1
+[REMOTESERVERNAME\CustomerDatabaseNEW],1
+[ROTags-Shopify-Alpha],1
+[RPV1Data\RPV1Data],2
+[Remote Server],4
+[SC-SAP01],1
+[SE-SQLTO-0300],24
+[SERV-SQL01],5
+[SERVER-B],1
+[SERVER\DB4_1],1
+[SERVER\INSTANCE2],1
+[SERVER\INSTANCE],2
+[SERVER\INSTANCE_A],1
+[SERVER\INSTANCE_B],1
+[SOOPS-LAWREPT],16
+[SQL02\DEV1],1
+[SQLIMELTC\IMELTCPROD],5
+[SQLSRV-3-JB],10
+[SRV-AXDEV],1
+[SRV-Data],2
+[SRVR002\ACCTG],4
+[SRV\INSTANCE],1
+[SYSTEM1\SQLEXPRESS],1
+[Server B],13
+[Server Ip],1
+[Server1\DB],2
+[Server1\SQLEXPRESS],1
+[Server2\DB],2
+[Server2\SQLEXPRESS],1
+[ServerA\Instance],1
+[ServerB\Instance],1
+[ServerName\Instance],2
+[Server\Instance],1
+[Server_1\Instance_1],1
+[Service Contract Data],2
+[Shared Server],1
+[TABLE 02 $TRANSACTIONS],1
+[TDG-MBL-005],1
+[TITAN\SERVER1],1
+[TK\B],1
+[TMP-DBA-DB],2
+[TR-SF-PROD],4
+[USCASQL01\STAGING],1
+[WB-RTGSQL],4
+[XXXXXX\YCHANALYTICS],1
+[XYZ-SERVER-1\ETC],2
+[YCH-REPORTING\YCHANALYTICS],1
+[aae-sqldw-02],1
+[ali\servername],2
+[ausnry-sqltest1],1
+[ch-s-0008180],4
+[cntrra20-devbrs],2
+[colo-db1],3
+[destination server],1
+[eia-dev-db],1
+[eih-dr01],64
+[erp-server],1
+[flmir-jdasqldv1],4
+[foo-2012],1
+[home server],1
+[hq-svr-sql-05],1
+[john-pc\sqlexpress],2
+[la-w08-qrm-db-1],14
+[linked server],2
+[linked-server-name],1
+[linked-server],1
+[linkedServer\Instance],8
+[linkedserver\sqlserver],3
+[mon-qa-01],1
+[pharos90-2008],5
+[production01\istn],1
+[pscgdassql\dasdb],8
+[referenced table#2],1
+[remote server],1
+[remote-server],1
+[remote_server\database],1
+[rmslive\sql2005],2
+[s-portaldb1],10
+[s-printstream],3
+[server X],1
+[server Y],1
+[server-01],1
+[server-1],1
+[server-2],1
+[server1\databse1 name],1
+[server\db],1
+[server\sqlexpress],15
+[sin-ccsassqlp],1
+[source server],1
+[sqlcdb-h05],9
+[sqlmd05stg\sqlmd05stg],5
+[test01\istn],1
+[tsqldb\sqldb],7
+[wb-rtgsql],2
+[wpic-smir],1

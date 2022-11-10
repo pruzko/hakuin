@@ -1,0 +1,232 @@
+[ Priority],1
+[005SAPTables_DBO],1
+[00_SheetList-Revit-UNION],1
+[03_rdm],1
+[0CALDAY],1
+[0CRM_OBJ_ID],1
+[0CRM_PRCTYP],1
+[0CUSTOMER],1
+[0FISCPER],1
+[0],1
+[1 Tracking],1
+[10-Digit Groups],1
+[115 Procurement],1
+[1M],4
+[1tblPERSON],1
+[2013-com-Nazioni-Def],3
+[201406020449030_initial],1
+[201501282207413_Initial],1
+[201907231929105_Initial],1
+[202206021223499_mig_database-upd],1
+[2tlm_spec],1
+[30 on hand],1
+[3_Costs],1
+[3rdParty],5
+[50004],15
+[54_SD_Membership],1
+[8f2175c0-7021-4286-86ec-f2dd627fdc73],3
+[AD\30186656],2
+[ATLANTIS\jjudge],2
+[Accident Date],3
+[Account ID],1
+[Adventure Works Internet Sales Model],1
+[All Regions],10
+[AllEmail Name],1
+[Area Hierarchy],1
+[Batch Number],3
+[Borrow DVDs],1
+[Branch Hierarchies],1
+[Business Component],2
+[Business Unit],2
+[C3 Forecast],19
+[C3 ODS],5
+[CAL Calendar],4
+[CORP\u694172],1
+[Calendar Months],2
+[Calendar YQMD],1
+[Calendar Year],1
+[Calender 1],1
+[Cat Total by Case],1
+[Category 1],1
+[Channel Account ID],1
+[Characteristic Date],1
+[Company Country Code],1
+[Contractor Code],1
+[Cost Category],1
+[Cost Code],1
+[Country Region Code],1
+[Customer Geography],2
+[Customer ID],1
+[Customer Id],1
+[Customer Name],1
+[DB NAME],1
+[DB-2],1
+[DELAWARE MAIN TABLE],1
+[DIM 1],1
+[DIM 2],1
+[DIM ANESTH],2
+[DIM Accounting Period],2
+[DIM Kunde],1
+[DIM PRODUCT],3
+[DIM Production Period],1
+[DIM TIME],1
+[DIMPROPERTY TIME],2
+[Data Zameldowania],3
+[Data finansowa],1
+[Date - Master],3
+[Date Dim],1
+[Date Time],1
+[Day Number],1
+[Dim 1],1
+[Dim 2],1
+[Dim Account],1
+[Dim Age Band Ques 3],1
+[Dim Agent],1
+[Dim Casualty Type Ques 3],1
+[Dim Cliente],1
+[Dim Date Ques 3],1
+[Dim Date],2
+[Dim Entity],2
+[Dim Model],1
+[Dim Product],1
+[Dim Sales Territory],1
+[Dim Store],3
+[Dim Time],1
+[Domain\Login],1
+[Domain\UserName],1
+[Drill Down Path 4],3
+[Due Date],2
+[EMEA\BanksD],1
+[EP Business Line],1
+[Effective Date],1
+[Employee ID],1
+[Employee Name],1
+[End Date],1
+[Execution End Time],1
+[Fact Lead Pax Report],2
+[Fiscal Year Hierarchy],2
+[HJ-Admin],31
+[Hierarchie Bestellung],1
+[Home Owner],1
+[Hour - Second],1
+[IAB\KruegerJ049],1
+[ID Kunde],1
+[ISO Week Number Of Year],1
+[Incident Details],1
+[Indicator Group],1
+[Indicator Name],1
+[Indicator Set],1
+[Item Attribute Value Mapping_V],1
+[Item Description],1
+[Iteration Path],1
+[KT-RD-01\acctivate],1
+[Kod wymiaru 02],1
+[Kod wymiaru 04],1
+[Kod wymiaru 05],1
+[Kod wymiaru 06],1
+[Kod wymiaru 07],1
+[Kod wymiaru 08],1
+[Konta wg numerów],1
+[LY Physician Score],1
+[Locations and Employees],1
+[Loyalty Cards],1
+[Market Analysis Review],1
+[Month Name of Year],1
+[Month Number of Year],1
+[Month and Year],1
+[My Schema],1
+[MyDomain\MyUsername],1
+[NORTHAMERICA\ourappname],10
+[Name En],1
+[Nazwa wymiaru 02],1
+[Nazwa wymiaru 04],1
+[Nazwa wymiaru 05],1
+[Nazwa wymiaru 06],1
+[Nazwa wymiaru 07],1
+[Nazwa wymiaru 08],1
+[Network Location],3
+[Node-4-127 ],1
+[Node-4-127],1
+[ORG\USERNAME],1
+[Order Date],2
+[Overall query],2
+[PACKING SLIPS],1
+[PBM ANE NOM],1
+[PCP Name],1
+[PO Master Data Table],2
+[Payment Method],1
+[Paymul Date],1
+[People who are active on another course],1
+[Performance Rep Team Org],2
+[Plant Name],3
+[Product Categories],2
+[Product Hierarchy],2
+[Product ID],3
+[Product Line],2
+[Production Unit],3
+[Projekt-Task],1
+[Provider Code],1
+[Purchasing Site],1
+[Query Main],2
+[RACE CANDIDATES],1
+[Raw material reg info],1
+[Receiver Club],1
+[Rev Old New],1
+[Roster Role],2
+[SAP-Data],1
+[SERVER\DB4_1],1
+[Sales Team],1
+[Sales Territory],1
+[SearchByName - No Filter],2
+[Section Chief],1
+[Sophos Reporting Interface],3
+[Staff Details],2
+[Start Date  Unloading],1
+[Start Date],1
+[Steel Mill Product],1
+[Steeping Start Date],1
+[Struktura raportowa MPK],1
+[Student Register],1
+[Supplier Name],1
+[Table 1],1
+[Table 2],2
+[Tb Product],3
+[Term Enrolments],2
+[Term Record Creation],4
+[Thyroid Surgeries],1
+[Time Entry],1
+[Tourney Id],1
+[Trial Balance Tree],6
+[UETTDRSB39A Criteria],1
+[US\AC39169],1
+[US\AF83767],1
+[Valuation Date],4
+[Week Day],1
+[Work Item],1
+[YEAR -  QUARTER -  MONTH],2
+[Year -  Week -  Date],2
+[a\b],2
+[a\c],1
+[bba-reman],4
+[compName\Josh],1
+[dbo ],1
+[dev-database-name],1
+[fromRange-toRange],1
+[homework-3-cc-database],1
+[homework-3-cc-schema],1
+[impact test],1
+[intake-risk],2
+[pdldb16-17],3
+[problematic-database],1
+[prod-database-name],1
+[raw data],1
+[schema Name],2
+[schema name],1
+[schemaname ],1
+[select database_name from table1],1
+[sql connection string],1
+[tabl A],1
+[table name],1
+[v-steel],1
+[v3-2],3
+[vc-live],1

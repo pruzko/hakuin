@@ -1,0 +1,277 @@
+[ QueryTest],3
+[ db2],4
+[ db3],1
+[001],17
+[002],1
+[003 AccptReg],3
+[009Reports],9
+[01 Plants],1
+[02Manual_DB],4
+[04 Production Units],1
+[040],7
+[0815Onlinehandel_90],20
+[1 Date - Loss Date],1
+[100],6
+[123MyDatabase],1
+[200],12
+[2014-All-1],1
+[2014-Apples-Part1],1
+[2014-Apples-Part2],1
+[2014-Apples-Part3],1
+[2014_EBook],7
+[2016],6
+[2017DB],1
+[211],2
+[22AE5D15],2
+[340bAudit],1
+[46e881b7-c5f1-41cb-8eee-7c92a89cba41],15
+[4_Costs],1
+[515dap],1
+[555],7
+[65 Batch Process Data],2
+[70 Steeping General],3
+[701],4
+[80 Germination General],5
+[81 Germination Continue],2
+[951278],6
+[AGR Metrics],2
+[ATNA-Update-Test],1
+[AX-DW-QTY],1
+[Activity - E],1
+[Ad Dim],1
+[Archival System],1
+[Baraam Retail STG],3
+[Beyond-Auckland],4
+[Blue Prism],1
+[Boschendal Manor BC],3
+[CAL Calendar],1
+[CC-DB],2
+[CE_COG-BI-EDW],3
+[CLIENT-PROD-POS],1
+[CMS Menu],1
+[COBG-BIU],1
+[CON-INST],1
+[COS Source],14
+[CSC 289],1
+[Car dealership],1
+[Changed By],1
+[Chant-GreyPar],12
+[Client Raw],3
+[College Management System],3
+[Commission Category Current],1
+[Commodity-Wise],2
+[Company Management],1
+[Counter Intelligence Office],1
+[Creative Dim],1
+[Cutting software],1
+[DB Name],1
+[DB ],1
+[DB-1],2
+[DB-2],1
+[DB-LIVE],1
+[DB2-LINKED-SERVER],1
+[DBHFT 201314 Trust SLAM Model PID],8
+[DDROPDATABASEPROM-2020-10-11-13-13],4
+[DENUE6ASXXX\WINDVSW1\DATEV\DATEN\PMS\DATENBANKEN\WIS32DATEVDB],1
+[DESTINATION-DATABASE],1
+[DEV-test],1
+[DEVICE-SECURITY],6
+[DIM ANESTH],2
+[DIM Bestellung],2
+[DIM CUSTOMER],1
+[DIM PRODUCT],1
+[DIM TIME],2
+[DLI-US],1
+[DS-LOG-TEST],83
+[DS715-Cameron-Erwin],12
+[DW PI],1
+[Data Checking],6
+[Data Warehouse],1
+[DataBase-Name],1
+[Database 1],1
+[Database 2],1
+[Database A],1
+[Database Name],2
+[Database file],1
+[Database-1A],4
+[Date Dimension],2
+[Date Link],1
+[Date Reported],1
+[Date and Time],1
+[Delivery Date],1
+[Dim Contractor],1
+[Dim Customer],3
+[Dim Date],3
+[Dim Indicator],3
+[Dim Product],1
+[Dim Provider],1
+[Dim Time],4
+[Dimensional Model_Dim - Customer],14
+[Disposal Date],1
+[Dynamicweb-Verploegen-Test_new],1
+[E-SVR],1
+[ECPAY-PC],1
+[EDMS-Lok],1
+[Effective Date],1
+[Example Database],10
+[FedScope Accessions],25
+[FedScope Employment],22
+[Financial Bureau Reports],1
+[FixedAsset Control],4
+[GBP-USD],1
+[GDI-193-DEV],43
+[GEARS-POS],3
+[Graceland Estates BC],4
+[Gulf-Jobs],9
+[HIMC_I2B2_LZ-PROD],7
+[HPW Data],1
+[HQ-193-STOCK-DBO],2
+[HQ-211-STOCK-DBO],16
+[HQ-MC-SRV-01],1
+[Harley-Davidson],1
+[I 3 SCI control],1
+[INS Data Collection Files],1
+[INS Data Files],9
+[IRS-900],1
+[ISG_SOI ],95
+[IT Solutions Develop],1
+[IT-Support],1
+[Investment Data 1],1
+[KCS SARL],6
+[KeyWords Dim],1
+[LOCAL DATABASE],1
+[La esquina del calzado],1
+[Label Software],1
+[Labor DATE],1
+[Local DB Name],1
+[Local DB],1
+[Log Entry],1
+[Loss Date],1
+[MEC-ED],1
+[Master Data - E],3
+[Medical Malpractice],4
+[MetaData Dummy],1
+[NAV-WH],2
+[NCAATreasureHunt-dev],1
+[NHSP-Shifts-DW],3
+[NavaarDb-Dev],1
+[Normac Data],1
+[Operations Productivity Tool],1
+[Operations Stats],1
+[PDMWE-Bel-ArtProductsDocManagement],1
+[PRD Project],2
+[PROJECT NODE],1
+[Pallex-DW],1
+[Postmate_ Shopping],1
+[Product Hierarchy],1
+[Purchasing Site],1
+[QAFull-Global],2
+[ROTags-Shopify-Alpha],3
+[RPS-201065-000],27
+[Remote DB Name],4
+[SB-B],2
+[SDT-DB],1
+[SIT-DVH],2
+[SOURCE-DATABASE],1
+[SQL-Database],5
+[SRL-TST],1
+[SRT-HR-DW],1
+[SRV-RVS],3
+[STG_Extract Database],6
+[STOKVIS LIVE],1
+[SUPER-G],31
+[SYSTEM1\SQLEXPRESS],1
+[Sales Team],1
+[Server 01],3
+[Server 02],2
+[Server X],4
+[Server name],1
+[Service Contract Data],11
+[Skills Matrix],7
+[StorageDB - BAW],7
+[T-Files],1
+[TALK TRACK RAP],1
+[TEST-PH],2
+[TF7-TestDatabase-ScheduledRestore],1
+[TF7-User-Demo-ScheduledRestore-03],1
+[Task Centre],2
+[Tb Consumer],1
+[Tb Product],1
+[Tb Supplier],2
+[Term Record Creation],1
+[Tg-DB],6
+[Trial Balance Tree],4
+[TvPad2-dev],1
+[Type Hierarchy],1
+[UNIS 22Dec],1
+[User Property],1
+[Vail-PlantAdgas-Webservices],27
+[VegetablesCoSD-Full],7
+[WA Products Sales],1
+[WH-SSIS],8
+[WIN-9SEBDMDC9O9_HMI#B5N2_ALG_202012020924],1
+[Website-LIVE],1
+[Work Item],4
+[Workflow Creation],1
+[Wymiar 02],2
+[Wymiar 04],2
+[Wymiar 05],2
+[Wymiar 06],2
+[Wymiar 07],2
+[Wymiar 08],2
+[Yahoo Fantansy Basketball 2020-2021],1
+[aldia db],1
+[aspnet-E-Pacjent-20200804074349],1
+[ca-v2],3
+[ccwise-courts],1
+[chester-prod],2
+[database 1],1
+[database 2],1
+[database A],2
+[database B],1
+[database name with spaces],1
+[database name],3
+[db name],1
+[db-name],1
+[db-sbr-20120724T193741793SS],7
+[db-sbr-20130724T193906220SS],3
+[db-sbr],34
+[db-testing],1
+[destination database],1
+[dev-pmoldw],1
+[dev-server-name],1
+[dev-testdb],1
+[drp-data],6
+[e-SignatureDB],1
+[enVision-Development],1
+[example-base],1
+[i 3 sci study],2
+[i 3 study],2
+[iNode-8-24-14-Orig],1
+[iPad-CC],1
+[investment data 1],1
+[invoiceR-Test],1
+[iqbs DataWarehouse],3
+[learning-space-analytics],1
+[midyear-byway-252503],1
+[my-database],1
+[pre-prod],2
+[prod-server-name],1
+[remote database],1
+[reporting\server],2
+[sample client],1
+[sampleDB_for excercise],1
+[sds-pos-storiveo-db],3
+[search-contacts],1
+[server2\database2 name],2
+[source database],9
+[storagedb - Mariana],2
+[storagedb - baw],5
+[target database],9
+[targil 2],8
+[test 2],13
+[test-db],2
+[tsql-dml],6
+[u-rate-gatwick-qsm],1
+[vxda-prod-sqldw01],1
+[westmedWebDB-bk],1

@@ -1,0 +1,226 @@
+[ priority],1
+[005saptables_dbo],1
+[00_sheetlist-revit-union],1
+[03_rdm],1
+[0],1
+[0calday],1
+[0crm_obj_id],1
+[0crm_prctyp],1
+[0customer],1
+[0fiscper],1
+[1 tracking],1
+[10-digit groups],1
+[115 procurement],1
+[1m],4
+[1tblperson],1
+[2013-com-nazioni-def],3
+[201406020449030_initial],1
+[201501282207413_initial],1
+[201907231929105_initial],1
+[202206021223499_mig_database-upd],1
+[2tlm_spec],1
+[30 on hand],1
+[3_costs],1
+[3rdparty],5
+[50004],15
+[54_sd_membership],1
+[8f2175c0-7021-4286-86ec-f2dd627fdc73],3
+[a\b],2
+[a\c],1
+[accident date],3
+[account id],1
+[ad\30186656],2
+[adventure works internet sales model],1
+[all regions],10
+[allemail name],1
+[area hierarchy],1
+[atlantis\jjudge],2
+[batch number],3
+[bba-reman],4
+[borrow dvds],1
+[branch hierarchies],1
+[business component],2
+[business unit],2
+[c3 forecast],19
+[c3 ods],5
+[cal calendar],4
+[calendar months],2
+[calendar year],1
+[calendar yqmd],1
+[calender 1],1
+[cat total by case],1
+[category 1],1
+[channel account id],1
+[characteristic date],1
+[company country code],1
+[compname\josh],1
+[contractor code],1
+[corp\u694172],1
+[cost category],1
+[cost code],1
+[country region code],1
+[customer geography],2
+[customer id],2
+[customer name],1
+[data finansowa],1
+[data zameldowania],3
+[date - master],3
+[date dim],1
+[date time],1
+[day number],1
+[db name],1
+[db-2],1
+[dbo ],1
+[delaware main table],1
+[dev-database-name],1
+[dim 1],2
+[dim 2],2
+[dim account],1
+[dim accounting period],2
+[dim age band ques 3],1
+[dim agent],1
+[dim anesth],2
+[dim casualty type ques 3],1
+[dim cliente],1
+[dim date ques 3],1
+[dim date],2
+[dim entity],2
+[dim kunde],1
+[dim model],1
+[dim product],4
+[dim production period],1
+[dim sales territory],1
+[dim store],3
+[dim time],2
+[dimproperty time],2
+[domain\login],1
+[domain\username],1
+[drill down path 4],3
+[due date],2
+[effective date],1
+[emea\banksd],1
+[employee id],1
+[employee name],1
+[end date],1
+[ep business line],1
+[execution end time],1
+[fact lead pax report],2
+[fiscal year hierarchy],2
+[fromrange-torange],1
+[hierarchie bestellung],1
+[hj-admin],31
+[home owner],1
+[homework-3-cc-database],1
+[homework-3-cc-schema],1
+[hour - second],1
+[iab\kruegerj049],1
+[id kunde],1
+[impact test],1
+[incident details],1
+[indicator group],1
+[indicator name],1
+[indicator set],1
+[intake-risk],2
+[iso week number of year],1
+[item attribute value mapping_v],1
+[item description],1
+[iteration path],1
+[kod wymiaru 02],1
+[kod wymiaru 04],1
+[kod wymiaru 05],1
+[kod wymiaru 06],1
+[kod wymiaru 07],1
+[kod wymiaru 08],1
+[konta wg numerów],1
+[kt-rd-01\acctivate],1
+[locations and employees],1
+[loyalty cards],1
+[ly physician score],1
+[market analysis review],1
+[month and year],1
+[month name of year],1
+[month number of year],1
+[my schema],1
+[mydomain\myusername],1
+[name en],1
+[nazwa wymiaru 02],1
+[nazwa wymiaru 04],1
+[nazwa wymiaru 05],1
+[nazwa wymiaru 06],1
+[nazwa wymiaru 07],1
+[nazwa wymiaru 08],1
+[network location],3
+[node-4-127 ],1
+[node-4-127],1
+[northamerica\ourappname],10
+[order date],2
+[org\username],1
+[overall query],2
+[packing slips],1
+[payment method],1
+[paymul date],1
+[pbm ane nom],1
+[pcp name],1
+[pdldb16-17],3
+[people who are active on another course],1
+[performance rep team org],2
+[plant name],3
+[po master data table],2
+[problematic-database],1
+[prod-database-name],1
+[product categories],2
+[product hierarchy],2
+[product id],3
+[product line],2
+[production unit],3
+[projekt-task],1
+[provider code],1
+[purchasing site],1
+[query main],2
+[race candidates],1
+[raw data],1
+[raw material reg info],1
+[receiver club],1
+[rev old new],1
+[roster role],2
+[sales team],1
+[sales territory],1
+[sap-data],1
+[schema name],3
+[schemaname ],1
+[searchbyname - no filter],2
+[section chief],1
+[select database_name from table1],1
+[server\db4_1],1
+[sophos reporting interface],3
+[sql connection string],1
+[staff details],2
+[start date  unloading],1
+[start date],1
+[steel mill product],1
+[steeping start date],1
+[struktura raportowa mpk],1
+[student register],1
+[supplier name],1
+[tabl a],1
+[table 1],1
+[table 2],2
+[table name],1
+[tb product],3
+[term enrolments],2
+[term record creation],4
+[thyroid surgeries],1
+[time entry],1
+[tourney id],1
+[trial balance tree],6
+[uettdrsb39a criteria],1
+[us\ac39169],1
+[us\af83767],1
+[v-steel],1
+[v3-2],3
+[valuation date],4
+[vc-live],1
+[week day],1
+[work item],1
+[year -  quarter -  month],2
+[year -  week -  date],2

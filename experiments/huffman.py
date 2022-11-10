@@ -25,6 +25,9 @@ def get_node_heights(node, height=0):
 
 
 def huffman(char_freq):
+    if not char_freq:
+        return dict()
+
     nodes = [Node(c, f) for c, f in char_freq.items()]
 
     while len(nodes) > 1:

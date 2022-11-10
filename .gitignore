@@ -164,3 +164,5 @@ cython_debug/
 # hakuin
 old/
 others/
+experiments/generic_db/tmp/
+data/bookcorpus/tmp/
