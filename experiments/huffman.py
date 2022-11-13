@@ -18,7 +18,7 @@ def _get_node_heights(node_heights, node, height=0):
     _get_node_heights(node_heights, node.right, height + 1)
 
 
-def get_node_heights(node, height=0):
+def get_node_heights(node):
     node_heights = {}
     _get_node_heights(node_heights, node)
     return node_heights
@@ -29,6 +29,9 @@ def huffman(char_freq):
         return dict()
 
     nodes = [Node(c, f) for c, f in char_freq.items()]
+
+    if len(nodes) == 1:
+        return {nodes[0].char: 1.0}
 
     while len(nodes) > 1:
         nodes = sorted(nodes, key=lambda x: x.freq)

@@ -1,5 +1,5 @@
 from functools import partial
-from itertools import chain
+from itertools import chain, islice
 
 from nltk.util import ngrams as nltk_ngrams
 from nltk.lm.preprocessing import pad_both_ends
@@ -27,7 +27,10 @@ def padded_everygram_pipeline(data, max_ngram):
     return train, vocab
 
 
-
 def split_to_ctx(s, ngram):
     return list(ngrams(s, ngram))
 
+
+def split_to_batches(l, size):
+    it = iter(l)
+    return iter(lambda: tuple(islice(it, size)), ())

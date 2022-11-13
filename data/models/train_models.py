@@ -3,6 +3,7 @@ import os
 import dill
 from nltk.lm import MLE
 
+import hakuin
 import hakuin.utils
 
 
@@ -25,34 +26,31 @@ def fetch_data(fname):
 
 
 def main():
-    # print('Tables...')
-    # data = fetch_data(os.path.join(DIR_CORPUSES, 'tables.csv'))
-    # train, vocab = hakuin.utils.padded_everygram_pipeline(data, MAX_NGRAM)
-    # model = MLE(MAX_NGRAM)
-    # model.fit(train, vocab)
+    print('Tables...')
+    data = fetch_data(os.path.join(DIR_CORPUSES, 'tables.csv'))
+    m = hakuin.get_model_clean(MAX_NGRAM)
+    m.fit(data)
 
-    # with open(os.path.join(DIR_MODELS, 'model_tables.pkl'), 'wb') as f:
-    #     dill.dump(model, f)
-    # print('Done.')
+    with open(os.path.join(DIR_MODELS, 'model_tables.pkl'), 'wb') as f:
+        dill.dump(m.model, f)
+    print('Done.')
 
-    # print('Columns...')
-    # data = fetch_data(os.path.join(DIR_CORPUSES, 'columns.csv'))
-    # train, vocab = hakuin.utils.padded_everygram_pipeline(data, MAX_NGRAM)
-    # model = MLE(MAX_NGRAM)
-    # model.fit(train, vocab)
+    print('Columns...')
+    data = fetch_data(os.path.join(DIR_CORPUSES, 'columns.csv'))
+    m = hakuin.get_model_clean(MAX_NGRAM)
+    m.fit(data)
 
-    # with open(os.path.join(DIR_MODELS, 'model_columns.pkl'), 'wb') as f:
-    #     dill.dump(model, f)
-    # print('Done.')
+    with open(os.path.join(DIR_MODELS, 'model_columns.pkl'), 'wb') as f:
+        dill.dump(m.model, f)
+    print('Done.')
 
     print('Generic...')
     data = fetch_data(os.path.join(DIR_BOOKCORPUS, 'wordlist.csv'))
-    train, vocab = hakuin.utils.padded_everygram_pipeline(data, MAX_NGRAM)
-    model = MLE(MAX_NGRAM)
-    model.fit(train, vocab)
+    m = hakuin.get_model_clean(MAX_NGRAM)
+    m.fit(data)
 
     with open(os.path.join(DIR_MODELS, 'model_generic.pkl'), 'wb') as f:
-        dill.dump(model, f)
+        dill.dump(m.model, f)
     print('Done.')
 
     # import code; code.interact(local=dict(globals(), **locals()))

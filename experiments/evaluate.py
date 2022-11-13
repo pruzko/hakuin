@@ -1,4 +1,5 @@
 import code
+import collections
 import copy
 import json
 import math
@@ -9,7 +10,7 @@ import sys
 import dill
 
 import hakuin
-from hakuin.utils import split_to_ctx
+from hakuin.utils import split_to_ctx, split_to_batches
 from huffman import huffman
 
 
@@ -78,14 +79,25 @@ def get_gradual_miss_resolve(scores, correct):
     return total
 
 
-def hakuin_search(model, s, ngram, mode, selection, downgrading, threshold_scores=None, threshold_counts=None, gradual_miss_resolve=False):
+def hakuin_search(
+        s,
+        model,
+        ngram,
+        mode,
+        selection,
+        downgrading,
+        threshold_scores,
+        threshold_counts,
+        gradual_miss_resolve,
+        multi_word
+    ):
     assert selection in ['plain', 'huffman']
     assert mode in ['schema', 'generic']
 
     contexts = [list(ctx) for ctx in split_to_ctx(s, ngram)]
 
     total = 0.0
-    for i, ctx in enumerate(contexts):
+    for ctx in contexts:
         correct = ctx.pop(-1)
 
         scores = {}
@@ -101,6 +113,9 @@ def hakuin_search(model, s, ngram, mode, selection, downgrading, threshold_score
             scores = {c: score for c, score in scores.items() if score >= threshold_scores}
         if threshold_counts is not None:
             scores = {c: score for c, score in scores.items() if model.count(c, ctx) >= threshold_counts}
+
+        if multi_word and '</s>' in scores:
+            scores[' '] = scores['</s>']
 
         huff = huffman(scores)
 
@@ -127,30 +142,7 @@ def hakuin_search(model, s, ngram, mode, selection, downgrading, threshold_score
             else:
                 total += math.log(len(CHARSET_ASCII) - len(scores), 2)
 
-        # if correct in string.ascii_lowercase:
-        #     print('LOWER')
-        # elif correct in string.ascii_uppercase:
-        #     print('UPPER')
-        # elif correct.isdigit():
-        #     print('DIGIT')
-        # else:
-        #     print(f'OTHER: "{correct}"')
-
     return total
-
-
-def hakuin_analyze_per_idx(model, s, ngram, res, charset=None, selection='plain'):
-    assert selection in ['plain', 'huffman']
-    contexts = split_to_ctx(s, ngram)
-
-    for i, ctx in enumerate(contexts):
-        correct = ctx.pop(-1)
-        scores = model.score_dict(ctx)
-        huff = huffman(scores)
-
-        total = get_plain_guesses(scores, correct) if selection == 'plain' else huff[correct]
-        res[str(i)]['total'] += total
-        res[str(i)]['n'] += 1
 
 
 def count_data(data):
@@ -161,25 +153,24 @@ def count_bin_search(data, charset):
     return sum([bin_search(d, charset) for d in data])
 
 
-def count_hakuin(data, model, mode, downgrading, threshold_scores=None, threshold_counts=None, gradual_miss_resolve=False):
-    res = {}
+def count_hakuin(data, **kwargs):
+    return sum([hakuin_search(s=s, **kwargs) for s in data])
 
-    # for i in range(1, model.max_ngram + 1):
-    for i in [5]:
-        for d in data:
-            res[f'{i}_plain'] = res.get(f'{i}_plain', 0)
-            res[f'{i}_huffman'] = res.get(f'{i}_huffman', 0)
-            # res[f'{i}_plain'] += hakuin_search(model, d, ngram=i, mode=mode, selection='plain', downgrading=downgrading, threshold_scores=threshold_scores, threshold_counts=threshold_counts)
-            res[f'{i}_huffman'] += hakuin_search(
-                model,
-                d,
-                ngram=i,
-                mode=mode,
-                selection='huffman',
-                downgrading=downgrading,
-                threshold_scores=threshold_scores,
-                threshold_counts=threshold_counts,
-                gradual_miss_resolve=gradual_miss_resolve
-            )
 
-    return res
+def count_hakuin_adaptive(data, batch_size, kwargs_generic, kwargs_adaptive):
+    model_adaptive = None
+    total = 0.0
+
+    for batch in split_to_batches(data, batch_size):
+        if not model_adaptive:
+            model_adaptive = hakuin.get_model_clean(kwargs_adaptive['ngram'])
+            if kwargs_generic is None:
+                total += count_bin_search(batch, string.ascii_lowercase)
+            else:
+                total += count_hakuin(batch, **kwargs_generic)
+        else:
+            total += count_hakuin(batch, model=model_adaptive, **kwargs_adaptive)
+
+        model_adaptive.fit(batch)
+
+    return total
