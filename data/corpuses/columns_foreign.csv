@@ -1,222 +1,6 @@
-[Año],13
-[contraseña],12
-[MærkeID],11
-[Contraseña],10
-[año],10
-[läsår_fakta],10
-[à],10
-[Fælge],9
-[Hallöle],9
-[Straße],9
-[AÑO],8
-[Città],8
-[Imię],8
-[Förnamn],7
-[catégorie],7
-[prénom],7
-[Dæk],6
-[Mærket],6
-[Quantité],6
-[précision_contour],6
-[Årgang],6
-[Código],5
-[Krydsmål],5
-[Krydsmålet],5
-[Prénom],5
-[försystem],5
-[Année],4
-[CÔR],4
-[Descrição],4
-[FKód],4
-[Krydsmålene],4
-[OmrådesNr],4
-[Preço],4
-[Quantità],4
-[Ställeid],4
-[é],4
-[ıd],4
-[Activité],3
-[AnställningsID],3
-[Aprašymo_Id],3
-[CONTRASEÑA],3
-[Catégorie],3
-[Cin_Expéditeur],3
-[Débit],3
-[Eñd],3
-[FØRSTE_AGENT],3
-[Födelsedatum],3
-[Gerätename],3
-[Id_Embarcação],3
-[Kostengefäss_ID],3
-[Lıcence_ID],3
-[Månad],3
-[Não],3
-[PRDomínioMédio],3
-[PRMédio],3
-[Région],3
-[Rückgabedatum],3
-[Rüsten_Ist],3
-[Versão],3
-[Yaş],3
-[endereço],3
-[idlærer],3
-[prod_soll_über],3
-[straße],3
-[vægt],3
-[Ã],3
-[è],3
-[ï],3
-[Ответственный],3
-[BM Adı],3
-[Formulários],3
-[Identifiant tâche],3
-[Müşteri Adı],3
-[Observações1],3
-[SATIŞ ADET],3
-[発生時刻],3
-[@año],2
-[AgentūrosNr],2
-[Anställningsnr],2
-[Användarnamn],2
-[Aufträge_anzahl],2
-[Ausschuß],2
-[AvgångStad],2
-[Beställning],2
-[Beställning_ID],2
-[CIN_Expéditeur],2
-[Caractère],2
-[Crédit],2
-[Cím],2
-[DATEECHÉANCE],2
-[Datum_doručení],2
-[Début],2
-[DésignationBDC2],2
-[Feldstärke],2
-[FimMês],2
-[Gerät],2
-[GrupėsID],2
-[Güç],2
-[Hà],2
-[ID_SOLICITAÇÃO],2
-[Id_qualité],2
-[Idő],2
-[Kürzel],2
-[Libellé],2
-[Matrícula],2
-[Modèle],2
-[No_Assuré_Lien],2
-[NomColonneChangé],2
-[Nội],2
-[Priorität],2
-[Prüfzeit],2
-[Příjmení],2
-[Razón_social],2
-[Réference],2
-[Situação],2
-[Steuergerät],2
-[Sábado],2
-[Sıcaklık],2
-[Váha],2
-[abréviation_unité],2
-[août],2
-[año_emision],2
-[bauträger_id],2
-[categoría],2
-[città],2
-[codcompañia],2
-[curvilinearità],2
-[cç],2
-[descrição],2
-[duración],2
-[décembre],2
-[eliminé],2
-[expédition],2
-[fk_PREKIŲ_KREPŠELIS],2
-[flansch_mit_führung],2
-[français],2
-[función],2
-[février],2
-[företag],2
-[förnamn],2
-[fødselsdato],2
-[gelöscht],2
-[høydeforskjell],2
-[id_calibração],2
-[idtitulación],2
-[imię],2
-[index_unité],2
-[insérer],2
-[intitulé_cpte],2
-[key_ıd],2
-[kjønn],2
-[kühlvorrichtung],2
-[ligação],2
-[länge],2
-[línea],2
-[lösenord],2
-[maschinenkörper],2
-[medžiaga],2
-[molteplicità],2
-[nom_unité],2
-[num_matrícula],2
-[oberteilführung],2
-[prekės_kodas],2
-[qualité_unité],2
-[s_año],2
-[satısId],2
-[tidMål],2
-[titulación],2
-[város],2
-[werkzeugführung],2
-[zaměstnanec_id],2
-[zásilka_id],2
-[Â],2
-[Änderungsdatum],2
-[År],2
-[État],2
-[Õ],2
-[åruge],2
-[ìd],2
-[ü],2
-[İsim],2
-[Бюджет],2
-[Воронка],2
-[Компания],2
-[一年级],2
-[三年级],2
-[中],2
-[二年级],2
-[五年级],2
-[六年级],2
-[初一],2
-[初三],2
-[初二],2
-[四年级],2
-[高一],2
-[高三],2
-[高二],2
-[Artikelbenämning],2
-[Bénéficiaire],2
-[Date début],2
-[Dækstørelsen],2
-[Düzeltilmiş Ürün Adı],2
-[Kampanya Adı],2
-[Kommentar Inköpsplanerare],2
-[MÊS],2
-[NPL_Amount_€],2
-[Off_Balance_Amount_€],2
-[On_Balance_Amount_€],2
-[Professionnel de santé],2
-[Réf produit],2
-[Sum of Antal beställda],2
-[Tipo de Intervenção],2
-[Total Consommé],2
-[Total_Balance_€],2
-[numéro du bulletin],2
-[Исполнитель],2
-[Ключ],2
-[ТипПроцесса],2
 [#clé],1
+[1000_TEKİRDAĞ TM],1
+[10100_YAĞCI DM],1
 [@ActNội_dung],1
 [@AnställningsID],1
 [@AÑO],1
@@ -233,6 +17,7 @@
 [@Váha],1
 [@Yemekİsmi],1
 [@ação],1
+[@año],2
 [@idToutesPlantesDérivés],1
 [@jelszó],1
 [@makineadı],1
@@ -250,43 +35,64 @@
 [A_GehäuseVorbereiten],1
 [A_Ihbar_Sayısı],1
 [A_Prüfen],1
+[Abgänge],1
 [Abkürzung],1
 [Abonné],1
 [Abréviation],1
 [Accusé_id],1
 [Accès],1
+[Activité],3
 [Acıklama],1
 [Adhérent],1
 [Adresse_Expéditeur],1
+[Adı Soyadı],1
 [Adı],1
 [AgPavardė],1
+[AgentūrosNr],2
 [AgentūrosPavadinimas],1
 [Agüeda],1
+[AlıcıAdresler],1
 [Anaïs],1
+[Ancienneté Telnet_Au 1er Nov 2017],1
 [Anciennitëitsdatum],1
 [AnläggningsNr],1
+[Année Fabrication],1
+[Année fin de validité],1
+[Année],4
+[AnställningsID],3
+[Anställningsnr],2
 [Anställningsnummer],1
+[Användarnamn],2
+[Aprašymo_Id],3
 [AracPlakası],1
 [Araç],1
 [Arrêts_planifié],1
 [Arrêts_programmé],1
+[Artikelbenämning],2
+[Aufträge_anzahl],2
 [AusführungszeitraumID],1
 [Auslöse],1
+[Ausschuß],2
 [Auswärtsteam],1
 [Auswärtstore],1
 [Avançado],1
 [Avcılık],1
 [AvgångDatum],1
+[AvgångStad],2
 [AvgångTid],1
 [Avgångdatum],1
 [Avgångtid],1
+[AÑO],8
 [Ação],1
 [Açı],1
 [Açıklama],1
+[Año],13
+[Año_Mes],1
 [Aşçılık],1
 [BAKİYE],1
 [BGründungsjahr],1
 [BGründungsort],1
+[BM Adı],3
 [BORÇ],1
 [BURS_TÜRÜ],1
 [B_Ihbar_Sayısı],1
@@ -297,74 +103,132 @@
 [Başlangıç],1
 [BeginnTätigkeit],1
 [Bemærkning],1
+[Benämning],1
+[Beställning],2
+[Beställning_ID],2
 [Beğeni],1
+[BilgiAlıcıAdresler],1
 [Bjørn],1
+[Bonus Fidélité],1
 [Brödtext],1
+[Bénéficiaire],2
 [Bünye],1
 [Bồ],1
+[CIN_Expéditeur],2
+[CONTRASEÑA],3
 [C_Ihbar_Sayısı],1
 [Calorieën],1
 [Camcılık],1
 [Camión],1
 [Campaña],1
+[Caractère],2
 [Carga_horária],1
+[Catégorie],3
 [Catégorie_ID],1
 [Caución],1
 [Chovateľstvo],1
 [ChutesDifíceis],1
 [Cilvēki],1
+[Cin_Expéditeur],3
 [Cinéaste],1
 [Cinéma],1
+[Città],8
 [Clasificación],1
 [Classificação],1
+[Client’s Unique Transaction ID],1
 [Cliëntnummer],1
 [Cloturé],1
+[Cod Acção],1
 [CodFuncionário],1
 [CodOperação],1
+[Code bénéficiaire],1
+[Column_ç_$pecial_char],1
+[Combinação65],1
 [Commandé],1
+[Commerciële Coördinator],1
+[Contrainte de sécurité],1
+[Contraseña],10
+[Contusión hemorrágica],1
+[Critério Aceitação],1
 [Création],1
+[Crédit],2
+[Créé le],1
+[CÔR],4
 [César],1
+[Cím],2
+[Código],5
 [Código_departamento],1
 [DATA_UŽ],1
+[DATEECHÉANCE],2
 [DIRECCIÓN],1
 [DKód],1
 [Daekstørelsen],1
+[Dat Fòmasyon],1
+[Data Aquisição],1
 [DataFineDisponibilitàVascaEsterna],1
 [DataInizioDisponibilitàVascaEsterna],1
 [Data_Criação],1
 [Data_umówienia],1
+[Date Dém#],1
+[Date Préavis],1
+[Date création],1
+[Date début prévu tâche],1
+[Date début],2
+[Date fin de validité],1
+[Date fin prévu tâche],1
+[Date édition certificat Hydro],1
 [DateArrivée],1
 [DateDépart],1
 [DateRéception],1
 [Date_Réserve],1
 [Date_d_arrivée],1
+[Datum för hämtat värde],1
+[Datum knjiženja],1
 [Datum_Narození],1
+[Datum_doručení],2
 [Datăcolumn],1
 [Dayanıklılık],1
 [DefesasDifíceis],1
+[Defin Ruhsatiye Verildiği Yer],1
+[Descripción de la campaña],1
+[Descripción de la fuente],1
 [Descripción],1
+[Descrição],4
 [Designação],1
 [Diagnóstico],1
 [Diarrhö],1
 [Digitalização],1
 [Dirección],1
 [Dodávateľ],1
+[Donanım Seri No],1
+[Doplněk názvu],1
+[Doğduğu Gün],1
+[Držitel registračního rozhodnutí],1
 [DuelosAéreosGanhos],1
 [DuelosAéreosPerdidos],1
 [Duração],1
-[Durée],1
+[Durchschn# Marktwert  in Referenzwährung],1
 [DuréeTache],1
+[Durée],1
 [DuvarUstalığı],1
 [Dzień],1
 [Dátum],1
 [Dátum_vzniku],1
+[Dæk],6
+[Dækstørelsen],2
+[Débit],3
+[Début],2
+[Décision prise],1
 [Démarré],1
 [Département],1
+[DésignationBDC2],2
 [Désignation],1
 [Détails],1
 [Détour],1
 [Día_Transaccion],1
+[Dílce],1
 [Dört],1
+[Düzeltilmiş Ürün Adı],2
 [EMAİL],1
 [ESPAÑA],1
 [EXTENSÃO],1
@@ -374,92 +238,143 @@
 [Einsätze],1
 [Empfänger],1
 [EndeTätigkeit],1
+[Endereço Postal1],1
+[Endereço Postal2],1
 [Endereço],1
 [Endereço_atual],1
 [Endereço_permanente],1
 [Energieträger],1
+[Enlever liste à commander],1
+[Entité demandeur],1
+[Entité],1
 [Espólio],1
+[Etat de la dépense],1
 [Età],1
 [Expedié],1
+[Expérience TOTALE as is_Rouge à corriger sur Sage],1
 [Expérience],1
 [Extensão],1
 [Exécuter],1
+[Eñd],3
+[Eşleştirme Yapıldı],1
 [FAKÜLTE_YÜKSEKOKUL],1
 [FHAngehörigeID],1
+[FKód],4
 [F_Aushärten],1
 [F_GehäuseVorbereiten],1
 [F_Prüfen],1
 [Fantôme],1
 [FaçadePurlinsSpacing],1
 [FechaTransacción],1
+[Fecha_diseño],1
+[Feldstärke],2
 [Filminİsmi],1
+[FimMês],2
 [Flexibilité],1
 [Fläche],1
 [Flöss],1
+[Formulários],3
+[Fracción Importación],1
+[Frequência Calibração],1
 [Fröbelstraße],1
 [FrüFrü],1
 [FÄRG],1
 [FÈ],1
 [FÖRKORTNING],1
 [FÖÖ],1
+[FØRSTE_AGENT],3
 [Fält1],1
 [Fält2],1
 [Fält3],1
 [FärgObjektgrupp],1
+[Fælge],9
+[Fælgen],1
+[Födelsedatum],3
 [FörmågaID],1
+[Förnamn],7
 [Förskola],1
+[FİRMA ADI],1
+[FİRMA KODU],1
 [FİRSTNAME],1
+[Gerät],2
 [Gerät_ID],1
+[Gerätename],3
 [Geschäftsaufwand],1
 [Geschäftspartner],1
 [GewäKat],1
+[Giriş Statusu],1
 [Giá],1
 [Golīmar],1
 [Gravità],1
+[GrupėsID],2
 [Größe],1
 [Gründungsjahr],1
 [Gründungsort],1
+[Gömüldüğü Gün],1
 [GönderenID],1
 [Gültig_bis],1
 [Gültig_von],1
 [Gün],1
 [Gürz],1
+[Güç],2
+[Hallöle],9
 [Handläggare],1
 [Hançer],1
 [Hasło],1
 [HeureArrivée],1
 [HeureDépart],1
 [Heure_Réserve],1
+[Hora Verificação],1
+[HovedÅrsak],1
+[Hà],2
 [Höhe],1
+[Højde],1
 [Højt],1
 [Hız],1
+[ID sesión],1
 [IDCategorieën],1
+[IDVýrobky],1
+[IDZákazky],1
 [ID_COMPAÑIA],1
 [ID_Družine],1
 [ID_Företag],1
 [ID_Héros],1
 [ID_Préstamo],1
+[ID_SOLICITAÇÃO],2
 [ID_personaattività],1
 [ID_proprietà],1
 [IDĘ],1
 [IKód],1
 [INGÅENDEANALYS],1
-[INSÄNTMATERIAL],1
 [INSÄNTMATERIALID],1
+[INSÄNTMATERIAL],1
 [IdAñoLectivo],1
+[IdMateriálu],1
+[IdVýrobku],1
+[Id_Embarcação],3
+[Id_qualité],2
+[Identifiant tâche],3
+[Idő],2
 [Ilość_w_magazynie],1
+[Imię],8
 [Indië],1
 [Inlämningsdatum],1
 [Interceptações],1
+[Inventory_Type – Level 1],1
 [Inı],1
 [Iâm],1
 [IČO],1
 [IČ_DPH],1
 [Išči],1
 [Jméno],1
+[Jour fin de validité],1
 [KMKørt],1
 [KODAS_UŽ],1
+[KStraße2],1
+[KStraße],1
 [Kadź],1
+[Kambario rūšis],1
+[Kampanya Adı],2
 [KatılımTarihi],1
 [KaynakTürü],1
 [Kaçıncı],1
@@ -468,26 +383,41 @@
 [Kiszerelés],1
 [KişiSayisi],1
 [Kiểu],1
+[KjøretøyID],1
 [Kohderyhmä],1
 [KolonAdı],1
+[Kommentar Inköpsplanerare],2
 [Konateľ],1
+[Koncový dátum],1
 [KonuAnlatımı],1
+[Kostengefäss_ID],3
 [Krađa],1
+[Krydsmål],5
+[Krydsmålene],4
+[Krydsmålet],5
 [KullanıcıAdı],1
 [Kwartał],1
 [Källa],1
 [Käyttäjänimi],1
 [Käyttökelpoisuus],1
+[Kód SÚKL],1
+[KódMateriálu],1
 [Köhler],1
 [Køn],1
+[Kürzel],2
 [Kılıç],1
 [Lançamento],1
 [Leírás],1
 [Lečo],1
+[Libellé Prestation],1
+[Libellé],2
 [Libellé_Cat],1
+[Libellé_article],1
+[Lien Parenté],1
 [LieuArrivée],1
 [LieuDépart],1
 [Localização],1
+[Loại hình],1
 [Lykilorð],1
 [LØST_SEKUNDER],1
 [Lägenhetsnr],1
@@ -498,8 +428,12 @@
 [Lånetagare_ID],1
 [Lægenavn],1
 [Lösenord],1
+[Løn nummer],1
 [Lønnsslipper],1
 [Lønnsår],1
+[LøyvehaverFakturaID],1
+[Lıcence_ID],3
+[Lıcence_Price],1
 [MJESEČNI_OD],1
 [MUSTERİ],1
 [Maceió],1
@@ -507,33 +441,50 @@
 [Malzeme_İsmi],1
 [Malzemeİsmi],1
 [Marit_Bjørgen],1
+[Materiál],1
+[Matrícula],2
 [Matrícula_prof],1
 [Max_Prüfplan],1
 [Meiejsca_życia],1
 [Mennyiség],1
 [MesAño],1
+[Mezarlık],1
 [Miesiąc],1
 [Min_Prüfplan],1
 [Miércoles],1
+[Množstvo],1
+[Modèle],2
+[Mois fin de validité],1
 [Multimédia],1
-[MÅNED],1
-[MÅNEDNUMMER],1
 [MÅNEDNUMMERTAL],1
+[MÅNEDNUMMER],1
+[MÅNED],1
+[MÊS],2
 [Màu],1
 [Málaga],1
 [MáxDeFecha],1
+[Mã Chương trình],1
+[Mã Hoạt động],1
 [Mã_Số_Vạch],1
 [Mã_thợ],1
+[März],1
+[Månad],3
+[Måned],1
+[MærkeID],11
+[Mærket],6
 [Móvel],1
 [Møtrikker],1
 [München],1
+[Müşteri Adı],3
 [Müşteri],1
 [Mızrak],1
 [NOËLLE],1
+[NPL_Amount_€],2
 [NRO_AÑO],1
 [NUM_MATRÍCULA],1
 [Nationalität],1
 [Nationalité],1
+[Natonalité],1
 [Nazionalità],1
 [NestorNrCliënt],1
 [Nettogewinn_für_weitere_Geschäftstätigkeit],1
@@ -542,38 +493,71 @@
 [Ngày],1
 [NivåUpp],1
 [Niños],1
+[No_Assuré_Lien],2
+[NomColonneChangé],2
 [Nom_Employé],1
 [Nom_Expéditeur],1
+[Nom_Méd],1
 [Nom_Unité],1
 [NotaCriação],1
 [NoÉquipe],1
 [NumCrianças],1
 [NumberofTıckets],1
+[Numero de Afiliación],1
+[Numéro Document],1
+[Numéro attribué],1
+[Numéro externe],1
+[Numéro interne],1
 [NuméroDossier],1
+[Náklady pracovišť],1
+[Název přípravku],1
 [Názov],1
+[Não],3
 [Næringskode],1
 [Næste_Kal],1
 [Név],1
 [Nível],1
+[Número da Ordem],1
+[Número del producto],1
+[NúmeroDeSérie],1
 [Número],1
+[Nội dung],1
+[Nội],2
 [Obchodné_meno],1
+[Období],1
+[ObesitàBMI30e40],1
+[ObesitàBMIoltre40],1
+[Observações1],3
 [Observações],1
+[Off_Balance_Amount_€],2
+[Okunamadı],1
 [Omlån],1
 [Område],1
 [OmrådesBenämning],1
+[OmrådesNr],4
+[Omsætning],1
+[On_Balance_Amount_€],2
 [OpServiço],1
 [OpenFaçadeEast],1
 [OpenFaçadeNorth],1
 [OpenFaçadeSouth],1
 [OpenFaçadeWest],1
+[Operação],1
 [Opéra],1
+[Opłata dystrybucyjna zmienna],1
+[Organização],1
 [Oxigenação],1
 [PASCAL语言],1
 [PODRŠKA],1
 [PO番号],1
+[PRDomínioMédio],3
+[PREÇO MÉDIO DISTRIBUIÇÃO],1
+[PREÇO MÉDIO REVENDA],1
+[PRMédio],3
 [PSČ],1
 [PUAN_TÜRÜ],1
 [P_Módulo],1
+[PartEnInterêt],1
 [Pavardė],1
 [País],1
 [Percentagem_de_adequação],1
@@ -583,7 +567,9 @@
 [Phẩm],1
 [Pièce],1
 [PlacesProposées],1
+[Plano Calibração],1
 [Plaus_Prüfplan],1
+[Pociatocný dátum],1
 [Podważa],1
 [Pohlaví],1
 [PokémonID],1
@@ -591,26 +577,48 @@
 [Posição],1
 [Potência],1
 [Poznámka],1
+[Pr_Libellé],1
 [Pradžia],1
+[Precisão],1
+[Preço],4
+[Priorität],2
+[Prix de revient réel],1
 [Problembeschreibungausführlich],1
+[Produit-Priorité],1
+[Professionnel de santé],2
 [Propreté],1
 [PrvEñd_j],1
 [PrvEñd_lg],1
 [Právna_forma],1
 [PréAst],1
+[Préfixe No abr direct],1
+[Prénom Ayant],1
+[Prénom annuaire],1
+[PrénomASS],1
 [PrénomEmp],1
+[Prénom],5
 [Prénom_Expéditeur],1
 [Préparation],1
+[Prøvenr],1
+[Prüfzeit],2
 [PÑO],1
 [Päivämäärä],1
 [Période],1
+[Příjmení],2
+[PАРАМ],1
 [Qualité],1
+[Quantità],4
+[Quantité],6
+[Quién Capturo],1
 [Québec],1
 [RESİM],1
 [RODZAJ_AKTYWÓW],1
 [Radié],1
+[Razón_social],2
 [Raúl],1
 [Referenzwährung],1
+[Região],1
+[Relaché pour achat],1
 [Relatório],1
 [Remboursé],1
 [Requisição],1
@@ -619,34 +627,56 @@
 [RutCompañia],1
 [RÄNTA],1
 [Règlement],1
+[Réf produit],2
+[Réference],2
+[Référence],1
 [Référencenumber],1
 [Régie],1
+[Région],3
 [Rémy],1
+[Rückgabedatum],3
 [Rückkendaturm],1
+[Rüsten_Ist],3
+[SATIŞ ADET],3
 [SLOŽENOST_POSLA],1
 [STRAßE],1
 [Sarı],1
+[Satır No],1
 [Schüring],1
 [Schütte],1
 [Sebastián],1
+[Sekundærstasjon],1
+[Sensibilité du site],1
+[SeñalGSM],1
 [Sig_Prüfplan],1
+[Situação],2
 [Size_Giày],1
 [Skírnarnafn],1
 [Slutförande],1
 [Snälla],1
 [Société],1
+[Société_ID],1
 [Soldé],1
 [SortieTraitée],1
 [SoruSayısı],1
 [SoyAdı],1
+[Soyadı],1
 [Spoločník],1
 [Språk],1
+[Spécialité],1
+[Statut Assurée],1
+[Steuergerät],2
 [StraÃŸe],1
 [StraßeHausnummerKind],1
 [StraßeHausnummerMutter],1
 [StraßeHausnummerVater],1
+[Straße],9
+[Ställeid],4
+[Stämplingsnr],1
 [Stück],1
+[Sum of Antal beställda],2
 [Szék],1
+[Sábado],2
 [Sáng],1
 [Série],1
 [Sídlo],1
@@ -654,19 +684,33 @@
 [Süre],1
 [Süsivesikud],1
 [SĐT],1
+[Sıcaklık],2
 [SˆkDatum],1
 [Số_Lượng_Trong_Kho],1
+[TARİH],1
 [TBL_ÖDEME_TALEP_MAİL],1
+[TER in Referenzwährung],1
 [TITULACIÓN],1
+[TOPLAM BORÇ BAKİYENİZ],1
 [TRUKMĖ],1
 [Tarif_İsmi],1
 [Település],1
 [Teléfono],1
+[Thông tin],1
+[Thời gian Kết thúc],1
+[Thời gian],1
+[Tipo de Intervenção],2
+[Tit Fòmasyon an],1
 [ToplamSayım],1
 [ToplamYanlıs],1
+[Total Consommé],2
+[Total_Balance_€],2
 [Total_Crédit],1
 [Totalité],1
+[Transección medular],1
+[Typ odběratele],1
 [Tytuł],1
+[Término Real],1
 [Tên],1
 [Tölvupóstur],1
 [Türü],1
@@ -678,15 +722,21 @@
 [Unité],1
 [Unverwässert],1
 [Ustalık],1
+[VADESİ GELMEMİŞ BORÇ BAKİYENİZ],1
+[VADESİ GEÇEN ÖDEME TUTARI],1
 [VARIETÄT],1
 [VahşiYaşam],1
 [Validé],1
+[Valor Comercial Importación],1
 [VareKjøpt],1
 [Variété],1
+[Versão],3
 [Verwässert],1
 [VilleArrivée],1
 [VilleDépart],1
 [Vorgänger],1
+[Váha],2
+[Värde],1
 [Vårdnadshavare],1
 [Værelse],1
 [Výsledek],1
@@ -694,14 +744,19 @@
 [Wartość],1
 [WypełnioneEtaty],1
 [Yapılan],1
+[Yaş],3
 [Yemekİsmi],1
 [YeniKrediKullanımı],1
 [Yeşil],1
+[Yhtiö],1
 [Yük],1
 [Yükseklik],1
 [Yıl],1
 [ZAŠTITA],1
 [Zakończone],1
+[Země],1
+[Způsob výdeje],1
+[Zugänge],1
 [Zukünftig],1
 [Zurückgebracht],1
 [Zużycie],1
@@ -722,6 +777,7 @@
 [_ग],1
 [_घ],1
 [_जव],1
+[abréviation_unité],2
 [acción],1
 [acompañado],1
 [admın_user],1
@@ -729,15 +785,20 @@
 [albüm],1
 [angehörige],1
 [année],1
+[anställd],1
 [antalMän],1
 [användarnamn],1
 [anzahlsitzplätzeeco],1
+[août],2
 [app_pac_mega_preço],1
 [ar1_händlerpreis],1
 [aufgelöst],1
 [auswählst],1
+[año],10
+[año_emision],2
 [añosExperiencia],1
 [baskı],1
+[bauträger_id],2
 [baños],1
 [bedürfnisse],1
 [belstraÃŸe],1
@@ -749,20 +810,27 @@
 [bước],1
 [cacahouète],1
 [carácter],1
+[categoría],2
+[catégorie],7
 [catégorie_id],1
 [certidão],1
 [chân],1
 [chürze],1
+[città],2
+[codcompañia],2
 [codificación],1
 [comandă],1
 [commentп],1
 [conexión],1
 [contemporânea],1
+[contraseña],12
 [conversión],1
 [cout_unité],1
+[curvilinearità],2
 [cust_emaıl],1
 [cust_fırst_name],1
 [customer_ıd],1
+[cç],2
 [código],1
 [cứ],1
 [data_wypożyczenia],1
@@ -772,10 +840,12 @@
 [daxiletmə],1
 [descripción],1
 [descripción_oferta],1
+[descrição],2
 [dič],1
 [dolaþma],1
 [dtGebäude],1
 [dueño],1
+[duración],2
 [duraÃ],1
 [duração],1
 [durée],1
@@ -783,28 +853,49 @@
 [dwLänge],1
 [dwStückzahl],1
 [dé],1
+[décembre],2
 [dés],1
 [désignation],1
 [détails_jsonb],1
 [día],1
 [dönem],1
 [edição],1
+[eliminé],2
+[endereço],3
 [entrée],1
 [entréesUtilisateurs],1
 [ernobílý],1
 [espécie],1
 [explícita],1
+[expédition],2
 [expıres_on],1
 [família],1
+[firmamiz EPOSTA ADRESİ],1
+[firmamiz POZİSYON],1
+[firmamiz YETKİLİ],1
+[firmamiz İLETİŞİM TELEFONU],1
+[fk_PREKIŲ_KREPŠELIS],2
+[flansch_mit_führung],2
+[français],2
+[frånvaro_min],1
+[frånvaroorsak],1
+[frånvaroorsak_id],1
+[función],2
 [função],1
 [fährt],1
 [färgkört],1
+[février],2
+[företag],2
+[förnamn],2
 [förskolan],1
+[försystem],5
+[fødselsdato],2
 [für],1
 [fılename],1
 [gastó],1
 [gebäude],1
 [gelenkutusayı],1
+[gelöscht],2
 [gravação],1
 [grupadı],1
 [grâce],1
@@ -820,23 +911,31 @@
 [högst],1
 [højde],1
 [højde_cm],1
+[høydeforskjell],2
 [hạ],1
 [hạnh],1
 [idEmployé],1
 [idOperação],1
 [id_Občana],1
 [id_año],1
+[id_calibração],2
 [id_redeCartão],1
 [id_договора],1
 [identifikátor],1
+[idlærer],3
+[idtitulación],2
 [ignorée],1
 [ilośc],1
 [ilość_minimalna],1
+[imię],2
 [importância],1
+[index_unité],2
 [información],1
 [institución],1
 [instrução],1
+[insérer],2
 [insérés],1
+[intitulé_cpte],2
 [introductión],1
 [intégrité],1
 [invStørrelse],1
@@ -852,9 +951,11 @@
 [już],1
 [kasanın],1
 [kereszt_név],1
+[key_ıd],2
 [không],1
 [kierująca],1
 [kiết],1
+[kjønn],2
 [klič],1
 [klíc],1
 [klíč],1
@@ -864,19 +965,29 @@
 [kunden_nr_aktivität],1
 [kök],1
 [kön],1
+[kühlvorrichtung],2
 [libéllé],1
 [liczba_egzemplarzy_wypożyczonych],1
+[ligação],2
 [localité],1
+[losgrößenunabh],1
 [lägenhetsnummer],1
 [lägst],1
+[länge],2
 [lärare],1
+[läsår_fakta],10
 [läufer],1
 [långärmadt],1
 [lærer],1
+[línea],2
+[lösenord],2
 [lıst_prıce],1
 [lạc],1
 [mano_prekės],1
+[maschinenkörper],2
 [maðr],1
+[medžiaga],2
+[molteplicità],2
 [márka],1
 [más],1
 [mây],1
@@ -889,10 +1000,17 @@
 [neplatný],1
 [nerješeni],1
 [ngủ],1
+[nom_unité],2
 [notisSätt],1
+[num_matrícula],2
 [numsıra],1
+[numéro du bulletin],2
 [não],1
+[närvaro_min],1
+[número de registro],1
 [número],1
+[n∞ uscite],1
+[oberteilführung],2
 [observações],1
 [oktatási_id],1
 [okładka],1
@@ -916,15 +1034,22 @@
 [possível],1
 [poster_pequeño],1
 [prekė],1
+[prekės_kodas],2
 [presentación],1
+[preț],1
 [price_pro_stück],1
+[prod_soll_über],3
 [prodotto_quantitá],1
 [product_ımage],1
 [products_íd],1
 [prodüksiyon_şirketi],1
+[profilhøjde],1
 [près],1
+[précision_contour],6
 [précèdemment],1
+[prénom],7
 [qntddesperdiçada],1
+[qualité_unité],2
 [quantità_prodotto],1
 [quantıty],1
 [razón],1
@@ -936,8 +1061,10 @@
 [reseña],1
 [réglé],1
 [rütbe],1
+[s_año],2
 [sanatçı],1
 [sarzsszám],1
+[satısId],2
 [saðlar],1
 [schéma],1
 [señal],1
@@ -945,6 +1072,8 @@
 [sonuçlar],1
 [spécialisée],1
 [status_wypożyczenia],1
+[straße],3
+[stückliste_vorh],1
 [supplémentaire],1
 [svět],1
 [synchronisés],1
@@ -957,10 +1086,13 @@
 [sökorsak],1
 [səhv],1
 [sшd],1
+[t_artikel_stückliste],1
 [tamaño],1
 [tarıfe_gecerlık_ıd],1
 [testĞÇ],1
 [teşhis],1
+[tidMål],2
+[titulación],2
 [tjänsterum],1
 [topicTıme],1
 [total_serviços],1
@@ -992,14 +1124,18 @@
 [vp_mätning_variabel_med_högst_prio],1
 [vp_objektiv_variabel_med_högst_prio],1
 [válida],1
+[város],2
 [vägledni],1
+[vægt],3
 [vægt_kg],1
 [végétarien],1
+[werkzeugführung],2
 [województwo],1
 [yanlış],1
 [yayınevi],1
 [zamanı],1
 [zamknięcie],1
+[zaměstnanec_id],2
 [zbožíID],1
 [zubehör],1
 [zurückflaschen],1
@@ -1007,49 +1143,61 @@
 [zweckmaeßig_erachtet_Lehrer],1
 [zweckmaeßig_erachtet_Schueler],1
 [zwrócił],1
+[zásilka_id],2
 [Álava],1
 [Állapot],1
 [Ánh],1
 [Ár],1
+[Â],2
 [Âglicherweise],1
+[Ã],3
 [Ä],1
 [Ändere],1
+[Änderungsdatum],2
 [Ändrad],1
 [Är],1
 [ÄrendeID],1
 [Ärendenr],1
 [ÅR],1
 [Ålder],1
+[År],2
+[Årgang],6
 [Årslønn],1
 [ÆndretDato],1
 [ÆndretID],1
 [Çalışıldı],1
 [Çekilme],1
 [Çeviklik],1
+[Çıxış Statusu],1
+[État],2
 [Évosges],1
 [Ê],1
 [Í],1
 [Íóé],1
-[Î],1
 [ÎN],1
+[Î],1
 [Ï],1
 [ÏŒ],1
 [Ð],1
 [Ñ],1
+[Õ],2
 [Ödeme],1
+[Öldüğü Gün],1
 [Ömmande],1
 [Övrigt],1
 [Ø],1
 [Østfold],1
 [Úvod],1
-[Ü],1
 [ÜNİVERSİTE_TÜRÜ],1
 [ÜNİVERSİTE_İSMİ],1
+[Ü],1
+[Ürün Adı],1
 [ÜrünNo],1
 [Ürün_Adı],1
 [Ürün_Kodu],1
 [Ürünün],1
 [Üzeri],1
+[à],10
 [à_ç],1
 [àé],1
 [á],1
@@ -1062,12 +1210,15 @@
 [ã],1
 [ãã],1
 [ãããããã],1
+[ämne],1
+[ämne_id],1
 [ändere],1
 [äöü],1
 [å],1
 [ålder_år],1
 [år],1
 [årstall],1
+[åruge],2
 [åtgärd_remiss],1
 [æ],1
 [æææDeveloper],1
@@ -1075,6 +1226,9 @@
 [ç],1
 [çãæ],1
 [çıktısı],1
+[è],3
+[èìôåï ðééã],1
+[é],4
 [éaé],1
 [échouée],1
 [éducation],1
@@ -1083,12 +1237,14 @@
 [éàé],1
 [éææ],1
 [être],1
+[ìd],2
 [ìmage],1
 [ìs_published],1
 [íd],1
 [índice],1
 [ítem_value_text],1
 [îééì],1
+[ï],3
 [ñ],1
 [õ雟脀ꐁ燲턃悂샽冄],1
 [ö],1
@@ -1096,278 +1252,38 @@
 [øvelse],1
 [øvelseid],1
 [ü2],1
+[ü],2
 [üstmenuid],1
 [ąęąčę],1
+[Đáp án],1
 [İ],1
 [İlgilisi],1
 [İrade],1
+[İsim],2
 [İtem1Id],1
 [İçerik],1
 [İşlem],1
 [İşçilik],1
+[ıd],4
 [ıi],1
 [ımage_last_update],1
 [Ελλάδα],1
-[ΤΚ],1
-[αβγαβγαβγαβγαβγαβγαβγ],1
-[Азмък],1
-[Благодаря],1
-[Воронеж],1
-[Десислав],1
-[Манчего],1
-[а],1
-[а_in_r_c],1
-[козий],1
-[сrossroad_id],1
-[собствена],1
-[я],1
-[מבוסס],1
-[الجاسم],1
-[الجنس],1
-[الكلمة],1
-[الموضوع],1
-[علي],1
-[چائنيز],1
-[ทศไท],1
-[วงปลา],1
-[ნიკა],1
-[ẏ],1
-[あ],1
-[がめ],1
-[信息系统],1
-[关注],1
-[土],1
-[城市],1
-[学号],1
-[年],1
-[弹幕],1
-[快],1
-[成绩],1
-[播放],1
-[操作系统],1
-[数学],1
-[数据处理],1
-[数据库],1
-[数据结构],1
-[日],1
-[月],1
-[查看文件系统类型的linux命令],1
-[硬币],1
-[藥價參考截止日期],1
-[藥價參考日期],1
-[藥價參考金額],1
-[藥品代碼],1
-[藥品英文名稱],1
-[课号],1
-[销量],1
-[닉네임],1
-[메일주소1],1
-[부서],1
-[성],1
-[웹사이트],1
-[이름],1
-[전체이름],1
-[전화번호1],1
-[전화번호2],1
-[전화번호3],1
-[직급],1
-[테스트1],1
-[테스트2],1
-[팩스1],1
-[팩스2],1
-[휴대폰2],1
-[1000_TEKİRDAĞ TM],1
-[10100_YAĞCI DM],1
-[Abgänge],1
-[Adı Soyadı],1
-[AlıcıAdresler],1
-[Ancienneté Telnet_Au 1er Nov 2017],1
-[Année Fabrication],1
-[Année fin de validité],1
-[Año_Mes],1
-[Benämning],1
-[BilgiAlıcıAdresler],1
-[Bonus Fidélité],1
-[Client’s Unique Transaction ID],1
-[Cod Acção],1
-[Code bénéficiaire],1
-[Column_ç_$pecial_char],1
-[Combinação65],1
-[Commerciële Coördinator],1
-[Contrainte de sécurité],1
-[Contusión hemorrágica],1
-[Critério Aceitação],1
-[Créé le],1
-[Dat Fòmasyon],1
-[Data Aquisição],1
-[Date Dém#],1
-[Date Préavis],1
-[Date création],1
-[Date début prévu tâche],1
-[Date fin de validité],1
-[Date fin prévu tâche],1
-[Date édition certificat Hydro],1
-[Datum för hämtat värde],1
-[Datum knjiženja],1
-[Defin Ruhsatiye Verildiği Yer],1
-[Descripción de la campaña],1
-[Descripción de la fuente],1
-[Donanım Seri No],1
-[Doplněk názvu],1
-[Doğduğu Gün],1
-[Držitel registračního rozhodnutí],1
-[Durchschn# Marktwert  in Referenzwährung],1
-[Décision prise],1
-[Dílce],1
-[Endereço Postal1],1
-[Endereço Postal2],1
-[Enlever liste à commander],1
-[Entité demandeur],1
-[Entité],1
-[Etat de la dépense],1
-[Expérience TOTALE as is_Rouge à corriger sur Sage],1
-[Eşleştirme Yapıldı],1
-[Fecha_diseño],1
-[Fracción Importación],1
-[Frequência Calibração],1
-[Fælgen],1
-[FİRMA ADI],1
-[FİRMA KODU],1
-[Giriş Statusu],1
-[Gömüldüğü Gün],1
-[Hora Verificação],1
-[HovedÅrsak],1
-[Højde],1
-[ID sesión],1
-[IDVýrobky],1
-[IDZákazky],1
-[IdMateriálu],1
-[IdVýrobku],1
-[Inventory_Type – Level 1],1
-[Jour fin de validité],1
-[KStraße2],1
-[KStraße],1
-[Kambario rūšis],1
-[KjøretøyID],1
-[Koncový dátum],1
-[Kód SÚKL],1
-[KódMateriálu],1
-[Libellé Prestation],1
-[Libellé_article],1
-[Lien Parenté],1
-[Loại hình],1
-[Løn nummer],1
-[LøyvehaverFakturaID],1
-[Lıcence_Price],1
-[Materiál],1
-[Mezarlık],1
-[Množstvo],1
-[Mois fin de validité],1
-[Mã Chương trình],1
-[Mã Hoạt động],1
-[März],1
-[Måned],1
-[Natonalité],1
-[Nom_Méd],1
-[Numero de Afiliación],1
-[Numéro Document],1
-[Numéro attribué],1
-[Numéro externe],1
-[Numéro interne],1
-[Náklady pracovišť],1
-[Název přípravku],1
-[Número da Ordem],1
-[Número del producto],1
-[NúmeroDeSérie],1
-[Nội dung],1
-[Období],1
-[ObesitàBMI30e40],1
-[ObesitàBMIoltre40],1
-[Okunamadı],1
-[Omsætning],1
-[Operação],1
-[Opłata dystrybucyjna zmienna],1
-[Organização],1
-[PREÇO MÉDIO DISTRIBUIÇÃO],1
-[PREÇO MÉDIO REVENDA],1
-[PartEnInterêt],1
-[Plano Calibração],1
-[Pociatocný dátum],1
-[Pr_Libellé],1
-[Precisão],1
-[Prix de revient réel],1
-[Produit-Priorité],1
-[Préfixe No abr direct],1
-[Prénom Ayant],1
-[Prénom annuaire],1
-[PrénomASS],1
-[Prøvenr],1
-[PАРАМ],1
-[Quién Capturo],1
-[Região],1
-[Relaché pour achat],1
-[Référence],1
-[Satır No],1
-[Sekundærstasjon],1
-[Sensibilité du site],1
-[SeñalGSM],1
-[Société_ID],1
-[Soyadı],1
-[Spécialité],1
-[Statut Assurée],1
-[Stämplingsnr],1
-[TARİH],1
-[TER in Referenzwährung],1
-[TOPLAM BORÇ BAKİYENİZ],1
-[Thông tin],1
-[Thời gian Kết thúc],1
-[Thời gian],1
-[Tit Fòmasyon an],1
-[Transección medular],1
-[Typ odběratele],1
-[Término Real],1
-[VADESİ GELMEMİŞ BORÇ BAKİYENİZ],1
-[VADESİ GEÇEN ÖDEME TUTARI],1
-[Valor Comercial Importación],1
-[Värde],1
-[Yhtiö],1
-[Země],1
-[Způsob výdeje],1
-[Zugänge],1
-[anställd],1
-[firmamiz EPOSTA ADRESİ],1
-[firmamiz POZİSYON],1
-[firmamiz YETKİLİ],1
-[firmamiz İLETİŞİM TELEFONU],1
-[frånvaro_min],1
-[frånvaroorsak],1
-[frånvaroorsak_id],1
-[losgrößenunabh],1
-[närvaro_min],1
-[número de registro],1
-[n∞ uscite],1
-[preț],1
-[profilhøjde],1
-[stückliste_vorh],1
-[t_artikel_stückliste],1
-[Çıxış Statusu],1
-[Öldüğü Gün],1
-[Ürün Adı],1
-[ämne],1
-[ämne_id],1
-[èìôåï ðééã],1
-[Đáp án],1
 [Κωδικός],1
 [Περιγραφή Τηλεφώνου],1
 [Πλήθος Αντιγράφων],1
+[ΤΚ],1
 [Τίτλος],1
+[αβγαβγαβγαβγαβγαβγαβγ],1
 [АбсолютноеИмяФайла],1
 [Автомобиль],1
 [АдресДоставки],1
 [АдресПерегруза],1
 [АдресаДоставки],1
+[Азмък],1
 [БалСтатья],1
 [БанковскиеРеквизиты],1
+[Благодаря],1
+[Бюджет],2
 [ВСостояние],1
 [Важность],1
 [ВалютаПроцесса],1
@@ -1382,6 +1298,8 @@
 [ВидКурсаРасчетов],1
 [ВидРезервирования],1
 [ВодительЭкспедитор],1
+[Воронеж],1
+[Воронка],2
 [ВремяДоставки],1
 [ВремяИзмененияСостояния],1
 [ВремяСборкиПо],1
@@ -1402,6 +1320,7 @@
 [ДатаКурсаРасчетов],1
 [ДатаНачала],1
 [ДатаПриложенногоФайла],1
+[Десислав],1
 [ДокументыВозвращены],1
 [ЗабратьВозврат],1
 [ЗабратьДолг],1
@@ -1420,19 +1339,23 @@
 [ИмяПриложенногоФайла],1
 [Инв Номер],1
 [Инициатор],1
+[Исполнитель],2
 [Категория],1
 [КемУстановленПриоритет],1
+[Ключ],2
 [Код],1
 [КодПодсистемы],1
 [КодФилиала],1
 [Комментарий],1
 [КомментарийВодителя],1
 [КомментарийСклада],1
+[Компания],2
 [КонечныйАдрес],1
 [КонтактПерегруза],1
 [Контрагент],1
 [Контур ИС],1
 [Критичность системы],1
+[Манчего],1
 [Маршрут],1
 [МаршрутС],1
 [Менеджер],1
@@ -1476,6 +1399,7 @@
 [ОснованиеЗаявка],1
 [ОснованиеПроцесс],1
 [ОснованиеРезерв],1
+[Ответственный],3
 [Отгрузил],1
 [ОтключитьАвторезервирование],1
 [ОтключитьОкругления],1
@@ -1534,6 +1458,7 @@
 [ТипОплаты],1
 [ТипОтгрузки],1
 [ТипОтгрузкиСсылка],1
+[ТипПроцесса],2
 [ТипСобытия],1
 [УровеньКонфиденциальности],1
 [ФИО],1
@@ -1563,13 +1488,26 @@
 [ЭтоПрайс],1
 [ЭтоСерийныйНомер],1
 [ЭтоСпецификация],1
+[а],1
+[а_in_r_c],1
+[козий],1
 [пка_ТипДоставки],1
 [пка_ТипОплаты],1
 [пка_ТранспортнаяКомпания],1
+[сrossroad_id],1
+[собствена],1
+[я],1
 [הכנס קוד תפקיד],1
+[מבוסס],1
 [קוד תפקיד],1
+[الجاسم],1
+[الجنس],1
+[الكلمة],1
+[الموضوع],1
 [ردیف],1
+[علي],1
 [عنوان],1
+[چائنيز],1
 [ಇಂಗ್ಲೀಷ],1
 [ಒಟ್ಟು ಅಂಕಗಳು ಅಕ್ಷರದಲ್ಲಿ],1
 [ಒಟ್ಟು ಅಂಕಗಳು],1
@@ -1588,15 +1526,77 @@
 [ಶ್ರೇಣಿ],1
 [ಸಮಾಜ ವಿಜ್ಞಾನ],1
 [ಹಿಂದಿ],1
+[ทศไท],1
+[วงปลา],1
+[ნიკა],1
+[ẏ],1
 [€Pz],1
 [€pz],1
+[あ],1
+[がめ],1
 [ポイント],1
+[一年级],2
+[三年级],2
 [个性化信息],1
+[中],2
+[二年级],2
+[五年级],2
+[信息系统],1
+[六年级],2
+[关注],1
+[初一],2
+[初三],2
+[初二],2
 [加工内容],1
+[四年级],2
 [回収日],1
+[土],1
+[城市],1
+[学号],1
 [市],1
+[年],1
+[弹幕],1
+[快],1
+[成绩],1
+[播放],1
+[操作系统],1
+[数学],1
+[数据处理],1
+[数据库],1
+[数据结构],1
 [数量],1
 [施工先番号],1
+[日],1
+[月],1
+[查看文件系统类型的linux命令],1
 [番号],1
+[発生時刻],3
 [省],1
+[硬币],1
+[藥價參考截止日期],1
+[藥價參考日期],1
+[藥價參考金額],1
+[藥品代碼],1
+[藥品英文名稱],1
+[课号],1
 [贷方发生额],1
+[销量],1
+[高一],2
+[高三],2
+[高二],2
+[닉네임],1
+[메일주소1],1
+[부서],1
+[성],1
+[웹사이트],1
+[이름],1
+[전체이름],1
+[전화번호1],1
+[전화번호2],1
+[전화번호3],1
+[직급],1
+[테스트1],1
+[테스트2],1
+[팩스1],1
+[팩스2],1
+[휴대폰2],1

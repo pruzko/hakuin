@@ -94,7 +94,8 @@ def main():
     }
 
     kwargs_adaptive = {
-        'batch_size': 10,
+        'batch_size': 1,
+        # 'batch_size': 10,
         'ngram': model.max_ngram,
         'mode': 'generic',
         'selection': 'huffman',
@@ -109,9 +110,10 @@ def main():
     # print(json.dumps(res, indent=4))
 
     # best: 5gram, huffman, downgrading (-2.0). generic model seems to be insignificant
+    db = {'users.address': db['users.address']}
     res = evaluate(db, kwargs_generic=None, kwargs_adaptive=kwargs_adaptive)
-    print(json.dumps(res['average'], indent=4))
-    # print(json.dumps(res, indent=4))
+    # print(json.dumps(res['average'], indent=4))
+    print(json.dumps(res, indent=4))
 
     # print('### TH ###')
     # explore_th_scores(db, 0.2, 0.01, kwargs_generic)

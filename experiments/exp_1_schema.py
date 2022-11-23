@@ -40,13 +40,13 @@ def main():
         'multi_word': False,
     }
 
+    # best: 5gram, huffman, downgrading (-0.03), thresholding_scores 0.02 (-0.02)
     print('=== TABLES ===')
-    best: 5gram, huffman, downgrading (-0.03), thresholding_scores 0.02 (-0.02)
     res = evaluate(data_tab, model=m_tables, **kwargs)
     print(json.dumps(res, indent=4))
 
-    # print('=== COLUMNS ===')
     # best: 5gram, huffman, downgrading (-0.005), thresholding_scores 0.02 (-0.02)
+    # print('=== COLUMNS ===')
     # res = evaluate(data_col, model=m_columns, **kwargs)
     # print(json.dumps(res, indent=4))
 

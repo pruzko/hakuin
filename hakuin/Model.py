@@ -44,9 +44,20 @@ class Model:
         return self.model.context_counts(context)
 
 
+    def _fit(self, train, vocab):
+        # nltk fit method does not gradually update the vocabulary 
+        self.model.vocab.update(vocab)
+        self.model.counts.update(self.model.vocab.lookup(t) for t in train)
+
+
     def fit(self, data):
         train, vocab = hakuin.utils.padded_everygram_pipeline(data, self.max_ngram)
-        self.model.fit(train, vocab)
+        self._fit(train, vocab)
+
+
+    def fit_correct(self, s, correct):
+        train, vocab = hakuin.utils.padded_correct_everygram_pipeline(s, correct, self.max_ngram)
+        self._fit(train, vocab)
 
 
     @property
@@ -71,8 +82,6 @@ def get_model_columns():
 
 def get_model_generic():
     return Model(model_path=os.path.join(DIR_MODELS, 'model_generic.pkl'))
-
-
 
 
 # import code; code.interact(local=dict(globals(), **locals()))

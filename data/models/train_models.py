@@ -35,23 +35,23 @@ def main():
         dill.dump(m.model, f)
     print('Done.')
 
-    print('Columns...')
-    data = fetch_data(os.path.join(DIR_CORPUSES, 'columns.csv'))
-    m = hakuin.get_model_clean(MAX_NGRAM)
-    m.fit(data)
+    # print('Columns...')
+    # data = fetch_data(os.path.join(DIR_CORPUSES, 'columns.csv'))
+    # m = hakuin.get_model_clean(MAX_NGRAM)
+    # m.fit(data)
 
-    with open(os.path.join(DIR_MODELS, 'model_columns.pkl'), 'wb') as f:
-        dill.dump(m.model, f)
-    print('Done.')
+    # with open(os.path.join(DIR_MODELS, 'model_columns.pkl'), 'wb') as f:
+    #     dill.dump(m.model, f)
+    # print('Done.')
 
-    print('Generic...')
-    data = fetch_data(os.path.join(DIR_BOOKCORPUS, 'wordlist.csv'))
-    m = hakuin.get_model_clean(MAX_NGRAM)
-    m.fit(data)
+    # print('Generic...')
+    # data = fetch_data(os.path.join(DIR_BOOKCORPUS, 'wordlist.csv'))
+    # m = hakuin.get_model_clean(MAX_NGRAM)
+    # m.fit(data)
 
-    with open(os.path.join(DIR_MODELS, 'model_generic.pkl'), 'wb') as f:
-        dill.dump(m.model, f)
-    print('Done.')
+    # with open(os.path.join(DIR_MODELS, 'model_generic.pkl'), 'wb') as f:
+    #     dill.dump(m.model, f)
+    # print('Done.')
 
     # import code; code.interact(local=dict(globals(), **locals()))
 

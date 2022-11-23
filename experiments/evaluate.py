@@ -47,9 +47,8 @@ def load_generic_db():
 def bin_search(s, charset):
     total = 0
     for c in s:
-        if c in charset:
-            total += math.log(len(charset), 2)
-        else:
+        total += math.log(len(charset), 2)
+        if c not in charset:
             total += math.log(len(CHARSET_ASCII) - len(charset), 2)
     # EOS
     if '</s>' in charset:
@@ -104,7 +103,7 @@ def hakuin_search(
         if downgrading:
             for i in range(len(ctx) + 1):
                 scores = model.score_dict(ctx[i:])
-                if correct in scores:
+                if scores:
                     break
         else:
             scores = model.score_dict(ctx)
@@ -165,7 +164,7 @@ def count_hakuin_adaptive(data, batch_size, kwargs_generic, kwargs_adaptive):
         if not model_adaptive:
             model_adaptive = hakuin.get_model_clean(kwargs_adaptive['ngram'])
             if kwargs_generic is None:
-                total += count_bin_search(batch, string.ascii_lowercase)
+                total += count_bin_search(batch, CHARSET_ASCII)
             else:
                 total += count_hakuin(batch, **kwargs_generic)
         else:

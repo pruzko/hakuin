@@ -1,4 +1,4 @@
-[#TümDATA],1
+[#TümDATA],5
 [@CRSR_FİRMA_ADI],1
 [@CRSR_FİRMA_KODU],1
 [@CRSR_ORT_GECİKME_GÜNÜ],1
@@ -11,82 +11,94 @@
 [@CRSR_firmamiz_YETKİLİ],1
 [@CRSR_firmamiz_İLETİŞİM_TELEFONU],1
 [AbZugänge],1
-[Abgänge],1
+[Abgänge],4
 [Adhérent],1
-[AdresseListeBioAnlæg],1
+[AdresseListeBioAnlæg],2
 [AgențiȘcoliCorn],1
-[Aktivitäten],1
+[Aktivitäten],7
 [Année],1
 [Aprēķins],1
+[Assurés - Contrats],2
+[Assurés_Liens],2
 [Aufträge],2
-[Avaliação],1
+[Avaliação],3
 [BE België$Cities],1
 [BILÄGARE],1
 [Bemærkning],1
 [BildHinzufügen],1
 [Bådpladser],3
 [Böcker],1
-[COMPAÑIA],1
-[CONSULTA DE VFV INSERIR PEÇAS],1
+[COMPAÑIA],3
+[CONSULTA DE VFV INSERIR PEÇAS],2
 [Cartão],1
-[Catégorie],1
-[Compatibilità_detergenti],1
+[Catégorie],3
+[Compatibilità_detergenti],5
 [Compañia],1
 [Contusión hemorrágica],1
-[Cálculo_Remanentes_OT],1
+[Cálculo_Remanentes_OT],3
 [Código],1
 [Depósitos],2
 [Descripción],2
 [Diák],2
 [Documentación],1
+[Données_mine],1
+[Données_moulin],1
 [Dział],1
 [Dzień],1
 [Dátum],1
-[Détails commandes],1
+[Détails commandes],2
 [Einkäufe],1
 [Empfänger],1
-[Employée],1
+[Employée],8
 [EquipmentСategory],1
-[EtatyWypełnioneWoj],1
+[EtatyWypełnioneWoj],3
 [Etähallintajärjestelmät],1
-[Expéditeur],2
+[Expéditeur],4
 [FHAngehörige],1
 [Fremført],1
-[Funcionário],1
+[Funcionário],2
 [Födelsedatum],1
-[Företag],1
+[Företag],13
 [Förnamn],1
 [Gruppelærer],1
-[Histórico Lin_Factura Venta],1
+[Histórico Lin_Factura Venta],3
 [Hoạt động],1
 [HöjdKortvågVänster],1
+[INGÅENDEANALYSX],1
+[INGÅENDEANALYS],3
+[INSÄNTMATERIALX],1
+[INSÄNTMATERIAL],2
 [IdBibliothècaireEmp],1
 [IdBibliothècaireRendu],1
 [IdBibliothècaire],1
 [Indkøbsliste],3
-[Infirmière],1
+[Infirmière],4
 [Instituição],1
+[JERARQUÍA SOCIOS],1
 [JogadoresEstatísticasBrutas],1
 [KULLANİCİLAR],1
-[Kostengefässe],1
+[Kostengefässe],2
 [Książka],1
 [KullanıcıAdı],1
 [Kupující],1
-[Kurstillfälle],1
+[Kurstillfälle],2
 [KódMateriálu],1
+[KønAlleElevID_V],1
 [LigneBonEntréeWHERE],1
 [LigneBonEntrée],2
 [Localités],1
-[Lot-Prix-Delai Requête],1
+[Lot-Prix-Delai Requête],9
 [Lägenheter],1
 [Lägenhetsnr],1
-[Lärare],1
+[Lärare],2
 [Lån],1
 [Lånetagare],1
 [MATRICULACIÓN],1
+[MacroAttività],1
 [Matriculación],2
 [Matrícula],2
-[Målsman],1
+[Målsman],3
+[Mærke],11
 [Należy],1
 [Nätdata],1
 [ObčaniaSR],1
@@ -99,19 +111,25 @@
 [RaumÄ],1
 [Rheinlandstädte],1
 [RèglementsDet],1
+[Règlements],1
 [Réf],1
-[SatisSatirları],1
+[SIBA_Città],1
+[SatisSatirları],3
 [Schätzpreis],1
 [Schüler],1
 [SkladVýdajMateriál],1
 [Slovník],2
+[Sprzątanie w dany typ dnia],1
 [Straße],1
 [Stämplingar],1
 [Sætning],1
 [Sépar],1
 [Søknad],1
-[SınavOgrenci],1
+[SınavOgrenci],2
 [TBL_ÖDEME_TALEP_MAİL],1
+[T_PROPOS_Duplikate_löschen],4
+[Table_de_correspondance_Galiléi],2
+[Table_pg_FlextidsopgørelseGlUdgave],5
 [Tablé],1
 [Thông báo],1
 [Transección medular],1
@@ -126,41 +144,47 @@
 [Yayınevi],1
 [YeniKrediKullanımı],1
 [Zboží],1
+[Zugehörigkeiten],2
 [Zákazky],1
-[_ERP_재고],1
+[_ERP_재고],2
 [_ΠΕΛΑΤΕΣ_ΚΕΝΤΡΑ_ΧΡΕΩΣΗΣ],1
-[agentūros],1
+[agentūros],2
 [année],1
-[anställda],1
+[anställda],4
+[artiklar_anställda],2
 [attivitàformativa],1
 [beställning],1
 [bilägare],4
 [búgatás],1
-[cineaști],1
+[cineaști],3
 [città],1
-[congé],1
+[congé],12
 [contraseña],2
 [créera],1
+[database_geräte],3
 [dbfécondation],1
 [descripción],1
+[donnée_utilisateur],3
 [dæk],3
 [effectuée],1
-[employée],1
+[employée],2
 [employées],1
 [employés],5
 [endereços],1
 [flügehin],1
 [funcionários],1
+[fäää],1
 [försäljning],1
 [große],1
-[großhandelsfirma],1
-[grupė],2
+[großhandelsfirm],1
+[großhandelsfirma],4
+[grupė],3
 [généalogie],1
-[harförmåga],1
+[harförmåga],3
 [havuzAracıFormu],1
 [idOperação],1
 [insättning],4
-[išlaidos pajamos],1
+[išlaidos pajamos],3
 [kapazitätsgränze],1
 [kayıtlar],1
 [kilométrage],1
@@ -168,14 +192,15 @@
 [kontoägare],1
 [location_Antérieure],1
 [lägenhetsnummer],1
-[läggtill],1
-[lærer],2
+[läggtill],7
+[lærer],5
 [lúc],1
 [lại],1
-[matiereunité],1
+[matiereunité],3
 [matriculación],2
 [matrículas],2
 [mst仕入先],1
+[målsman],2
 [naročila],1
 [niezgodność],1
 [nitrоboost],1
@@ -184,11 +209,14 @@
 [numéro_Teléphone],1
 [náhledu],1
 [obrázku],1
+[organização_rh],4
 [parenthèse],1
 [país],1
 [películas],1
+[person_bauträger],2
 [personaattività],1
-[prekės],3
+[prekės],8
+[premii_obținute],2
 [preço],1
 [preñadas],1
 [prénom],1
@@ -196,22 +224,27 @@
 [prüfen],1
 [påmelding],1
 [pétoncle],2
-[póliza],1
-[qryAktuelleSchülerbilder],1
+[póliza],3
+[qryAktuelleSchülerbilder],2
+[qryFunktionen_Übersicht],28
+[qryPallställDetails],7
 [quantità],1
 [rendaxeducação],1
 [restricción],1
+[räume],1
 [réserve],1
 [résultat],1
 [spécialité],1
-[stage_närvaro],1
-[tblSchülerbilder],1
+[stage_närvaro],14
+[tbFunktionen_Übersicht],2
+[tblSchülerbilder],2
 [tblStückliste],1
+[tbl_Employés],7
 [tillhör],1
 [titulación],1
 [unità],1
 [uçuşlar],1
-[v_imp_närvaro],1
+[v_imp_närvaro],10
 [vào],1
 [vérifiez],1
 [werkzeugführung],1
@@ -221,21 +254,21 @@
 [zawód_rodzaj],1
 [zawód_stanowisko],1
 [zugänge],1
-[zurückschreibendatas],1
+[zurückschreibendatas],8
 [zásilka],2
 [Àctual],1
 [ÂÂÂÂ],1
 [Ärende],1
 [Ärendet],3
 [Équipe],2
-[Ögon],1
+[Ögon],2
 [Übersicht_Woche_RAP],1
 [Übersicht_Woche_RAP_103100],1
 [à],1
 [åpåpå],1
 [òrder],1
 [øvelser],1
-[ùåøåú ú÷áåìéí$B10:K32],1
+[ùåøåú ú÷áåìéí$B10:K32],4
 [ürünler$],1
 [ČíselníkMateriál],1
 [İsim],1
@@ -244,6 +277,7 @@
 [ΟFFER],2
 [АбсолютноеИмяФайла],1
 [АвтоБалансировка],1
+[Автомобили],1
 [Автомобиль],1
 [АдресДоставки],1
 [АдресПерегруза],1
@@ -293,8 +327,8 @@
 [ДатаУстановкиСкидки],1
 [ДляСозданияПроцессаИспользоватьПодфункции],1
 [ДокументРезерва],1
-[Документы],2
-[Документы_Позиции],2
+[Документы],4
+[Документы_Позиции],6
 [ДокументыВозвращены],1
 [ДопПризнак],1
 [ДрайверЗатрат],1
@@ -379,6 +413,7 @@
 [Номер6],1
 [Номер7],1
 [НомерЗаказа],1
+[НомерКарты],1
 [НомерМеста],1
 [ОбщЕдИзм2Куда],1
 [ОбщЕдИзм2Откуда],1
@@ -447,7 +482,7 @@
 [ПриоритетРасстановкиПартий],1
 [Проверяющий],1
 [ПроцентОтклонКурса],1
-[Процесс],2
+[Процесс],4
 [ПроцессЗатрат],1
 [ПроцессКуда],1
 [ПроцессМенеджер],1
@@ -545,7 +580,7 @@
 [Флаг8],1
 [Флаг9],1
 [ФормаОплаты],1
-[Функция],2
+[Функция],3
 [ЦФО],1
 [Цвет],1
 [Число1],1
@@ -604,6 +639,8 @@
 [سر],1
 [งปลา],1
 [‘GA Dataset Name’ ],1
+[„blk“ 2011$Purch_ Inv_ Header],1
+[„blk“ 2011$Purch_ Inv_ Line],7
 [仕入先コード],1
 [仕入先名],1
 [仕入先名カナ],1
