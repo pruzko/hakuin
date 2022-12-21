@@ -1,9 +1,11 @@
+import copy
 import os
 
 import dill
 from nltk.lm import MLE
 
 import hakuin
+from hakuin.utils import SOS
 
 
 
@@ -14,13 +16,18 @@ DIR_MODELS = os.path.join(DIR_ROOT, 'data', 'models')
 
 
 class Model:
-    def __init__(self, model_path=None):
+    @staticmethod
+    def make_clean(ngram):
+        m = Model()
+        m.model = MLE(ngram)
+        return m
+
+
+    def __init__(self):
         self.model = None
-        if model_path:
-            self.load_model(model_path)
 
 
-    def load_model(self, model_path):
+    def load(self, model_path):
         with open(model_path, 'rb') as f:
             self.model = dill.load(f)
 
@@ -35,6 +42,18 @@ class Model:
         return {c: counts.freq(c) for c in counts}
 
 
+    def score_any_dict(self, context):
+        context = copy.deepcopy(context)
+
+        while context:
+            scores = self.score_dict(context)
+            if scores:
+                return scores
+            context.pop(0)
+
+        return self.score_dict([])
+
+
     def count(self, s, context):
         return self.count_dict(context).get(s, 0.0)
 
@@ -45,7 +64,6 @@ class Model:
 
 
     def _fit(self, train, vocab):
-        # nltk fit method does not gradually update the vocabulary 
         self.model.vocab.update(vocab)
         self.model.counts.update(self.model.vocab.lookup(t) for t in train)
 
@@ -55,9 +73,18 @@ class Model:
         self._fit(train, vocab)
 
 
-    def fit_correct(self, s, correct):
-        train, vocab = hakuin.utils.padded_correct_everygram_pipeline(s, correct, self.max_ngram)
-        self._fit(train, vocab)
+    def fit_correct(self, ctx, correct):
+        if type(ctx) == str:
+            # TODO remove all ngrams like [SOS, SOS, SOS, 'A'] and replace them with [SOS, 'A'] and ['A']
+            # then retrain the models (fix the whole codebase)
+            ctx = [SOS] * self.max_ngram + list(ctx)
+
+        ctx = ctx + [correct]
+        ctx = ctx[-self.max_ngram:]
+
+        train = (ctx[i:] for i in range(self.max_ngram))
+        train = (train, )
+        self._fit(train, ctx)
 
 
     @property
@@ -66,22 +93,34 @@ class Model:
         return self.model.order
 
 
-def get_model_clean(ngram):
-    m = Model()
-    m.model = MLE(ngram)
-    return m
+
+_m_tables = None
+_m_columns = None
+_m_generic = None
 
 
 def get_model_tables():
-    return Model(model_path=os.path.join(DIR_MODELS, 'model_tables.pkl'))
+    global _m_tables
+    if _m_tables is None:
+        _m_tables = Model()
+        _m_tables.load(os.path.join(DIR_MODELS, 'model_tables.pkl'))
+    return _m_tables
 
 
 def get_model_columns():
-    return Model(model_path=os.path.join(DIR_MODELS, 'model_columns.pkl'))
+    global _m_columns
+    if _m_columns is None:
+        _m_columns = Model()
+        _m_columns.load(os.path.join(DIR_MODELS, 'model_columns.pkl'))
+    return _m_columns
 
 
 def get_model_generic():
-    return Model(model_path=os.path.join(DIR_MODELS, 'model_generic.pkl'))
+    global _m_generic
+    if _m_generic is None:
+        _m_generic = Model()
+        _m_generic.load(os.path.join(DIR_MODELS, 'model_generic.pkl'))
+    return _m_generic
 
 
 # import code; code.interact(local=dict(globals(), **locals()))

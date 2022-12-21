@@ -24,6 +24,8 @@ CHARSET_OTHER = [x for x in CHARSET_ASCII if x not in CHARSET_LOWER + CHARSET_UP
 def load_dbanswers_data():
     data = []
     for file in os.listdir('dbanswers'):
+        if not file.endswith('.json'):
+            continue
         with open(os.path.join('dbanswers', file), 'r') as f:
             data.append(json.load(f))
     return data
