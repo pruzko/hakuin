@@ -125,14 +125,11 @@ class DynamicTextCollector(TextCollector):
         st = self._stats
         st['n_strings'] += 1
         st['avg_len'] = (st['avg_len'] * (st['n_strings'] - 1) + len(s)) / st['n_strings']
-
         return s
 
 
     def _get_string(self, ctx):
         v = self._guess_value(ctx)
-        # v = None
-        # print(v, self.model_guess.score_dict([]))
         if v is not None:
             return v
 
@@ -194,7 +191,6 @@ class DynamicTextCollector(TextCollector):
 
 
     def _search_char(self, ctx):
-        # print(self._best_mode(), {k: v['avg'] for k, v in self._stats['qpc'].items()})
         searched_space = set()
         c = self._get_optim(ctx, searched_space, self._best_mode()).run(ctx)
         if c is None:

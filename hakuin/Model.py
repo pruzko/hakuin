@@ -96,7 +96,6 @@ class Model:
 
 _m_tables = None
 _m_columns = None
-_m_generic = None
 
 
 def get_model_tables():
@@ -113,14 +112,3 @@ def get_model_columns():
         _m_columns = Model()
         _m_columns.load(os.path.join(DIR_MODELS, 'model_columns.pkl'))
     return _m_columns
-
-
-def get_model_generic():
-    global _m_generic
-    if _m_generic is None:
-        _m_generic = Model()
-        _m_generic.load(os.path.join(DIR_MODELS, 'model_generic.pkl'))
-    return _m_generic
-
-
-# import code; code.interact(local=dict(globals(), **locals()))
