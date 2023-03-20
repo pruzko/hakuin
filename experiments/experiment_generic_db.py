@@ -14,11 +14,17 @@ class SchemaRequester(Requester):
         return r.status_code == 200
 
 
-requester = SimpleRequester()
-dbms = SQLite()
-exf = Exfiltrator(requester, dbms)
 
-assert len(sys.argv) >= 3, 'python3 experiment_generic_db.py <table> <column>'
+def main():
+    assert len(sys.argv) >= 3, 'python3 experiment_generic_db.py <table> <column>'
 
-res = json.dumps(exf.exfiltrate_text_data(sys.argv[1], sys.argv[2]), indent=4)
-print(res)
+    requester = SimpleRequester()
+    dbms = SQLite()
+    exf = Exfiltrator(requester, dbms)
+
+    res = json.dumps(exf.exfiltrate_text_data(sys.argv[1], sys.argv[2]), indent=4)
+    # print(res)
+
+
+if __name__ == '__main__':
+    main()

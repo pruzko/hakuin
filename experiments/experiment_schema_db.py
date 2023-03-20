@@ -13,9 +13,15 @@ class SimpleRequester(Requester):
         return r.status_code == 200
 
 
-requester = SimpleRequester()
-dbms = SQLite()
-exf = Exfiltrator(requester, dbms)
 
-res = json.dumps(exf.exfiltrate_schema(mode='model_search'), indent=4)
-print(res)
+def main():
+    requester = SimpleRequester()
+    dbms = SQLite()
+    exf = Exfiltrator(requester, dbms)
+
+    res = json.dumps(exf.exfiltrate_schema(mode='model_search'), indent=4)
+    # print(res)
+
+
+if __name__ == '__main__':
+    main()
