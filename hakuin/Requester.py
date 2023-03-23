@@ -9,14 +9,33 @@ FILE_GDB = os.path.join(DIR_ROOT, 'experiments', 'generic_db', 'db.sqlite')
 
 
 class Requester(metaclass=ABCMeta):
+    '''Abstract class for requesters. Requesters craft requests with
+    injected queries, send them, and infer the query's results.
+    '''
     @abstractmethod
     def request(self, ctx, query):
+        '''Sends a request with injected query and infers its result.
+
+        Params:
+            ctx (Context): inference context
+            query (str): query to be injected
+
+        Returns:
+            bool: query result
+        '''
         raise NotImplementedError()
 
 
 
 class OfflineRequester(Requester):
+    '''Offline requester for testing purposes.'''
     def __init__(self, db='generic_db'):
+        '''Constructor.
+
+        Params:
+            db (str): 'generic_db' for the generic DB or
+                      'schema_db' for the schemas DB
+        '''
         import sqlite3
 
         assert db in ['generic_db', 'schema_db']

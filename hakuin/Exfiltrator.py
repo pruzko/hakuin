@@ -6,12 +6,28 @@ from hakuin.utils import CHARSET_SCHEMA
 
 
 class Exfiltrator:
+    '''Class for extracting DB data.'''
     def __init__(self, requester, dbms):
+        '''Constructor.
+
+        Params:
+            requester (Requester): Requester instance used to inject queries
+            dbms (DBMS): DBMS instance used to construct queries
+        '''
         self.requester = requester
         self.dbms = dbms
 
 
     def exfiltrate_tables(self, mode='model_search'):
+        '''Extracts table names.
+
+        Params:
+            mode (str): 'binary_search' for binary search or
+                        'model_search' for pre-trained models with Huffman trees
+
+        Returns:
+            list: List of inferred table names
+        '''
         allowed_modes = ['binary_search', 'model_search']
         assert mode in allowed_modes, f'Invalid mode: {mode} not in {allowed_modes}'
 
@@ -39,6 +55,16 @@ class Exfiltrator:
 
 
     def exfiltrate_columns(self, table, mode='model_search'):
+        '''Extracts table column names.
+
+        Params:
+            table (str): table name
+            mode (str): 'binary_search' for binary search or
+                        'model_search' for pre-trained models with Huffman trees
+
+        Returns:
+            list: List of inferred column names
+        '''
         allowed_modes = ['binary_search', 'model_search']
         assert mode in allowed_modes, f'Invalid mode: {mode} not in {allowed_modes}'
 
@@ -66,6 +92,15 @@ class Exfiltrator:
 
 
     def exfiltrate_metadata(self, table, column):
+        '''Extracts column metadata (data type, nullable, and primary key).
+
+        Params:
+            table (str): table name
+            column (str): column name
+
+        Returns:
+            dict: column metadata
+        '''
         ctx = optim.Context(table, column, None, None)
 
         d_type = optim.BinarySearch(
@@ -82,6 +117,16 @@ class Exfiltrator:
 
 
     def exfiltrate_schema(self, mode='model_search', metadata=False):
+        '''Extracts schema.
+
+        Params:
+            mode (str): 'binary_search' for binary search or
+                        'model_search' for pre-trained models with Huffman trees
+            metadata (bool): if set, the metadata will be extracted as well
+
+        Returns:
+            dict: schema
+        '''
         allowed_modes = ['binary_search', 'model_search']
         assert mode in allowed_modes, f'Invalid mode: {mode} not in {allowed_modes}'
 
@@ -96,6 +141,23 @@ class Exfiltrator:
 
 
     def exfiltrate_text_data(self, table, column, mode='dynamic_search', charset=None, n_rows=None, n_rows_guess=128):
+        '''Extracts text column.
+
+        Params:
+            table (str): table name
+            column (str): column name
+            mode (str): 'binary_search' for binary search or
+                        'adaptive_search' for adaptive five-gram model with Huffman trees or
+                        'unigram_search' for adaptive unigram model with Huffman trees or
+                        'dynamic_search' for dynamically choosing the best search strategy and
+                                         opportunistically guessing strings
+            charset (list|None): list of possible characters
+            n_rows (int|None): number of rows
+            n_rows_guess (int|None): approximate number of rows when 'n_rows' is not set
+
+        Returns:
+            list: list of strings in the column
+        '''
         allowed_modes = ['binary_search', 'adaptive_search', 'unigram_search', 'dynamic_search']
         assert mode in allowed_modes, f'Invalid mode: {mode} not in {allowed_modes}'
 
