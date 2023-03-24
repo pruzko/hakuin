@@ -1,3 +1,4 @@
+import logging
 from abc import ABCMeta, abstractmethod
 from collections import Counter
 
@@ -22,10 +23,13 @@ class Collector(metaclass=ABCMeta):
         Returns:
             list: column rows
         '''
+        logging.info(f'Inferring "{ctx.table}.{ctx.column}"...')
         data = []
         for row in range(n_rows):
             ctx = Context(ctx.table, ctx.column, row, None)
-            data.append(self._collect_row(ctx))
+            res = self._collect_row(ctx)
+            data.append(res)
+            logging.info(f'({row + 1}/{n_rows}) inferred: {res}')
 
         return data
 

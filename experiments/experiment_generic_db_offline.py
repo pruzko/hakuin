@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import sys
 
@@ -6,10 +7,12 @@ from hakuin.dbms import SQLite
 from hakuin import Exfiltrator, OfflineRequester
 
 
+logging.basicConfig(level=logging.INFO)
+
+
 DIR_FILE = os.path.dirname(os.path.realpath(__file__))
 DIR_ROOT = os.path.abspath(os.path.join(DIR_FILE, '..'))
 FILE_GDB = os.path.join(DIR_ROOT, 'experiments', 'generic_db', 'db.json')
-
 
 
 def main():
@@ -36,12 +39,14 @@ def main():
             for column in columns:
                 res = exf.exfiltrate_text_data(table, column)
                 res_len = len(''.join(res))
-                rpc[table][column] = requester.n_queries / len(''.join(res))
+                col_rpc = requester.n_queries / len(''.join(res))
+                rpc[table][column] = (requester.n_queries, col_rpc)
                 requester.n_queries = 0
 
         print(json.dumps(rpc, indent=4))
     else:
         res = exf.exfiltrate_text_data(sys.argv[1], sys.argv[2])
+        print(requester.n_queries)
         print(requester.n_queries / len(''.join(res)))
 
 
