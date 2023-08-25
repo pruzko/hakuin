@@ -83,7 +83,7 @@ class SQLiteQueries(Queries):
     def _char(self, ctx, values, mode):
         column = ctx.column if mode == 'row' else 'name'
         char_query = f'substr({column}, {len(ctx.s) + 1}, 1)'
-        eos_query = '' if '</s>' in values else f'({char_query} != "") and '
+        eos_query = '' if '</s>' in values else f'({char_query} != "") and'
 
         if mode == 'row':
             from_query = ctx.table

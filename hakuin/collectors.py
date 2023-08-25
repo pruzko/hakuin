@@ -258,9 +258,17 @@ class DynamicTextCollector(TextCollector):
         Also, the 'model_unigram' and 'model_adaptive' are adapted with every newly inferred
         character.
         '''
-        v = self._guess_value(ctx)
-        if v is not None:
-            return v
+        correct_str = self._guess_value(ctx)
+        if correct_str is not None:
+            self.model_unigram.fit([correct_str])
+            self.model_adaptive.fit([correct_str])
+
+            ctx.s = ''
+            for c in correct_str:
+                self._eval_modes(ctx, c)
+                ctx.s += c
+
+            return correct_str
 
         ctx.s = ''
         while True:
@@ -302,7 +310,7 @@ class DynamicTextCollector(TextCollector):
         # inferred strings into a candidate guess set "guesses" and computing their
         # expectation "exp_g" for guessing. The iteration stops when the minimal "exp_g"
         # is found.
-        # exp(G) = p(s in G) * exp_huff(G) + (1 - p(c in G)) * exp_c
+        # exp(G) = p(s in G) * exp_huff(G) + (1 - p(c in G)) * (exp_huff(G) + exp_c)
         guesses = {}
         prob_g = 0.0
         best_prob_g = 0.0
@@ -315,8 +323,9 @@ class DynamicTextCollector(TextCollector):
             guesses[guess] = score
 
             tree = make_tree(guesses)
+            exp_tree = tree.expected_height()
             prob_g += score
-            exp_g = prob_g * tree.expected_height() + (1 - prob_g) * exp_c
+            exp_g = prob_g * exp_tree + (1 - prob_g) * (exp_tree + exp_c)
 
             if exp_g > best_exp_g:
                 break
