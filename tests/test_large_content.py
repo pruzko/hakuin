@@ -4,28 +4,34 @@ import os
 import sys
 
 from hakuin.dbms import SQLite
-from hakuin import Exfiltrator, OfflineRequester
+from hakuin import Exfiltrator
+
+from OfflineRequester import OfflineRequester
+
 
 
 logging.basicConfig(level=logging.INFO)
 
 
 DIR_FILE = os.path.dirname(os.path.realpath(__file__))
-DIR_ROOT = os.path.abspath(os.path.join(DIR_FILE, '..'))
-FILE_GDB = os.path.join(DIR_ROOT, 'experiments', 'generic_db', 'db.json')
+DIR_DBS = os.path.abspath(os.path.join(DIR_FILE, 'dbs'))
+FILE_LARGE_CONTENT_JSON = os.path.join(DIR_DBS, 'large_content.json')
 
 
 def main():
     assert len(sys.argv) in [1, 3], 'python3 experiment_generic_db_offline.py [table> <column>]'
 
-    requester = OfflineRequester()
-    dbms = SQLite()
-    exf = Exfiltrator(requester, dbms)
+    requester = OfflineRequester(db='large_content')
+    exf = Exfiltrator(requester=requester, dbms=SQLite())
 
-    if len(sys.argv) == 1:
+    if len(sys.argv) == 3:
+        res = exf.exfiltrate_text_data(sys.argv[1], sys.argv[2])
+        print('Total requests:', requester.n_queries)
+        print('Average RPC:', requester.n_queries / len(''.join(res)))
+    else:
         rpc = {}
 
-        with open(FILE_GDB) as f:
+        with open(FILE_LARGE_CONTENT_JSON) as f:
             db = json.load(f)
 
         # copy the names of tables and columns
@@ -44,10 +50,6 @@ def main():
                 requester.n_queries = 0
 
         print(json.dumps(rpc, indent=4))
-    else:
-        res = exf.exfiltrate_text_data(sys.argv[1], sys.argv[2])
-        print(requester.n_queries)
-        print(requester.n_queries / len(''.join(res)))
 
 
 if __name__ == '__main__':

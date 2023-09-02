@@ -1,21 +1,56 @@
+import re
 from abc import ABCMeta, abstractmethod
-
-from hakuin.dbms.queries import SQLiteQueries
 
 
 
 class DBMS(metaclass=ABCMeta):
+    RE_NORM = re.compile(r'[ \n]+')
+
     DATA_TYPES = []
 
 
-    def __init__(self, queries):
-        self.queries = queries
+
+    @staticmethod
+    def normalize(s):
+        return DBMS.RE_NORM.sub(' ', s).strip()
 
 
+    @abstractmethod
+    def count_rows(self, ctx, n):
+        raise NotImplementedError()
 
-class SQLite(DBMS):
-    DATA_TYPES = ['INTEGER', 'TEXT', 'REAL', 'NUMERIC', 'BLOB']
+    @abstractmethod
+    def count_tables(self, ctx, n):
+        raise NotImplementedError()
 
+    @abstractmethod
+    def count_columns(self, ctx, n):
+        raise NotImplementedError()
 
-    def __init__(self):
-        super().__init__(SQLiteQueries())
+    @abstractmethod
+    def meta_type(self, ctx, values):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def meta_is_nullable(self, ctx):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def meta_is_pk(self, ctx):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def char_rows(self, ctx, values):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def char_tables(self, ctx, values):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def char_columns(self, ctx, values):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def string_rows(self, ctx, values):
+        raise NotImplementedError()

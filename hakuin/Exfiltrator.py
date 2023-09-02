@@ -34,21 +34,21 @@ class Exfiltrator:
         ctx = optim.Context(None, None, None, None)
         n_rows = optim.NumericBinarySearch(
             self.requester,
-            self.dbms.queries.count_tables,
+            self.dbms.count_tables,
             upper=8
         ).run(ctx)
 
         if mode == 'binary_search':
             return collect.BinaryTextCollector(
                 self.requester,
-                self.dbms.queries.char_tables,
+                self.dbms.char_tables,
                 charset=CHARSET_SCHEMA,
             ).run(ctx, n_rows)
         else:
             model = hakuin.get_model_tables()
             return collect.ModelTextCollector(
                 self.requester,
-                self.dbms.queries.char_tables,
+                self.dbms.char_tables,
                 model,
                 charset=CHARSET_SCHEMA,
             ).run(ctx, n_rows)
@@ -71,21 +71,21 @@ class Exfiltrator:
         ctx = optim.Context(table, None, None, None)
         n_rows = optim.NumericBinarySearch(
             self.requester,
-            self.dbms.queries.count_columns,
+            self.dbms.count_columns,
             upper=8
         ).run(ctx)
 
         if mode == 'binary_search':
             return collect.BinaryTextCollector(
                 self.requester,
-                self.dbms.queries.char_columns,
+                self.dbms.char_columns,
                 charset=CHARSET_SCHEMA,
             ).run(ctx, n_rows)
         else:
             model = hakuin.get_model_columns()
             return collect.ModelTextCollector(
                 self.requester,
-                self.dbms.queries.char_columns,
+                self.dbms.char_columns,
                 model,
                 charset=CHARSET_SCHEMA,
             ).run(ctx, n_rows)
@@ -105,14 +105,14 @@ class Exfiltrator:
 
         d_type = optim.BinarySearch(
             self.requester,
-            self.dbms.queries.meta_type,
+            self.dbms.meta_type,
             values=self.dbms.DATA_TYPES,
         ).run(ctx)
 
         return {
             'type': d_type,
-            'nullable': self.requester.request(ctx, self.dbms.queries.meta_is_nullable(ctx)),
-            'pk': self.requester.request(ctx, self.dbms.queries.meta_is_pk(ctx)),
+            'nullable': self.requester.request(ctx, self.dbms.meta_is_nullable(ctx)),
+            'pk': self.requester.request(ctx, self.dbms.meta_is_pk(ctx)),
         }
 
 
@@ -166,28 +166,28 @@ class Exfiltrator:
         if n_rows is None:
             n_rows = optim.NumericBinarySearch(
                 self.requester,
-                self.dbms.queries.count_rows,
+                self.dbms.count_rows,
                 upper=n_rows_guess
             ).run(ctx)
 
         if mode == 'binary_search':
             return collect.BinaryTextCollector(
                 self.requester,
-                self.dbms.queries.char_rows,
+                self.dbms.char_rows,
                 charset=charset,
             ).run(ctx, n_rows)
         elif mode in ['adaptive_search', 'unigram_search']:
             ngram = 5 if mode == 'adaptive_search' else 1
             return collect.AdaptiveTextCollector(
                 self.requester,
-                self.dbms.queries.char_rows,
+                self.dbms.char_rows,
                 model=hakuin.Model.make_clean(ngram),
                 charset=charset,
             ).run(ctx, n_rows)
         else:
             return collect.DynamicTextCollector(
                 self.requester,
-                self.dbms.queries.char_rows,
-                self.dbms.queries.string_rows,
+                self.dbms.char_rows,
+                self.dbms.string_rows,
                 charset=charset,
             ).run(ctx, n_rows)

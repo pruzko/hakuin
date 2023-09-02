@@ -1,3 +1,4 @@
+import os
 import string
 from functools import partial
 from itertools import chain, islice
@@ -7,12 +8,15 @@ from nltk.lm.preprocessing import pad_both_ends
 
 
 
+DIR_FILE = os.path.dirname(os.path.realpath(__file__))
+DIR_ROOT = os.path.abspath(os.path.join(DIR_FILE, '..'))
+DIR_MODELS = os.path.join(DIR_ROOT, 'data', 'models')
+
 CHARSET_ASCII = [chr(x) for x in range(128)] + ['</s>']
 CHARSET_SCHEMA = list(string.ascii_lowercase + string.digits + '_#@') + ['</s>']
 
 EOS = '</s>'
 SOS = '<s>'
-
 
 
 def everygrams(s, max_ngram):

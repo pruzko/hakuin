@@ -161,8 +161,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# hakuin
-old/
-others/
-experiments/generic_db/tmp/
-data/bookcorpus/tmp/
+# Hakuin
+tmp/

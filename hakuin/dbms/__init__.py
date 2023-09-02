@@ -1,1 +1,3 @@
-from .DBMS import DBMS, SQLite
+from .DBMS import DBMS
+from .SQLite import SQLite
+from .MySQL import MySQL

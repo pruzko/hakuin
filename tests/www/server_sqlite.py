@@ -5,10 +5,11 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 
+
 DIR_FILE = os.path.dirname(os.path.realpath(__file__))
-DIR_ROOT = os.path.abspath(os.path.join(DIR_FILE, '..', '..'))
-FILE_SDB = os.path.join(DIR_ROOT, 'experiments', 'schema_db', 'db.sqlite')
-FILE_GDB = os.path.join(DIR_ROOT, 'experiments', 'generic_db', 'db.sqlite')
+DIR_DBS = os.path.abspath(os.path.join(DIR_FILE, '..', 'dbs'))
+FILE_LARGE_CONTENT = os.path.join(DIR_DBS, 'large_content.sqlite')
+FILE_LARGE_SCHEMA = os.path.join(DIR_DBS, 'large_schema.sqlite')
 
 
 app = FastAPI()
@@ -16,15 +17,16 @@ app = FastAPI()
 counter = 0
 
 
-@app.get('/')
+@app.get('/large_content')
 def root(name: str):
     global counter
     counter += 1
 
-    with sqlite3.connect(FILE_GDB) as db:
-        db = db.cursor()
+    with sqlite3.connect(FILE_LARGE_CONTENT) as db:
         query = f'SELECT * FROM users WHERE first_name = "{name}"'
         print('query: ', query)
+        
+        db = db.cursor()
         users = db.execute(query).fetchall()
         if users:
             return HTMLResponse(content='Ok', status_code=200)
@@ -38,9 +40,10 @@ def root(name: str):
     counter += 1
 
     with sqlite3.connect(FILE_SDB) as db:
-        db = db.cursor()
-        query = f'SELECT 1=1 and {name}'
+        query = f'SELECT "John" = "{name}"'
         print('query: ', query)
+
+        db = db.cursor()
         res = db.execute(query).fetchone()[0]
         if res:
             return HTMLResponse(content='Ok', status_code=200)

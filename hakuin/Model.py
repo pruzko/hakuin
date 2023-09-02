@@ -5,13 +5,7 @@ import dill
 from nltk.lm import MLE
 
 import hakuin
-from hakuin.utils import SOS
-
-
-
-DIR_FILE = os.path.dirname(os.path.realpath(__file__))
-DIR_ROOT = os.path.abspath(os.path.join(DIR_FILE, '..'))
-DIR_MODELS = os.path.join(DIR_ROOT, 'data', 'models')
+from hakuin.utils import SOS, DIR_MODELS
 
 
 
