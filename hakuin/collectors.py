@@ -13,8 +13,19 @@ class Collector(metaclass=ABCMeta):
     '''Abstract class for collectors. Collectors repeatidly run
     search algorithms to infer column rows.
     '''
+    def __init__(self, requester, query_cb):
+        '''Constructor.
+
+        Params:
+            requester (Requester): Requester instance
+            query_cb (function): query construction function
+        '''
+        self.requester = requester
+        self.query_cb = query_cb
+
+
     def run(self, ctx, n_rows):
-        '''Run the collection.
+        '''Run collection.
 
         Params:
             ctx (Context): inference context
@@ -38,14 +49,6 @@ class Collector(metaclass=ABCMeta):
 
     @abstractmethod
     def _collect_row(self, ctx):
-        '''Collect single row.
-
-        Params:
-            ctx (Context): inference context
-
-        Returns:
-            value: single column row
-        '''
         raise NotImplementedError()
 
 
@@ -53,32 +56,16 @@ class Collector(metaclass=ABCMeta):
 class TextCollector(Collector):
     '''Collector for text columns.'''
     def _collect_row(self, ctx):
-        '''Collects column row.
-
-        Params:
-            ctx (Context): inference context
-
-        Returns:
-            str: single column row
-        '''
         ctx.s = ''
         while True:
-            c = self._search_char(ctx)
+            c = self._collect_char(ctx)
             if c == EOS:
                 return ctx.s
             ctx.s += c
 
 
     @abstractmethod
-    def _search_char(self, ctx):
-        '''Collect single character.
-
-        Params:
-            ctx (Context): inference context
-
-        Returns:
-            str: single character
-        '''
+    def _collect_char(self, ctx):
         raise NotImplementedError()
 
 
@@ -96,20 +83,11 @@ class BinaryTextCollector(TextCollector):
         Returns:
             list: column rows
         '''
-        self.requester = requester
-        self.query_cb = query_cb
+        super().__init__(requester, query_cb)
         self.charset = charset if charset else CHARSET_ASCII
 
 
-    def _search_char(self, ctx):
-        '''Finds a character with binary search.
-
-        Params:
-            ctx (Context): inference context
-
-        Returns:
-            str: single character
-        '''
+    def _collect_char(self, ctx):
         return BinarySearch(
             self.requester,
             self.query_cb,
@@ -119,7 +97,7 @@ class BinaryTextCollector(TextCollector):
 
 
 class ModelTextCollector(TextCollector):
-    '''Text collector that uses model and Huffman trees.'''
+    '''Language model-based text collector.'''
     def __init__(self, requester, query_cb, model, charset=None):
         '''Constructor.
 
@@ -132,25 +110,14 @@ class ModelTextCollector(TextCollector):
         Returns:
             list: column rows
         '''
-        self.requester = requester
-        self.query_cb = query_cb
+        super().__init__(requester, query_cb)
         self.model = model
         self.charset = charset if charset else CHARSET_ASCII
 
 
-    def _search_char(self, ctx):
-        '''Finds a character with Huffman trees or
-        binary search in case the former fails.
-
-        Params:
-            ctx (Context): inference context
-
-        Returns:
-            str: single character
-        '''
-        model_context = tokenize(ctx.s, add_eos=False)
-        model_context = model_context[-(self.model.max_ngram - 1):]
-        scores = self.model.score_any_dict(model_context)
+    def _collect_char(self, ctx):
+        model_ctx = tokenize(ctx.s, add_eos=False, max_len=self.model.max_ngram - 1)
+        scores = self.model.score_any_dict(model_ctx)
 
         c = TreeSearch(
             self.requester,
@@ -171,18 +138,9 @@ class ModelTextCollector(TextCollector):
 
 
 class AdaptiveTextCollector(ModelTextCollector):
-    '''Same as ModelTextCollector but adapts the models throughout inference.'''
-    def _search_char(self, ctx):
-        '''Same as ModelTextCollector._search_char but adapts the model
-        with newly inferred characters.
-
-        Params:
-            ctx (Context): inference context
-
-        Returns:
-            str: single character
-        '''
-        c = super()._search_char(ctx)
+    '''Same as ModelTextCollector but adapts the model.'''
+    def _collect_char(self, ctx):
+        c = super()._collect_char(ctx)
         self.model.fit_correct(ctx.s, c)
         return c
 
@@ -197,8 +155,10 @@ class DynamicTextCollector(TextCollector):
 
     Attributes:
         GUESS_TH (float): success probability threshold necessary to make guesses
+        GUESS_SCORE_TH (float): minimal necessary probability to be included in guess tree
     '''
     GUESS_TH = 0.5
+    GUESS_SCORE_TH = 0.01
 
 
     def __init__(self, requester, query_char_cb, query_string_cb, charset=None):
@@ -211,11 +171,9 @@ class DynamicTextCollector(TextCollector):
             charset (list|None): list of possible characters
 
         Other Attributes:
-            model_guess: adaptive model that keeps track of previously inferred characters and
-                         their probabilities
+            model_guess: adaptive string-based model for guessing
             model_unigram: adaptive unigram model
-            model_adaptive: adaptive five-gram model
-            _stats: statistical information
+            model_fivegram: adaptive five-gram model
         '''
         self.requester = requester
         self.query_char_cb = query_char_cb
@@ -223,12 +181,12 @@ class DynamicTextCollector(TextCollector):
         self.charset = charset if charset else CHARSET_ASCII
         self.model_guess = hakuin.Model.make_clean(1)
         self.model_unigram = hakuin.Model.make_clean(1)
-        self.model_adaptive = hakuin.Model.make_clean(5)
+        self.model_fivegram = hakuin.Model.make_clean(5)
         self._stats = {
             'rpc': {
                 'binary': {'avg': 0.0, 'hist': []},
-                'adaptive': {'avg': 0.0, 'hist': []},
                 'unigram': {'avg': 0.0, 'hist': []},
+                'fivegram': {'avg': 0.0, 'hist': []},
             },
             'avg_len': 0.0,
             'n_strings': 0,
@@ -236,56 +194,56 @@ class DynamicTextCollector(TextCollector):
 
 
     def _collect_row(self, ctx):
-        '''Collects column row but also update the 'model_guess' with the newly
-        inferred string and updates the statistical information.
-
-        Params:
-            ctx (Context): inference context
-
-        Returns:
-            str: single column row
-        '''
-        s = self._get_string(ctx)
+        s = self._collect_string(ctx)
         self.model_guess.fit_correct([], s)
 
-        st = self._stats
-        st['n_strings'] += 1
-        st['avg_len'] = (st['avg_len'] * (st['n_strings'] - 1) + len(s)) / st['n_strings']
+        self._stats['n_strings'] += 1
+
+        total = self._stats['avg_len'] * (self._stats['n_strings'] - 1) + len(s)
+        self._stats['avg_len'] = total / self._stats['n_strings']
         return s
 
 
-    def _get_string(self, ctx):
+    def _collect_string(self, ctx):
         '''Identifies if guessings strings is likely to succeed and if yes, it makes guesses.
         If guessing does not take place or fails, it proceeds with per-character inference.
-        Also, the 'model_unigram' and 'model_adaptive' are adapted with every newly inferred
-        character.
         '''
-        correct_str = self._guess_value(ctx)
+        correct_str = self._try_guessing(ctx)
+        
         if correct_str is not None:
-            self.model_unigram.fit([correct_str])
-            self.model_adaptive.fit([correct_str])
-
             ctx.s = ''
             for c in correct_str:
-                self._eval_modes(ctx, c)
+                self._compute_stats(ctx, c)
                 ctx.s += c
 
+            self.model_unigram.fit([correct_str])
+            self.model_fivegram.fit([correct_str])
             return correct_str
 
         ctx.s = ''
         while True:
-            c = self._search_char(ctx)
+            c = self._collect_char(ctx)
 
-            self._eval_modes(ctx, c)
+            self._compute_stats(ctx, c)
             self.model_unigram.fit_correct(ctx.s, c)
-            self.model_adaptive.fit_correct(ctx.s, c)
+            self.model_fivegram.fit_correct(ctx.s, c)
 
             if c == EOS:
                 return ctx.s
+
             ctx.s += c
 
 
-    def _guess_value(self, ctx):
+    def _collect_char(self, ctx):
+        '''Chooses the best strategy and uses it to infer a character.'''
+        searched_space = set()
+        c = self._get_strategy(ctx, searched_space, self._best_strategy()).run(ctx)
+        if c is None:
+            c = self._get_strategy(ctx, searched_space, 'binary').run(ctx)
+        return c
+
+
+    def _try_guessing(self, ctx):
         '''Tries to construct a guessing Huffman tree and searches it in case of success.'''
         tree = self._get_guess_tree(ctx)
         return TreeSearch(
@@ -296,22 +254,21 @@ class DynamicTextCollector(TextCollector):
 
 
     def _get_guess_tree(self, ctx):
-        '''Identifies, whether string guessing is likely to succed and if so,
-        also constructs a Huffman tree from previously inferred strings.
+        '''Identifies, whether string guessing is likely to succeed and if so,
+        it constructs a Huffman tree from previously inferred strings.
 
         Returns:
             utils.huffman.Node|None: Huffman tree constructed from previously inferred
             strings that are likely to succeed or None if no such strings were found
         '''
 
-        # Compute the expectation "exp_c" for per-character inference.
+        # Expectation for per-character inference:
         # exp_c = avg_len * best_strategy_rpc
-        exp_c = self._stats['avg_len'] * self._stats['rpc'][self._best_mode()]['avg']
+        exp_c = self._stats['avg_len'] * self._stats['rpc'][self._best_strategy()]['avg']
 
-        # Compute the best expectation "best_exp_g" by iteratively inserting previously
-        # inferred strings into a candidate guess set "guesses" and computing their
-        # expectation "exp_g" for guessing. The iteration stops when the minimal "exp_g"
-        # is found.
+        # Iteratively compute the best expectation "best_exp_g" by progressively inserting guess
+        # strings into a candidate guess set "guesses" and computing their expectation "exp_g".
+        # The iteration stops when the minimal "exp_g" is found.
         # exp(G) = p(s in G) * exp_huff(G) + (1 - p(c in G)) * (exp_huff(G) + exp_c)
         guesses = {}
         prob_g = 0.0
@@ -320,7 +277,7 @@ class DynamicTextCollector(TextCollector):
         best_tree = None
 
         scores = self.model_guess.score_dict([])
-        scores = {k: v for k, v in scores.items() if self.model_guess.count(k, []) > 1}
+        scores = {k: v for k, v in scores.items() if v >= self.GUESS_SCORE_TH and self.model_guess.count(k, []) > 1}
         for guess, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
             guesses[guess] = score
 
@@ -342,78 +299,69 @@ class DynamicTextCollector(TextCollector):
         return best_tree
 
 
-    def _search_char(self, ctx):
-        '''Chooses the best strategy and uses it to infer a character.'''
-        searched_space = set()
-        c = self._get_search_alg(ctx, searched_space, self._best_mode()).run(ctx)
-        if c is None:
-            c = self._get_search_alg(ctx, searched_space, 'binary').run(ctx)
-        return c
-
-
-    def _best_mode(self):
+    def _best_strategy(self):
         '''Returns the name of the best strategy.'''
-        return min(self._stats['rpc'], key=lambda mode: self._stats['rpc'][mode]['avg'])
+        return min(self._stats['rpc'], key=lambda strategy: self._stats['rpc'][strategy]['avg'])
 
 
-    def _eval_modes(self, ctx, correct):
-        '''Runs (emulates) all strategies without sending any requests and updates the
+    def _compute_stats(self, ctx, correct):
+        '''Emulates all strategies without sending any requests and updates the
         statistical information.
         '''
-        for mode in self._stats['rpc']:
-            search_alg = self._get_search_alg(ctx, set(), mode)
-            search_alg.correct = correct
+        for strategy in self._stats['rpc']:
+            searched_space = set()
+            search_alg = self._get_strategy(ctx, searched_space, strategy, correct)
             res = search_alg.run(ctx)
             n_queries = search_alg.n_queries
             if res is None:
-                # TODO searched space should be smaller
-                binary_search = self._get_search_alg(ctx, set(), 'binary')
-                binary_search.correct = correct
+                binary_search = self._get_strategy(ctx, searched_space, 'binary', correct)
                 binary_search.run(ctx)
                 n_queries += binary_search.n_queries
 
-            m = self._stats['rpc'][mode]
+            m = self._stats['rpc'][strategy]
             m['hist'].append(n_queries)
             m['hist'] = m['hist'][-100:]
             m['avg'] = sum(m['hist']) / len(m['hist'])
 
 
-    def _get_search_alg(self, ctx, searched_space, mode):
-        '''Returns search algorithm and configures it to search
-        appropriate space.
+    def _get_strategy(self, ctx, searched_space, strategy, correct=None):
+        '''Builds search algorithm configured to search appropriate space.
 
         Params:
             ctx (Context): inference context
             searched_space (list): list of values that have already been searched
-            mode (str): name of search_algorithm ('binary_search', 'unigram', 'adaptive')
+            strategy (str): strategy ('binary', 'unigram', 'fivegram')
+            correct (str|None): correct character
 
         Returns:
             SearchAlgorithm: configured search algorithm
         '''
-        if mode == 'adaptive':
-            model_context = tokenize(ctx.s, add_eos=False)
-            model_context = model_context[-(self.model_adaptive.max_ngram - 1):]
-            scores = self.model_adaptive.score_any_dict(model_context)
-
-            searched_space.union(set(scores))
-            return TreeSearch(
+        if strategy == 'binary':
+            charset = list(set(self.charset).difference(searched_space))
+            return BinarySearch(
                 self.requester,
                 self.query_char_cb,
-                tree=make_tree(scores),
+                values=self.charset,
+                correct=correct,
             )
-        elif mode == 'unigram':
+        elif strategy == 'unigram':
             scores = self.model_unigram.score_dict([])
             searched_space.union(set(scores))
             return TreeSearch(
                 self.requester,
                 self.query_char_cb,
                 tree=make_tree(scores),
+                correct=correct,
             )
         else:
-            charset = list(set(self.charset).difference(searched_space))
-            return BinarySearch(
+            model_ctx = tokenize(ctx.s, add_eos=False)
+            model_ctx = model_ctx[-(self.model_fivegram.max_ngram - 1):]
+            scores = self.model_fivegram.score_any_dict(model_ctx)
+
+            searched_space.union(set(scores))
+            return TreeSearch(
                 self.requester,
                 self.query_char_cb,
-                values=self.charset,
+                tree=make_tree(scores),
+                correct=correct,
             )
-

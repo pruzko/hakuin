@@ -8,6 +8,7 @@ class Context:
     '''Inference state.'''
     def __init__(self, table, column, row, s):
         '''Constructor.
+
         Params:
             table (str|None): table name
             column (str|None): column name

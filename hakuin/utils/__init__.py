@@ -30,11 +30,11 @@ def ngrams(s, n):
     return nltk_ngrams(tuple(s) + ('</s>',), n=n, pad_left=True, left_pad_symbol='<s>')
 
 
-def tokenize(s, add_sos=True, add_eos=True):
+def tokenize(s, add_sos=True, add_eos=True, max_len=None):
     tokens = [SOS] if add_sos else []
     tokens += list(s)
     tokens += [EOS] if add_eos else []
-    return tokens
+    return tokens if max_len is None else tokens[-max_len:]
 
 
 def padded_everygram_pipeline(data, max_ngram):
