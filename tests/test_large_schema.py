@@ -1,9 +1,14 @@
 import json
+import logging
 
 from hakuin.dbms import SQLite
 from hakuin import Exfiltrator
 
 from OfflineRequester import OfflineRequester
+
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 

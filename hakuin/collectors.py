@@ -5,13 +5,13 @@ from collections import Counter
 import hakuin
 from hakuin.utils import tokenize, CHARSET_ASCII, EOS
 from hakuin.utils.huffman import make_tree
-from hakuin.optimizers import Context, BinarySearch, TreeSearch
+from hakuin.search_algorithms import Context, BinarySearch, TreeSearch
 
 
 
 class Collector(metaclass=ABCMeta):
     '''Abstract class for collectors. Collectors repeatidly run
-    Optimizers (i.e., search algorithms) to infer column rows.
+    search algorithms to infer column rows.
     '''
     def run(self, ctx, n_rows):
         '''Run the collection.
@@ -24,11 +24,13 @@ class Collector(metaclass=ABCMeta):
             list: column rows
         '''
         logging.info(f'Inferring "{ctx.table}.{ctx.column}"...')
+
         data = []
         for row in range(n_rows):
             ctx = Context(ctx.table, ctx.column, row, None)
             res = self._collect_row(ctx)
             data.append(res)
+
             logging.info(f'({row + 1}/{n_rows}) inferred: {res}')
 
         return data
@@ -323,9 +325,9 @@ class DynamicTextCollector(TextCollector):
             guesses[guess] = score
 
             tree = make_tree(guesses)
-            exp_tree = tree.expected_height()
+            tree_cost = tree.search_cost()
             prob_g += score
-            exp_g = prob_g * exp_tree + (1 - prob_g) * (exp_tree + exp_c)
+            exp_g = prob_g * tree_cost + (1 - prob_g) * (tree_cost + exp_c)
 
             if exp_g > best_exp_g:
                 break
@@ -343,9 +345,9 @@ class DynamicTextCollector(TextCollector):
     def _search_char(self, ctx):
         '''Chooses the best strategy and uses it to infer a character.'''
         searched_space = set()
-        c = self._get_optim(ctx, searched_space, self._best_mode()).run(ctx)
+        c = self._get_search_alg(ctx, searched_space, self._best_mode()).run(ctx)
         if c is None:
-            c = self._get_optim(ctx, searched_space, 'binary').run(ctx)
+            c = self._get_search_alg(ctx, searched_space, 'binary').run(ctx)
         return c
 
 
@@ -359,9 +361,16 @@ class DynamicTextCollector(TextCollector):
         statistical information.
         '''
         for mode in self._stats['rpc']:
-            result, n_queries = self._get_optim(ctx, set(), mode).eval(ctx, correct)
-            if result is None:
-                n_queries += self._get_optim(ctx, set(), 'binary').eval(ctx, correct)[1]
+            search_alg = self._get_search_alg(ctx, set(), mode)
+            search_alg.correct = correct
+            res = search_alg.run(ctx)
+            n_queries = search_alg.n_queries
+            if res is None:
+                # TODO searched space should be smaller
+                binary_search = self._get_search_alg(ctx, set(), 'binary')
+                binary_search.correct = correct
+                binary_search.run(ctx)
+                n_queries += binary_search.n_queries
 
             m = self._stats['rpc'][mode]
             m['hist'].append(n_queries)
@@ -369,17 +378,17 @@ class DynamicTextCollector(TextCollector):
             m['avg'] = sum(m['hist']) / len(m['hist'])
 
 
-    def _get_optim(self, ctx, searched_space, mode):
-        '''Returns optimization (search algorithm) and configures it to search
+    def _get_search_alg(self, ctx, searched_space, mode):
+        '''Returns search algorithm and configures it to search
         appropriate space.
 
         Params:
             ctx (Context): inference context
             searched_space (list): list of values that have already been searched
-            mode (str): the name of optimization ('binary_search', 'unigram', 'adaptive')
+            mode (str): name of search_algorithm ('binary_search', 'unigram', 'adaptive')
 
         Returns:
-            Optimization: configured search algorithm
+            SearchAlgorithm: configured search algorithm
         '''
         if mode == 'adaptive':
             model_context = tokenize(ctx.s, add_eos=False)

@@ -1,5 +1,5 @@
 import hakuin
-import hakuin.optimizers as optim
+import hakuin.search_algorithms as optim
 import hakuin.collectors as collect
 from hakuin.utils import CHARSET_SCHEMA
 
@@ -32,7 +32,7 @@ class Exfiltrator:
         assert mode in allowed_modes, f'Invalid mode: {mode} not in {allowed_modes}'
 
         ctx = optim.Context(None, None, None, None)
-        n_rows = optim.NumericBinarySearch(
+        n_rows = optim.IntExponentialSearch(
             self.requester,
             self.dbms.count_tables,
             upper=8
@@ -69,7 +69,7 @@ class Exfiltrator:
         assert mode in allowed_modes, f'Invalid mode: {mode} not in {allowed_modes}'
 
         ctx = optim.Context(table, None, None, None)
-        n_rows = optim.NumericBinarySearch(
+        n_rows = optim.IntExponentialSearch(
             self.requester,
             self.dbms.count_columns,
             upper=8
@@ -164,7 +164,7 @@ class Exfiltrator:
         ctx = optim.Context(table, column, None, None)
 
         if n_rows is None:
-            n_rows = optim.NumericBinarySearch(
+            n_rows = optim.IntExponentialSearch(
                 self.requester,
                 self.dbms.count_rows,
                 upper=n_rows_guess
