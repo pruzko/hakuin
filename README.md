@@ -14,13 +14,13 @@ Also, make sure to read our [paper](https://github.com/pruzko/hakuin/blob/main/p
 ## Installation
 To install Hakuin, simply run:
 ```
-pip install hakuin
+pip3 install hakuin
 ```
 Developers should install the package locally and set the `-e` flag for editable mode:
 ```
 git clone git@github.com:pruzko/hakuin.git
 cd hakuin
-pip install -e .
+pip3 install -e .
 ```
 
 
