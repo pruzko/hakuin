@@ -32,7 +32,8 @@ class R(Requester):
 def main():
     assert len(sys.argv) == 4, 'python3 experiment_generic_db.py <dbms> <table> <column>'
     _, dbms_type, table, column = sys.argv
-    assert dbms_type in ['sqlite', 'mysql'], f'dbms must be in ["sqlite", "mysql"]'
+    allowed = ['sqlite', 'mysql']
+    assert dbms_type in allowed, f'dbms must be in {allowed}'
 
     requester = R(dbms_type)
     dbms = SQLite() if dbms_type == 'sqlite' else MySQL()
