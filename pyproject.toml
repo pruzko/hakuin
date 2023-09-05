@@ -1,13 +1,13 @@
 [build-system]
 requires = [
-	"setuptools >= 65",
+	"setuptools >= 67.6.0",
 	"wheel >= 0.38",
 ]
 build-backend = "setuptools.build_meta"
 
 
 [tool.setuptools]
-packages = ["hakuin", "hakuin.dbms", "hakuin.utils"]
+packages = ["hakuin", "hakuin.data", "hakuin.data.models", "hakuin.dbms", "hakuin.utils"]
 
 
 [tool.setuptools.package-data]
@@ -17,7 +17,17 @@ hakuin = ["data/models/*.pkl"]
 [project]
 name = "hakuin"
 version = "0.1.0"
+authors = [{ name = "Jakub Pruzinec", email = "j.pruzinec@gmail.com" }]
+description = "Blind SQL Injection optimization and automation framework"
+readme = "README.md"
 requires-python = ">=3"
-dependencies = [
-	"nltk",
+dependencies = ["nltk"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
 ]
+
+
+[project.urls]
+"Homepage" = "https://github.com/pruzko/hakuin"
