@@ -4,7 +4,7 @@ import requests
 import sys
 
 from hakuin.dbms import SQLite, MySQL
-from hakuin import Exfiltrator, Requester
+from hakuin import Extractor, Requester
 
 
 
@@ -36,11 +36,11 @@ def main():
 
     requester = R(dbms_type)
     dbms = SQLite() if dbms_type == 'sqlite' else MySQL()
-    exf = Exfiltrator(requester, dbms)
+    ext = Extractor(requester, dbms)
 
-    res = exf.exfiltrate_schema(mode='model_search', metadata=True)
+    res = ext.extract_schema(metadata=True)
     print(json.dumps(res, indent=4))
-    res = exf.exfiltrate_text_data(table, column)
+    res = ext.extract_column(table, column)
     print(json.dumps(res, indent=4))
 
 

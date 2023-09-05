@@ -4,7 +4,7 @@ import os
 import sys
 
 from hakuin.dbms import SQLite
-from hakuin import Exfiltrator
+from hakuin import Extractor
 
 from OfflineRequester import OfflineRequester
 
@@ -22,10 +22,10 @@ def main():
     assert len(sys.argv) in [1, 3], 'python3 experiment_generic_db_offline.py [table> <column>]'
 
     requester = OfflineRequester(db='large_content')
-    exf = Exfiltrator(requester=requester, dbms=SQLite())
+    ext = Extractor(requester=requester, dbms=SQLite())
 
     if len(sys.argv) == 3:
-        res = exf.exfiltrate_text_data(sys.argv[1], sys.argv[2])
+        res = ext.extract_column(sys.argv[1], sys.argv[2])
         print('Total requests:', requester.n_queries)
         print('Average RPC:', requester.n_queries / len(''.join(res)))
     else:
@@ -43,7 +43,7 @@ def main():
         # measure rpc
         for table, columns in rpc.items():
             for column in columns:
-                res = exf.exfiltrate_text_data(table, column)
+                res = ext.extract_column(table, column)
                 res_len = len(''.join(res))
                 col_rpc = requester.n_queries / len(''.join(res))
                 rpc[table][column] = (requester.n_queries, col_rpc)

@@ -2,7 +2,7 @@ import json
 import logging
 
 from hakuin.dbms import SQLite
-from hakuin import Exfiltrator
+from hakuin import Extractor
 
 from OfflineRequester import OfflineRequester
 
@@ -14,9 +14,9 @@ logging.basicConfig(level=logging.INFO)
 
 def main():
     requester = OfflineRequester(db='large_schema')
-    exf = Exfiltrator(requester=requester, dbms=SQLite())
+    ext = Extractor(requester=requester, dbms=SQLite())
 
-    res = exf.exfiltrate_schema(mode='model_search')
+    res = ext.extract_schema()
     print(json.dumps(res, indent=4))
 
     res_len = sum([len(table) for table in res])

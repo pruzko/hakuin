@@ -1,12 +1,12 @@
 import hakuin
-import hakuin.search_algorithms as optim
+import hakuin.search_algorithms as search_alg
 import hakuin.collectors as collect
 from hakuin.utils import CHARSET_SCHEMA
 
 
 
-class Exfiltrator:
-    '''Class for extracting DB data.'''
+class Extractor:
+    '''Class for extracting DB.'''
     def __init__(self, requester, dbms):
         '''Constructor.
 
@@ -18,80 +18,80 @@ class Exfiltrator:
         self.dbms = dbms
 
 
-    def exfiltrate_tables(self, mode='model_search'):
+    def extract_table_names(self, strategy='model'):
         '''Extracts table names.
 
         Params:
-            mode (str): 'binary_search' for binary search or
-                        'model_search' for pre-trained models with Huffman trees
+            strategy (str): 'binary' for binary search or 'model' for pre-trained
+                            models with Huffman trees
 
         Returns:
-            list: List of inferred table names
+            list: List of extracted table names
         '''
-        allowed_modes = ['binary_search', 'model_search']
-        assert mode in allowed_modes, f'Invalid mode: {mode} not in {allowed_modes}'
+        allowed = ['binary', 'model']
+        assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
-        ctx = optim.Context(None, None, None, None)
-        n_rows = optim.IntExponentialSearch(
+        ctx = search_alg.Context(None, None, None, None)
+
+        n_rows = search_alg.IntExponentialSearch(
             self.requester,
             self.dbms.count_tables,
             upper=8
         ).run(ctx)
 
-        if mode == 'binary_search':
+        if strategy == 'binary':
             return collect.BinaryTextCollector(
                 self.requester,
                 self.dbms.char_tables,
                 charset=CHARSET_SCHEMA,
             ).run(ctx, n_rows)
         else:
-            model = hakuin.get_model_tables()
             return collect.ModelTextCollector(
                 self.requester,
                 self.dbms.char_tables,
-                model,
+                model=hakuin.get_model_tables(),
                 charset=CHARSET_SCHEMA,
             ).run(ctx, n_rows)
 
 
-    def exfiltrate_columns(self, table, mode='model_search'):
+    def extract_column_names(self, table, strategy='model'):
         '''Extracts table column names.
 
         Params:
             table (str): table name
-            mode (str): 'binary_search' for binary search or
-                        'model_search' for pre-trained models with Huffman trees
+            strategy (str): 'binary' for binary search or 'model' for pre-trained
+                        models with Huffman trees
 
         Returns:
-            list: List of inferred column names
+            list: List of extracted column names
         '''
-        allowed_modes = ['binary_search', 'model_search']
-        assert mode in allowed_modes, f'Invalid mode: {mode} not in {allowed_modes}'
+        allowed = ['binary', 'model']
+        assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
-        ctx = optim.Context(table, None, None, None)
-        n_rows = optim.IntExponentialSearch(
+        ctx = search_alg.Context(table, None, None, None)
+
+        n_rows = search_alg.IntExponentialSearch(
             self.requester,
             self.dbms.count_columns,
             upper=8
         ).run(ctx)
 
-        if mode == 'binary_search':
+        if strategy == 'binary':
             return collect.BinaryTextCollector(
                 self.requester,
                 self.dbms.char_columns,
                 charset=CHARSET_SCHEMA,
             ).run(ctx, n_rows)
         else:
-            model = hakuin.get_model_columns()
             return collect.ModelTextCollector(
                 self.requester,
                 self.dbms.char_columns,
-                model,
+                model=hakuin.get_model_columns(),
                 charset=CHARSET_SCHEMA,
             ).run(ctx, n_rows)
 
 
-    def exfiltrate_metadata(self, table, column):
+    def extract_column_metadata(self, table, column):
         '''Extracts column metadata (data type, nullable, and primary key).
 
         Params:
@@ -101,9 +101,9 @@ class Exfiltrator:
         Returns:
             dict: column metadata
         '''
-        ctx = optim.Context(table, column, None, None)
+        ctx = search_alg.Context(table, column, None, None)
 
-        d_type = optim.BinarySearch(
+        d_type = search_alg.BinarySearch(
             self.requester,
             self.dbms.meta_type,
             values=self.dbms.DATA_TYPES,
@@ -116,68 +116,68 @@ class Exfiltrator:
         }
 
 
-    def exfiltrate_schema(self, mode='model_search', metadata=False):
+    def extract_schema(self, strategy='model', metadata=False):
         '''Extracts schema.
 
         Params:
-            mode (str): 'binary_search' for binary search or
-                        'model_search' for pre-trained models with Huffman trees
+            strategy (str): 'binary' for binary search or 'model' for pre-trained
+                            models with Huffman trees
             metadata (bool): if set, the metadata will be extracted as well
 
         Returns:
             dict: schema
         '''
-        allowed_modes = ['binary_search', 'model_search']
-        assert mode in allowed_modes, f'Invalid mode: {mode} not in {allowed_modes}'
+        allowed = ['binary', 'model']
+        assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
         schema = {}
-        for table in self.exfiltrate_tables(mode):
+        for table in self.extract_table_names(strategy):
             schema[table] = {}
-            for column in self.exfiltrate_columns(table, mode):
-                md = self.exfiltrate_metadata(table, column) if metadata else None
+            for column in self.extract_column_names(table, strategy):
+                md = self.extract_column_metadata(table, column) if metadata else None
                 schema[table][column] = md
 
         return schema
 
 
-    def exfiltrate_text_data(self, table, column, mode='dynamic_search', charset=None, n_rows=None, n_rows_guess=128):
+    def extract_column(self, table, column, strategy='dynamic', charset=None, n_rows=None, n_rows_guess=128):
         '''Extracts text column.
 
         Params:
             table (str): table name
             column (str): column name
-            mode (str): 'binary_search' for binary search or
-                        'adaptive_search' for adaptive five-gram model with Huffman trees or
-                        'unigram_search' for adaptive unigram model with Huffman trees or
-                        'dynamic_search' for dynamically choosing the best search strategy and
+            strategy (str): 'binary' for binary search or
+                        'unigram' for adaptive unigram model with Huffman trees or
+                        'fivegram' for adaptive five-gram model with Huffman trees or
+                        'dynamic' for dynamically choosing the best search strategy and
                                          opportunistically guessing strings
             charset (list|None): list of possible characters
             n_rows (int|None): number of rows
             n_rows_guess (int|None): approximate number of rows when 'n_rows' is not set
 
         Returns:
-            list: list of strings in the column
+            list: List of strings in the column
         '''
-        allowed_modes = ['binary_search', 'adaptive_search', 'unigram_search', 'dynamic_search']
-        assert mode in allowed_modes, f'Invalid mode: {mode} not in {allowed_modes}'
+        allowed = ['binary', 'unigram', 'fivegram', 'dynamic']
+        assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
-        ctx = optim.Context(table, column, None, None)
+        ctx = search_alg.Context(table, column, None, None)
 
         if n_rows is None:
-            n_rows = optim.IntExponentialSearch(
+            n_rows = search_alg.IntExponentialSearch(
                 self.requester,
                 self.dbms.count_rows,
                 upper=n_rows_guess
             ).run(ctx)
 
-        if mode == 'binary_search':
+        if strategy == 'binary':
             return collect.BinaryTextCollector(
                 self.requester,
                 self.dbms.char_rows,
                 charset=charset,
             ).run(ctx, n_rows)
-        elif mode in ['adaptive_search', 'unigram_search']:
-            ngram = 5 if mode == 'adaptive_search' else 1
+        elif strategy in ['unigram', 'fivegram']:
+            ngram = 1 if strategy == 'unigram' else 5
             return collect.AdaptiveTextCollector(
                 self.requester,
                 self.dbms.char_rows,

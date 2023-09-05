@@ -48,34 +48,34 @@ class ContentRequester(Requester):
         return 'found' in r.content.decode()
 ```
 
-To start infering data, use the `Exfiltrator` class. It requires a `DBMS` object to contruct queries and a `Requester` object to inject them. Currently, Hakuin supports SQLite and MySQL DBMSs, but will soon include more options. If you wish to support another DBMS, implement the `DBMS` interface defined in `hakuin/dbms/DBMS.py`.
+To start infering data, use the `Extractor` class. It requires a `DBMS` object to contruct queries and a `Requester` object to inject them. Currently, Hakuin supports SQLite and MySQL DBMSs, but will soon include more options. If you wish to support another DBMS, implement the `DBMS` interface defined in `hakuin/dbms/DBMS.py`.
 
 ##### Example 1 - Inferring SQLite DBs
 ```python
 from hakuin.dbms import SQLite
-from hakuin import Exfiltrator, Requester
+from hakuin import Extractor, Requester
 
 class StatusRequester(Requester):
     ...
 
-exf = Exfiltrator(requester=StatusRequester(), dbms=SQLite())
+exf = Extractor(requester=StatusRequester(), dbms=SQLite())
 ```
 
 ##### Example 2 - Inferring MySQL DBs
 ```python
 from hakuin.dbms import MySQL
 ...
-exf = Exfiltrator(requester=StatusRequester(), dbms=MySQL())
+exf = Extractor(requester=StatusRequester(), dbms=MySQL())
 ```
 
 Now that eveything is set, you can start inferring DB schemas.
 
 ##### Example 1 - Inferring DB Schemas
 ```python
-# mode:
-#   'binary_search':    Use binary search
-#   'model_search':     Use pre-trained models
-schema = exf.exfiltrate_schema(mode='model_search')
+# strategy:
+#   'binary':   Use binary search
+#   'model':    Use pre-trained models
+schema = exf.extract_schema(strategy='model')
 ```
 
 ##### Example 2 - Inferring DB Schemas with Metadata
@@ -83,26 +83,26 @@ schema = exf.exfiltrate_schema(mode='model_search')
 # metadata:
 #   True:   Detect column settings (data type, nullable, primary key)
 #   False:  Pass
-schema = exf.exfiltrate_schema(mode='model_search', metadata=True)
+schema = exf.extract_schema(strategy='model', metadata=True)
 ```
 
 ##### Example 3 - Inferring only Table/Column Names
 ```python
-tables = exf.exfiltrate_tables(mode='model_search')
-columns = exf.exfiltrate_columns(table='users', mode='model_search')
+tables = exf.extract_table_names(strategy='model')
+columns = exf.extract_column_names(table='users', strategy='model')
 ```
 
 Once you know the schema, you can extract the actual content.
 
 ##### Example 1 - Inferring Textual Columns
 ```python
-# mode:
-#   'binary_search':    Use binary search
-#   'adaptive_search':  Use five-gram model
-#   'unigram_search':   Use unigram model
-#   'dynamic_search':   Dynamically identify the best strategy. This setting
-#                       also enables opportunistic guessing.
-res = exfiltrate_text_data(table='users', column='address', mode='dynamic_search'):
+# strategy:
+#   'binary':       Use binary search
+#   'fivegram':     Use five-gram model
+#   'unigram':      Use unigram model
+#   'dynamic':      Dynamically identify the best strategy. This setting
+#                   also enables opportunistic guessing.
+res = exfiltrate_text_data(table='users', column='address', strategy='dynamic'):
 ```
 
 More examples can be found in the `tests` directory.
