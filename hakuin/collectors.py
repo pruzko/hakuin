@@ -116,8 +116,8 @@ class ModelTextCollector(TextCollector):
 
 
     def _collect_char(self, ctx):
-        model_ctx = tokenize(ctx.s, add_eos=False, max_len=self.model.max_ngram - 1)
-        scores = self.model.score_any_dict(model_ctx)
+        model_ctx = tokenize(ctx.s, add_eos=False)
+        scores = self.model.scores(context=model_ctx)
 
         c = TreeSearch(
             self.requester,
@@ -141,7 +141,7 @@ class AdaptiveTextCollector(ModelTextCollector):
     '''Same as ModelTextCollector but adapts the model.'''
     def _collect_char(self, ctx):
         c = super()._collect_char(ctx)
-        self.model.fit_correct(ctx.s, c)
+        self.model.fit_correct_char(c, partial_str=ctx.s)
         return c
 
 
@@ -179,9 +179,9 @@ class DynamicTextCollector(TextCollector):
         self.query_char_cb = query_char_cb
         self.query_string_cb = query_string_cb
         self.charset = charset if charset else CHARSET_ASCII
-        self.model_guess = hakuin.Model.make_clean(1)
-        self.model_unigram = hakuin.Model.make_clean(1)
-        self.model_fivegram = hakuin.Model.make_clean(5)
+        self.model_guess = hakuin.Model(1)
+        self.model_unigram = hakuin.Model(1)
+        self.model_fivegram = hakuin.Model(5)
         self._stats = {
             'rpc': {
                 'binary': {'avg': 0.0, 'hist': []},
@@ -195,7 +195,7 @@ class DynamicTextCollector(TextCollector):
 
     def _collect_row(self, ctx):
         s = self._collect_string(ctx)
-        self.model_guess.fit_correct([], s)
+        self.model_guess.fit_single(s, context=[])
 
         self._stats['n_strings'] += 1
 
@@ -211,22 +211,18 @@ class DynamicTextCollector(TextCollector):
         correct_str = self._try_guessing(ctx)
         
         if correct_str is not None:
-            ctx.s = ''
-            for c in correct_str:
-                self._compute_stats(ctx, c)
-                ctx.s += c
-
-            self.model_unigram.fit([correct_str])
-            self.model_fivegram.fit([correct_str])
+            self._update_stats_str(ctx, correct_str)
+            self.model_unigram.fit_data([correct_str])
+            self.model_fivegram.fit_data([correct_str])
             return correct_str
 
         ctx.s = ''
         while True:
             c = self._collect_char(ctx)
 
-            self._compute_stats(ctx, c)
-            self.model_unigram.fit_correct(ctx.s, c)
-            self.model_fivegram.fit_correct(ctx.s, c)
+            self._update_stats(ctx, c)
+            self.model_unigram.fit_correct_char(c, partial_str=ctx.s)
+            self.model_fivegram.fit_correct_char(c, partial_str=ctx.s)
 
             if c == EOS:
                 return ctx.s
@@ -276,7 +272,7 @@ class DynamicTextCollector(TextCollector):
         best_exp_g = float('inf')
         best_tree = None
 
-        scores = self.model_guess.score_dict([])
+        scores = self.model_guess.scores(context=[])
         scores = {k: v for k, v in scores.items() if v >= self.GUESS_SCORE_TH and self.model_guess.count(k, []) > 1}
         for guess, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
             guesses[guess] = score
@@ -304,7 +300,7 @@ class DynamicTextCollector(TextCollector):
         return min(self._stats['rpc'], key=lambda strategy: self._stats['rpc'][strategy]['avg'])
 
 
-    def _compute_stats(self, ctx, correct):
+    def _update_stats(self, ctx, correct):
         '''Emulates all strategies without sending any requests and updates the
         statistical information.
         '''
@@ -322,6 +318,14 @@ class DynamicTextCollector(TextCollector):
             m['hist'].append(n_queries)
             m['hist'] = m['hist'][-100:]
             m['avg'] = sum(m['hist']) / len(m['hist'])
+
+
+    def _update_stats_str(self, ctx, correct_str):
+        '''Like _update_stats but for whole strings'''
+        ctx.s = ''
+        for c in correct_str:
+            self._update_stats(ctx, c)
+            ctx.s += c
 
 
     def _get_strategy(self, ctx, searched_space, strategy, correct=None):
@@ -345,7 +349,7 @@ class DynamicTextCollector(TextCollector):
                 correct=correct,
             )
         elif strategy == 'unigram':
-            scores = self.model_unigram.score_dict([])
+            scores = self.model_unigram.scores(context=[])
             searched_space.union(set(scores))
             return TreeSearch(
                 self.requester,
@@ -355,8 +359,8 @@ class DynamicTextCollector(TextCollector):
             )
         else:
             model_ctx = tokenize(ctx.s, add_eos=False)
-            model_ctx = model_ctx[-(self.model_fivegram.max_ngram - 1):]
-            scores = self.model_fivegram.score_any_dict(model_ctx)
+            model_ctx = model_ctx[-(self.model_fivegram.order - 1):]
+            scores = self.model_fivegram.scores(context=model_ctx)
 
             searched_space.union(set(scores))
             return TreeSearch(

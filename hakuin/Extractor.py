@@ -181,7 +181,7 @@ class Extractor:
             return collect.AdaptiveTextCollector(
                 self.requester,
                 self.dbms.char_rows,
-                model=hakuin.Model.make_clean(ngram),
+                model=hakuin.Model(ngram),
                 charset=charset,
             ).run(ctx, n_rows)
         else:

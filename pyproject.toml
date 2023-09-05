@@ -19,6 +19,5 @@ name = "hakuin"
 version = "0.1.0"
 requires-python = ">=3"
 dependencies = [
-	"dill",
 	"nltk",
 ]

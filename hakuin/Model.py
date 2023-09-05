@@ -1,60 +1,120 @@
-import copy
 import os
+import pickle
 
-import dill
 from nltk.lm import MLE
 
 import hakuin
-from hakuin.utils import SOS, DIR_MODELS
+import hakuin.utils.ngrams as ngrams
+from hakuin.utils import tokenize, DIR_MODELS
+
+
+_m_tables = None
+_m_columns = None
 
 
 
 class Model:
-    @staticmethod
-    def make_clean(ngram):
-        m = Model()
-        m.model = MLE(ngram)
-        return m
+    '''Everygram language model.'''
+    def __init__(self, order):
+        '''Constructor.
+
+        Params:
+            order (int|None): everygram order
+        '''
+        self.model = MLE(order) if order is not None else None
 
 
-    def __init__(self):
-        self.model = None
+    @property
+    def order(self):
+        assert self.model
+        return self.model.order
 
 
-    def load(self, model_path):
-        with open(model_path, 'rb') as f:
-            self.model = dill.load(f)
+    def load(self, file):
+        '''Loads model from file.
+
+        Params:
+            file (str): model file
+        '''
+        with open(file, 'rb') as f:
+            self.model = pickle.load(f)
 
 
-    def score(self, s, context):
-        return self.score_dict(context).get(s, 0.0)
+    def scores(self, context):
+        '''Calculates likelihood distribution of next value.
+
+        Params:
+            context (list): model context
+
+        Returns:
+            dict: likelihood distribution
+        '''
+        context = context[-(self.order - 1):]
+
+        while context:
+            scores = self._scores(context)
+            if scores:
+                return scores
+            context.pop(0)
+
+        return self._scores([])
 
 
-    def score_dict(self, context):
+    def _scores(self, context):
         context = self.model.vocab.lookup(context) if context else None
         counts = self.model.context_counts(context)
         return {c: counts.freq(c) for c in counts}
 
 
-    def score_any_dict(self, context):
-        context = copy.deepcopy(context)
+    def count(self, value, context):
+        '''Counts the number of occurences of value in a given context
 
-        while context:
-            scores = self.score_dict(context)
-            if scores:
-                return scores
-            context.pop(0)
+        Params:
+            value (value): value to count
+            context (list): model context
 
-        return self.score_dict([])
-
-
-    def count(self, s, context):
-        return self.count_dict(context).get(s, 0.0)
-
-
-    def count_dict(self, context):
+        Returns:
+            int: value count
+        '''
         context = self.model.vocab.lookup(context) if context else None
-        return self.model.context_counts(context)
+        return self.model.context_counts(context).get(value, 0)
+
+
+    def fit_data(self, data):
+        '''Splits samples in data into character-based ngrams and trains model with them.
+
+        Params:
+            data (list): list of train samples
+        '''
+        train, vocab = ngrams.padded_everygram_pipeline(data, self.order)
+        self._fit(train, vocab)
+
+
+    def fit_single(self, value, context):
+        '''Trains model with single ngram.
+
+        Params:
+            value (value): value to be trained
+            context (list): model context
+        '''
+        context = context + [value]
+        context = context[-self.order:]
+
+        train = (context[i:] for i in range(self.order))
+        train = (train, )
+        self._fit(train, context)
+
+
+    def fit_correct_char(self, correct, partial_str):
+        '''Trains model with ngram, where partially extracted string is followed
+        with the correct character.
+
+        Params:
+            correct (str): correct character
+            partial_str (str): partially extracted string 
+        '''
+        context = tokenize(partial_str, add_eos=False, pad_left=self.order)
+        self.fit_single(correct, context)
 
 
     def _fit(self, train, vocab):
@@ -62,40 +122,12 @@ class Model:
         self.model.counts.update(self.model.vocab.lookup(t) for t in train)
 
 
-    def fit(self, data):
-        train, vocab = hakuin.utils.padded_everygram_pipeline(data, self.max_ngram)
-        self._fit(train, vocab)
-
-
-    def fit_correct(self, ctx, correct):
-        if type(ctx) == str:
-            # TODO remove all ngrams like [SOS, SOS, SOS, 'A'] and replace them with [SOS, 'A'] and ['A']
-            # then retrain the models (fix the whole codebase)
-            ctx = [SOS] * self.max_ngram + list(ctx)
-
-        ctx = ctx + [correct]
-        ctx = ctx[-self.max_ngram:]
-
-        train = (ctx[i:] for i in range(self.max_ngram))
-        train = (train, )
-        self._fit(train, ctx)
-
-
-    @property
-    def max_ngram(self):
-        assert self.model
-        return self.model.order
-
-
-
-_m_tables = None
-_m_columns = None
 
 
 def get_model_tables():
     global _m_tables
     if _m_tables is None:
-        _m_tables = Model()
+        _m_tables = Model(None)
         _m_tables.load(os.path.join(DIR_MODELS, 'model_tables.pkl'))
     return _m_tables
 
@@ -103,6 +135,6 @@ def get_model_tables():
 def get_model_columns():
     global _m_columns
     if _m_columns is None:
-        _m_columns = Model()
+        _m_columns = Model(None)
         _m_columns.load(os.path.join(DIR_MODELS, 'model_columns.pkl'))
     return _m_columns

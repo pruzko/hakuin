@@ -1,10 +1,5 @@
 import os
 import string
-from functools import partial
-from itertools import chain, islice
-
-from nltk.util import ngrams as nltk_ngrams
-from nltk.lm.preprocessing import pad_both_ends
 
 
 
@@ -19,38 +14,34 @@ EOS = '</s>'
 SOS = '<s>'
 
 
-def everygrams(s, max_ngram):
-    egrams = [ngrams(s, i) for i in range(1, max_ngram + 1)]
-    for egram in egrams:
-        for ngram in egram:
-            yield ngram
-
-
-def ngrams(s, n):
-    return nltk_ngrams(tuple(s) + ('</s>',), n=n, pad_left=True, left_pad_symbol='<s>')
-
-
-def tokenize(s, add_sos=True, add_eos=True, max_len=None):
-    tokens = [SOS] if add_sos else []
-    tokens += list(s)
-    tokens += [EOS] if add_eos else []
-    return tokens if max_len is None else tokens[-max_len:]
-
-
-def padded_everygram_pipeline(data, max_ngram):
-    train = (everygrams(s, max_ngram) for s in data)
-    vocab = chain.from_iterable(map(tokenize, data))
-    return train, vocab
-
-
-def split_to_ctx(s, ngram):
-    return list(ngrams(s, ngram))
-
-
-def split_to_batches(l, size):
-    it = iter(l)
-    return iter(lambda: tuple(islice(it, size)), ())
-
 
 def split_at(s, i):
+    '''Splits sequence.
+
+    Params:
+        s (list|str): sequence
+        i (int): index to split at
+
+
+    Returns:
+        (list|str, list|str): split sequences
+    '''
     return s[:i], s[i:]
+
+
+def tokenize(s, add_sos=True, add_eos=True, pad_left=1):
+    '''Converts string to list of tokens.
+
+    Params:
+        s (str): string to tokenize
+        add_sos (bool): True if SOS should be included
+        add_eos (bool): True if EOS should be included
+        pad_left (int): specifies how many SOS should be included if add_sos is on
+
+    Returns:
+        list: tokens
+    '''
+    tokens = [SOS] * pad_left if add_sos else []
+    tokens += list(s)
+    tokens += [EOS] if add_eos else []
+    return tokens

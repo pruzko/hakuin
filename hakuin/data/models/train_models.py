@@ -1,6 +1,6 @@
 import os
+import pickle
 
-import dill
 from nltk.lm import MLE
 
 import hakuin
@@ -14,8 +14,6 @@ DIR_MODELS = os.path.join(DIR_DATA, 'models')
 
 
 
-MAX_NGRAM = 5
-
 
 def fetch_data(fname):
     with open(fname, 'r') as f:
@@ -28,20 +26,20 @@ def fetch_data(fname):
 def main():
     print('Tables...')
     data = fetch_data(os.path.join(DIR_CORPORA, 'tables.csv'))
-    m = hakuin.Model.make_clean(MAX_NGRAM)
-    m.fit(data)
+    m = hakuin.Model(5)
+    m.fit_data(data)
 
     with open(os.path.join(DIR_MODELS, 'model_tables.pkl'), 'wb') as f:
-        dill.dump(m.model, f)
+        pickle.dump(m.model, f)
     print('Done.')
 
     print('Columns...')
     data = fetch_data(os.path.join(DIR_CORPORA, 'columns.csv'))
-    m = hakuin.Model.make_clean(MAX_NGRAM)
-    m.fit(data)
+    m = hakuin.Model(5)
+    m.fit_data(data)
 
     with open(os.path.join(DIR_MODELS, 'model_columns.pkl'), 'wb') as f:
-        dill.dump(m.model, f)
+        pickle.dump(m.model, f)
     print('Done.')
 
 
