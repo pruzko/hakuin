@@ -42,19 +42,23 @@ class SearchAlgorithm(metaclass=ABCMeta):
 
 
 
-class IntExponentialSearch(SearchAlgorithm):
-    '''Exponential search for integers.'''
-    def __init__(self, requester, query_cb, upper=16, correct=None):
+class IntExponentialBinarySearch(SearchAlgorithm):
+    '''Exponential and binary search for integers.'''
+    def __init__(self, requester, query_cb, lower=0, upper=16, find_range=True, correct=None):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
             query_cb (function): query construction function
-            upper (int): initial upper bound of search range
+            lower (int): lower bound of search range
+            upper (int): upper bound of search range
+            find_range (bool): exponentially expands range until the correct value is within 
             correct (int|None): correct value. If provided, the search is emulated
         '''
         super().__init__(requester, query_cb)
+        self.lower = lower
         self.upper = upper
+        self.find_range = find_range
         self.correct = correct
         self.n_queries = 0
 
@@ -63,22 +67,26 @@ class IntExponentialSearch(SearchAlgorithm):
         '''Runs the search algorithm.
 
         Params:
-            ctx (Context): inference context
+            ctx (Context): extraction context
 
         Returns:
             int: inferred number
         '''
         self.n_queries = 0
 
-        lower, upper = self._get_range(ctx, lower=0, upper=self.upper)
+        if self.find_range:
+            lower, upper = self._find_range(ctx, lower=self.lower, upper=self.upper)
+        else:
+            lower, upper = self.lower, self.upper
+
         return self._search(ctx, lower, upper)
 
 
-    def _get_range(self, ctx, lower, upper):
+    def _find_range(self, ctx, lower, upper):
         '''Exponentially expands the search range until the correct value is within.
 
         Params:
-            ctx (Context): inference context
+            ctx (Context): extraction context
             lower (int): lower bound
             upper (int): upper bound
 
@@ -88,14 +96,14 @@ class IntExponentialSearch(SearchAlgorithm):
         if self._query(ctx, upper):
             return lower, upper
 
-        return self._get_range(ctx, upper, upper * 2)
+        return self._find_range(ctx, upper, upper * 2)
 
 
     def _search(self, ctx, lower, upper):
         '''Numeric binary search.
 
         Params:
-            ctx (Context): inference context
+            ctx (Context): extraction context
             lower (int): lower bound
             upper (int): upper bound
 
@@ -108,8 +116,8 @@ class IntExponentialSearch(SearchAlgorithm):
         middle = (lower + upper) // 2
         if self._query(ctx, middle):
             return self._search(ctx, lower, middle)
-        else:
-            return self._search(ctx, middle, upper)
+
+        return self._search(ctx, middle, upper)
 
 
     def _query(self, ctx, n):
@@ -118,8 +126,8 @@ class IntExponentialSearch(SearchAlgorithm):
         if self.correct is None:
             query_string = self.query_cb(ctx, n)
             return self.requester.request(ctx, query_string)
-        else:
-            return self.correct < n
+
+        return self.correct < n
 
 
 
@@ -144,13 +152,12 @@ class BinarySearch(SearchAlgorithm):
         '''Runs the search algorithm.
 
         Params:
-            ctx (Context): inference context
+            ctx (Context): extraction context
 
         Returns:
             value|None: inferred value or None on fail
         '''
         self.n_queries = 0
-
         return self._search(ctx, self.values)
 
 
@@ -165,8 +172,8 @@ class BinarySearch(SearchAlgorithm):
 
         if self._query(ctx, left):
             return self._search(ctx, left)
-        else:
-            return self._search(ctx, right)
+
+        return self._search(ctx, right)
 
 
     def _query(self, ctx, values):
@@ -175,8 +182,8 @@ class BinarySearch(SearchAlgorithm):
         if self.correct is None:
             query_string = self.query_cb(ctx, values)
             return self.requester.request(ctx, query_string)
-        else:
-            return self.correct in values
+
+        return self.correct in values
 
 
 
@@ -204,13 +211,12 @@ class TreeSearch(SearchAlgorithm):
         '''Runs the search algorithm.
 
         Params:
-            ctx (Context): inference context
+            ctx (Context): extraction context
 
         Returns:
             value|None: inferred value or None on fail
         '''
         self.n_queries = 0
-
         return self._search(ctx, self.tree, in_tree=self.in_tree)
 
 
@@ -218,7 +224,7 @@ class TreeSearch(SearchAlgorithm):
         '''Tree search.
         
         Params:
-            ctx (Context): inference context
+            ctx (Context): extraction context
             tree (utils.huffman.Node): Huffman tree to search
             in_tree (bool): True if the correct value is known to be in the tree
 
@@ -237,10 +243,11 @@ class TreeSearch(SearchAlgorithm):
 
         if self._query(ctx, tree.left.values()):
             return self._search(ctx, tree.left, True)
-        else:
-            if tree.right is None:
-                return None
-            return self._search(ctx, tree.right, in_tree)
+
+        if tree.right is None:
+            return None
+
+        return self._search(ctx, tree.right, in_tree)
 
 
     def _query(self, ctx, values):
@@ -249,5 +256,5 @@ class TreeSearch(SearchAlgorithm):
         if self.correct is None:
             query_string = self.query_cb(ctx, values)
             return self.requester.request(ctx, query_string)
-        else:
-            return self.correct in values
+
+        return self.correct in values

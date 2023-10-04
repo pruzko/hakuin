@@ -3,146 +3,349 @@ from abc import ABCMeta, abstractmethod
 from collections import Counter
 
 import hakuin
-from hakuin.utils import tokenize, CHARSET_ASCII, EOS
+from hakuin.utils import tokenize, CHARSET_ASCII, EOS, ASCII_MAX, UNICODE_MAX
 from hakuin.utils.huffman import make_tree
-from hakuin.search_algorithms import Context, BinarySearch, TreeSearch
+from hakuin.search_algorithms import Context, BinarySearch, TreeSearch, IntExponentialBinarySearch
 
 
 
 class Collector(metaclass=ABCMeta):
     '''Abstract class for collectors. Collectors repeatidly run
-    search algorithms to infer column rows.
+    search algorithms to extract column rows.
     '''
-    def __init__(self, requester, query_cb):
+    def __init__(self, requester, queries):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
-            query_cb (function): query construction function
+            queries (UniformQueries): injection queries
         '''
         self.requester = requester
-        self.query_cb = query_cb
+        self.queries = queries
 
 
-    def run(self, ctx, n_rows):
-        '''Run collection.
+    def run(self, ctx, n_rows, *args, **kwargs):
+        '''Collects the whole column.
 
         Params:
-            ctx (Context): inference context
+            ctx (Context): extraction context
             n_rows (int): number of rows in column
 
         Returns:
             list: column rows
         '''
-        logging.info(f'Inferring "{ctx.table}.{ctx.column}"...')
+        logging.info(f'Inferring "{ctx.table}.{ctx.column}"')
 
         data = []
         for row in range(n_rows):
             ctx = Context(ctx.table, ctx.column, row, None)
-            res = self._collect_row(ctx)
+            res = self.collect_row(ctx, *args, **kwargs)
             data.append(res)
 
-            logging.info(f'({row + 1}/{n_rows}) inferred: {res}')
+            logging.info(f'({row + 1}/{n_rows}) "{ctx.table}.{ctx.column}": {res}')
 
         return data
 
 
     @abstractmethod
-    def _collect_row(self, ctx):
+    def collect_row(self, ctx, *args, **kwargs):
+        '''Collects a row.
+
+        Params:
+            ctx (Context): extraction context
+
+        Returns:
+            value: single row
+        '''
         raise NotImplementedError()
 
 
 
 class TextCollector(Collector):
     '''Collector for text columns.'''
-    def _collect_row(self, ctx):
+    def __init__(self, requester, queries, charset=None):
+        '''Constructor.
+
+        Params:
+            requester (Requester): Requester instance
+            queries (UniformQueries): injection queries
+            charset (list|None): list of possible characters, None for default ASCII
+        '''
+        super().__init__(requester, queries)
+        self.charset = charset if charset is not None else CHARSET_ASCII
+        if EOS not in self.charset:
+            self.charset.append(EOS)
+
+
+    def run(self, ctx, n_rows):
+        '''Collects the whole column.
+
+        Params:
+            ctx (Context): extraction context
+            n_rows (int): number of rows in column
+
+        Returns:
+            list: column rows
+        '''
+        rows_are_ascii = self.check_rows_are_ascii(ctx)
+        return super().run(ctx, n_rows, rows_are_ascii)
+
+
+    def collect_row(self, ctx, rows_are_ascii):
+        '''Collects a row.
+
+        Params:
+            ctx (Context): extraction context
+            rows_are_ascii (bool): ASCII flag for all rows in column
+
+        Returns:
+            string: single row
+        '''
+        row_is_ascii = True if rows_are_ascii else self.check_row_is_ascii(ctx)
+
         ctx.s = ''
         while True:
-            c = self._collect_char(ctx)
+            c = self.collect_char(ctx, row_is_ascii)
             if c == EOS:
                 return ctx.s
             ctx.s += c
 
 
     @abstractmethod
-    def _collect_char(self, ctx):
+    def collect_char(self, ctx, row_is_ascii):
+        '''Collects a character.
+
+        Params:
+            ctx (Context): extraction context
+            row_is_ascii (bool): row ASCII flag
+
+        Returns:
+            string: single character
+        '''
         raise NotImplementedError()
+
+
+    def check_rows_are_ascii(self, ctx):
+        '''Finds out whether all rows in column are ASCII.
+
+        Params:
+            ctx (Context): extraction context
+
+        Returns:
+            bool: ASCII flag
+        '''
+        query = self.queries.rows_are_ascii(ctx)
+        return self.requester.request(ctx, query)
+
+
+    def check_row_is_ascii(self, ctx):
+        '''Finds out whether current row is ASCII.
+
+        Params:
+            ctx (Context): extraction context
+
+        Returns:
+            bool: ASCII flag
+        '''
+        query = self.queries.row_is_ascii(ctx)
+        return self.requester.request(ctx, query)
+
+
+    def check_char_is_ascii(self, ctx):
+        '''Finds out whether current character is ASCII.
+
+        Params:
+            ctx (Context): extraction context
+
+        Returns:
+            bool: ASCII flag
+        '''
+        query = self.queries.char_is_ascii(ctx)
+        return self.requester.request(ctx, query)
 
 
 
 class BinaryTextCollector(TextCollector):
     '''Binary search text collector'''
-    def __init__(self, requester, query_cb, charset=None):
-        '''Constructor.
+    def collect_char(self, ctx, row_is_ascii):
+        '''Collects a character.
 
         Params:
-            requester (Requester): Requester instance
-            query_cb (function): query construction function
-            charset (list|None): list of possible characters
+            ctx (Context): extraction context
+            row_is_ascii (bool): row ASCII flag
 
         Returns:
-            list: column rows
+            string: single character
         '''
-        super().__init__(requester, query_cb)
-        self.charset = charset if charset else CHARSET_ASCII
+        return self._collect_or_emulate_char(ctx, row_is_ascii)[0]
 
 
-    def _collect_char(self, ctx):
-        return BinarySearch(
-            self.requester,
-            self.query_cb,
-            values=self.charset,
-        ).run(ctx)
+    def emulate_char(self, ctx, row_is_ascii, correct):
+        '''Emulates character collection without sending requests.
+
+        Params:
+            ctx (Context): extraction context
+            row_is_ascii (bool): row ASCII flag
+            correct (str): correct character
+
+        Returns:
+            int: number of requests necessary
+        '''
+        return self._collect_or_emulate_char(ctx, row_is_ascii, correct)[1]
+
+
+    def _collect_or_emulate_char(self, ctx, row_is_ascii, correct=None):
+        total_queries = 0
+
+        # custom charset or ASCII
+        if self.charset is not CHARSET_ASCII or row_is_ascii or self._check_or_emulate_char_is_ascii(ctx, correct):
+            search_alg = BinarySearch(
+                requester=self.requester,
+                query_cb=self.queries.char,
+                values=self.charset,
+                correct=correct,
+            )
+            res = search_alg.run(ctx)
+            total_queries += search_alg.n_queries
+
+            if res is not None:
+                return res, total_queries
+
+        # Unicode
+        correct_ord = ord(correct) if correct is not None else correct
+        search_alg = IntExponentialBinarySearch(
+            requester=self.requester,
+            query_cb=self.queries.char_unicode,
+            lower=ASCII_MAX + 1,
+            upper=UNICODE_MAX + 1,
+            find_range=False,
+            correct=correct_ord,
+        )
+        res = search_alg.run(ctx)
+        total_queries += search_alg.n_queries
+
+        return chr(res), total_queries
+
+
+    def _check_or_emulate_char_is_ascii(self, ctx, correct):
+        if correct is None:
+            return self.check_char_is_ascii(ctx)
+        return correct.isascii()
 
 
 
 class ModelTextCollector(TextCollector):
     '''Language model-based text collector.'''
-    def __init__(self, requester, query_cb, model, charset=None):
+    def __init__(self, requester, queries, model, charset=None):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
-            query_cb (function): query construction function
+            queries (UniformQueries): injection queries
             model (Model): language model
             charset (list|None): list of possible characters
 
         Returns:
             list: column rows
         '''
-        super().__init__(requester, query_cb)
+        super().__init__(requester, queries, charset)
         self.model = model
-        self.charset = charset if charset else CHARSET_ASCII
+        self.binary_collector = BinaryTextCollector(
+            requester=self.requester,
+            queries=self.queries,
+            charset=self.charset,
+        )
 
 
-    def _collect_char(self, ctx):
+    def collect_char(self, ctx, row_is_ascii):
+        '''Collects a character.
+
+        Params:
+            ctx (Context): extraction context
+            row_is_ascii (bool): row ASCII flag
+
+        Returns:
+            string: single character
+        '''
+        return self._collect_or_emulate_char(ctx, row_is_ascii)[0]
+
+
+    def emulate_char(self, ctx, row_is_ascii, correct):
+        '''Emulates character collection without sending requests.
+
+        Params:
+            ctx (Context): extraction context
+            row_is_ascii (bool): row ASCII flag
+            correct (str): correct character
+
+        Returns:
+            int: number of requests necessary
+        '''
+        return self._collect_or_emulate_char(ctx, row_is_ascii, correct)[1]
+
+
+    def _collect_or_emulate_char(self, ctx, row_is_ascii, correct=None):
+        n_queries_model = 0
+
         model_ctx = tokenize(ctx.s, add_eos=False)
         scores = self.model.scores(context=model_ctx)
 
-        c = TreeSearch(
-            self.requester,
-            self.query_cb,
+        search_alg = TreeSearch(
+            requester=self.requester,
+            query_cb=self.queries.char,
             tree=make_tree(scores),
-        ).run(ctx)
+            correct=correct,
+        )
+        res = search_alg.run(ctx)
+        n_queries_model = search_alg.n_queries
 
-        if c is not None:
-            return c
+        if res is not None:
+            return res, n_queries_model
 
-        charset = list(set(self.charset).difference(set(scores)))
-        return BinarySearch(
-            self.requester,
-            self.query_cb,
-            values=self.charset,
-        ).run(ctx)
+        res, n_queries_binary = self.binary_collector._collect_or_emulate_char(ctx, row_is_ascii, correct)
+        return res, n_queries_model + n_queries_binary
 
 
 
 class AdaptiveTextCollector(ModelTextCollector):
     '''Same as ModelTextCollector but adapts the model.'''
-    def _collect_char(self, ctx):
-        c = super()._collect_char(ctx)
+    def collect_char(self, ctx):
+        c = super().collect_char(ctx, correct)
         self.model.fit_correct_char(c, partial_str=ctx.s)
         return c
+
+
+
+class DynamicTextStats:
+    '''Helper class of DynamicTextCollector to keep track of statistical information.'''
+    def __init__(self):
+        self.str_len_mean = 0.0
+        self.n_strings = 0
+        self._rpc = {
+            'binary': {'mean': 0.0, 'hist': []},
+            'unigram': {'mean': 0.0, 'hist': []},
+            'fivegram': {'mean': 0.0, 'hist': []},
+        }
+
+
+    def update_str(self, s):
+        self.n_strings += 1
+        self.str_len_mean = (self.str_len_mean * (self.n_strings - 1) + len(s)) / self.n_strings
+
+
+    def update_rpc(self, strategy, n_queries):
+        rpc = self._rpc[strategy]
+        rpc['hist'].append(n_queries)
+        rpc['hist'] = rpc['hist'][-100:]
+        rpc['mean'] = sum(rpc['hist']) / len(rpc['hist'])
+
+
+    def rpc(self, strategy):
+        return self._rpc[strategy]['mean']
+
+
+    def best_strategy(self):
+        return min(self._rpc, key=lambda strategy: self.rpc(strategy))
 
 
 
@@ -152,135 +355,192 @@ class DynamicTextCollector(TextCollector):
     chooses the best one. In addition, it uses the statistical information to
     identify when guessing whole strings is likely to succeed and then uses
     previously inferred strings to make the guesses.
+    '''
+    def __init__(self, requester, queries, charset=None):
+        '''Constructor.
 
-    Attributes:
-        GUESS_TH (float): success probability threshold necessary to make guesses
-        GUESS_SCORE_TH (float): minimal necessary probability to be included in guess tree
+        Params:
+            requester (Requester): Requester instance
+            queries (UniformQueries): injection queries
+            charset (list|None): list of possible characters
+
+        Other Attributes:
+            model_unigram (Model): adaptive unigram model
+            model_fivegram (Model): adaptive five-gram model
+            guess_collector (StringGuessCollector): collector for guessing
+        '''
+        super().__init__(requester, queries, charset)
+        self.binary_collector = BinaryTextCollector(
+            requester=self.requester,
+            queries=self.queries,
+            charset=self.charset,
+        )
+        self.unigram_collector = ModelTextCollector(
+            requester=self.requester,
+            queries=self.queries,
+            model=hakuin.Model(1),
+            charset=self.charset,
+        )
+        self.fivegram_collector = ModelTextCollector(
+            requester=self.requester,
+            queries=self.queries,
+            model=hakuin.Model(5),
+            charset=self.charset,
+        )
+        self.guess_collector = StringGuessingCollector(
+            requester=self.requester,
+            queries=self.queries,
+        )
+        self.stats = DynamicTextStats()
+
+
+    def collect_row(self, ctx, rows_are_ascii):
+        row_is_ascii = True if rows_are_ascii else self.check_row_is_ascii(ctx)
+
+        s = self._collect_string(ctx, row_is_ascii)
+        self.guess_collector.model.fit_single(s, context=[])
+        self.stats.update_str(s)
+
+        return s
+
+
+    def _collect_string(self, ctx, row_is_ascii):
+        '''Tries to guess strings or extracts them on per-character basis if guessing fails'''
+        exp_c = self.stats.str_len_mean * self.stats.rpc(self.stats.best_strategy())
+        correct_str = self.guess_collector.collect_row(ctx, exp_c)
+
+        if correct_str is not None:
+            self._update_stats_str(ctx, row_is_ascii, correct_str)
+            self.unigram_collector.model.fit_data([correct_str])
+            self.fivegram_collector.model.fit_data([correct_str])
+            return correct_str
+
+        return self._collect_string_per_char(ctx, row_is_ascii)
+
+
+    def _collect_string_per_char(self, ctx, row_is_ascii):
+        ctx.s = ''
+        while True:
+            c = self.collect_char(ctx, row_is_ascii)
+            self._update_stats(ctx, row_is_ascii, c)
+            self.unigram_collector.model.fit_correct_char(c, partial_str=ctx.s)
+            self.fivegram_collector.model.fit_correct_char(c, partial_str=ctx.s)
+
+            if c == EOS:
+                return ctx.s
+            ctx.s += c
+
+        return ctx.s
+
+
+    def collect_char(self, ctx, row_is_ascii):
+        '''Chooses the best strategy and uses it to infer a character.'''
+        best = self.stats.best_strategy()
+        # print(f'b: {self.stats.rpc("binary")}, u: {self.stats.rpc("unigram")}, f: {self.stats.rpc("fivegram")}')
+        if best == 'binary':
+            return self.binary_collector.collect_char(ctx, row_is_ascii)
+        elif best == 'unigram':
+            return self.unigram_collector.collect_char(ctx, row_is_ascii)
+        else:
+            return self.fivegram_collector.collect_char(ctx, row_is_ascii)
+
+
+    def _update_stats(self, ctx, row_is_ascii, correct):
+        '''Emulates all strategies without sending requests and updates the statistical information.'''
+        collectors = (
+            ('binary', self.binary_collector),
+            ('unigram', self.unigram_collector),
+            ('fivegram', self.fivegram_collector),
+        )
+
+        for strategy, collector in collectors:
+            n_queries = collector.emulate_char(ctx, row_is_ascii, correct)
+            self.stats.update_rpc(strategy, n_queries)
+
+
+    def _update_stats_str(self, ctx, row_is_ascii, correct_str):
+        '''Like _update_stats but for whole strings.'''
+        ctx.s = ''
+        for c in correct_str:
+            self._update_stats(ctx, row_is_ascii, c)
+            ctx.s += c
+
+
+
+class StringGuessingCollector(Collector):
+    '''String guessing collector. The collector keeps track of previously extracted
+    strings and opportunistically tries to guess new strings.
     '''
     GUESS_TH = 0.5
     GUESS_SCORE_TH = 0.01
 
 
-    def __init__(self, requester, query_char_cb, query_string_cb, charset=None):
+    def __init__(self, requester, queries):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
-            query_char_cb (function): query construction function for searching characters
-            query_string_cb (function): query construction function for searching strings
-            charset (list|None): list of possible characters
+            queries (UniformQueries): injection queries
 
         Other Attributes:
-            model_guess: adaptive string-based model for guessing
-            model_unigram: adaptive unigram model
-            model_fivegram: adaptive five-gram model
+            GUESS_TH (float): minimal threshold necessary to start guessing
+            GUESS_SCORE_TH (float): minimal threshold for strings to be eligible for guessing
+            model (Model): adaptive string-based model for guessing
         '''
-        self.requester = requester
-        self.query_char_cb = query_char_cb
-        self.query_string_cb = query_string_cb
-        self.charset = charset if charset else CHARSET_ASCII
-        self.model_guess = hakuin.Model(1)
-        self.model_unigram = hakuin.Model(1)
-        self.model_fivegram = hakuin.Model(5)
-        self._stats = {
-            'rpc': {
-                'binary': {'avg': 0.0, 'hist': []},
-                'unigram': {'avg': 0.0, 'hist': []},
-                'fivegram': {'avg': 0.0, 'hist': []},
-            },
-            'avg_len': 0.0,
-            'n_strings': 0,
-        }
+        super().__init__(requester, queries)
+        self.model = hakuin.Model(1)
 
 
-    def _collect_row(self, ctx):
-        s = self._collect_string(ctx)
-        self.model_guess.fit_single(s, context=[])
+    def collect_row(self, ctx, exp_alt=None):
+        '''Tries to construct a guessing Huffman tree and searches it in case of success.
 
-        self._stats['n_strings'] += 1
+        Params:
+            ctx (Context): extraction context
+            exp_alt (float|None): expectation for alternative extraction method or None if it does not exist
 
-        total = self._stats['avg_len'] * (self._stats['n_strings'] - 1) + len(s)
-        self._stats['avg_len'] = total / self._stats['n_strings']
-        return s
-
-
-    def _collect_string(self, ctx):
-        '''Identifies if guessings strings is likely to succeed and if yes, it makes guesses.
-        If guessing does not take place or fails, it proceeds with per-character inference.
+        Returns:
+            string|None: guessed string or None if skipped or failed
         '''
-        correct_str = self._try_guessing(ctx)
-        
-        if correct_str is not None:
-            self._update_stats_str(ctx, correct_str)
-            self.model_unigram.fit_data([correct_str])
-            self.model_fivegram.fit_data([correct_str])
-            return correct_str
-
-        ctx.s = ''
-        while True:
-            c = self._collect_char(ctx)
-
-            self._update_stats(ctx, c)
-            self.model_unigram.fit_correct_char(c, partial_str=ctx.s)
-            self.model_fivegram.fit_correct_char(c, partial_str=ctx.s)
-
-            if c == EOS:
-                return ctx.s
-
-            ctx.s += c
-
-
-    def _collect_char(self, ctx):
-        '''Chooses the best strategy and uses it to infer a character.'''
-        searched_space = set()
-        c = self._get_strategy(ctx, searched_space, self._best_strategy()).run(ctx)
-        if c is None:
-            c = self._get_strategy(ctx, searched_space, 'binary').run(ctx)
-        return c
-
-
-    def _try_guessing(self, ctx):
-        '''Tries to construct a guessing Huffman tree and searches it in case of success.'''
-        tree = self._get_guess_tree(ctx)
+        exp_alt = exp_alt if exp_alt is not None else float('inf')
+        tree = self._get_guess_tree(ctx, exp_alt)
         return TreeSearch(
-            self.requester,
-            self.query_string_cb,
+            requester=self.requester,
+            query_cb=self.queries.string,
             tree=tree,
         ).run(ctx)
 
 
-    def _get_guess_tree(self, ctx):
+    def _get_guess_tree(self, ctx, exp_alt):
         '''Identifies, whether string guessing is likely to succeed and if so,
         it constructs a Huffman tree from previously inferred strings.
 
+        Params:
+            ctx (Context): extraction context
+            exp_alt (float): expectation for alternative extraction method
+
         Returns:
-            utils.huffman.Node|None: Huffman tree constructed from previously inferred
-            strings that are likely to succeed or None if no such strings were found
+            utils.huffman.Node|None: Huffman tree constructed from previously inferred strings that are
+                                     likely to succeed or None if no such strings were found
         '''
-
-        # Expectation for per-character inference:
-        # exp_c = avg_len * best_strategy_rpc
-        exp_c = self._stats['avg_len'] * self._stats['rpc'][self._best_strategy()]['avg']
-
         # Iteratively compute the best expectation "best_exp_g" by progressively inserting guess
         # strings into a candidate guess set "guesses" and computing their expectation "exp_g".
         # The iteration stops when the minimal "exp_g" is found.
-        # exp(G) = p(s in G) * exp_huff(G) + (1 - p(c in G)) * (exp_huff(G) + exp_c)
+        # exp(G) = p(s in G) * exp_huff(G) + (1 - p(c in G)) * (exp_huff(G) + exp_alt)
         guesses = {}
         prob_g = 0.0
         best_prob_g = 0.0
         best_exp_g = float('inf')
         best_tree = None
 
-        scores = self.model_guess.scores(context=[])
-        scores = {k: v for k, v in scores.items() if v >= self.GUESS_SCORE_TH and self.model_guess.count(k, []) > 1}
+        scores = self.model.scores(context=[])
+        scores = {k: v for k, v in scores.items() if v >= self.GUESS_SCORE_TH and self.model.count(k, []) > 1}
         for guess, score in sorted(scores.items(), key=lambda x: x[1], reverse=True):
             guesses[guess] = score
 
             tree = make_tree(guesses)
             tree_cost = tree.search_cost()
             prob_g += score
-            exp_g = prob_g * tree_cost + (1 - prob_g) * (tree_cost + exp_c)
+            exp_g = prob_g * tree_cost + (1 - prob_g) * (tree_cost + exp_alt)
 
             if exp_g > best_exp_g:
                 break
@@ -289,83 +549,7 @@ class DynamicTextCollector(TextCollector):
             best_exp_g = exp_g
             best_tree = tree
 
-        if best_exp_g > exp_c or best_prob_g < self.GUESS_TH:
-            return None
+        if best_exp_g <= exp_alt and best_prob_g > self.GUESS_TH:
+            return best_tree
 
-        return best_tree
-
-
-    def _best_strategy(self):
-        '''Returns the name of the best strategy.'''
-        return min(self._stats['rpc'], key=lambda strategy: self._stats['rpc'][strategy]['avg'])
-
-
-    def _update_stats(self, ctx, correct):
-        '''Emulates all strategies without sending any requests and updates the
-        statistical information.
-        '''
-        for strategy in self._stats['rpc']:
-            searched_space = set()
-            search_alg = self._get_strategy(ctx, searched_space, strategy, correct)
-            res = search_alg.run(ctx)
-            n_queries = search_alg.n_queries
-            if res is None:
-                binary_search = self._get_strategy(ctx, searched_space, 'binary', correct)
-                binary_search.run(ctx)
-                n_queries += binary_search.n_queries
-
-            m = self._stats['rpc'][strategy]
-            m['hist'].append(n_queries)
-            m['hist'] = m['hist'][-100:]
-            m['avg'] = sum(m['hist']) / len(m['hist'])
-
-
-    def _update_stats_str(self, ctx, correct_str):
-        '''Like _update_stats but for whole strings'''
-        ctx.s = ''
-        for c in correct_str:
-            self._update_stats(ctx, c)
-            ctx.s += c
-
-
-    def _get_strategy(self, ctx, searched_space, strategy, correct=None):
-        '''Builds search algorithm configured to search appropriate space.
-
-        Params:
-            ctx (Context): inference context
-            searched_space (list): list of values that have already been searched
-            strategy (str): strategy ('binary', 'unigram', 'fivegram')
-            correct (str|None): correct character
-
-        Returns:
-            SearchAlgorithm: configured search algorithm
-        '''
-        if strategy == 'binary':
-            charset = list(set(self.charset).difference(searched_space))
-            return BinarySearch(
-                self.requester,
-                self.query_char_cb,
-                values=self.charset,
-                correct=correct,
-            )
-        elif strategy == 'unigram':
-            scores = self.model_unigram.scores(context=[])
-            searched_space.union(set(scores))
-            return TreeSearch(
-                self.requester,
-                self.query_char_cb,
-                tree=make_tree(scores),
-                correct=correct,
-            )
-        else:
-            model_ctx = tokenize(ctx.s, add_eos=False)
-            model_ctx = model_ctx[-(self.model_fivegram.order - 1):]
-            scores = self.model_fivegram.scores(context=model_ctx)
-
-            searched_space.union(set(scores))
-            return TreeSearch(
-                self.requester,
-                self.query_char_cb,
-                tree=make_tree(scores),
-                correct=correct,
-            )
+        return None

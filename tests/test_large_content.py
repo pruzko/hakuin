@@ -21,7 +21,7 @@ FILE_LARGE_CONTENT_JSON = os.path.join(DIR_DBS, 'large_content.json')
 def main():
     assert len(sys.argv) in [1, 3], 'python3 experiment_generic_db_offline.py [table> <column>]'
 
-    requester = OfflineRequester(db='large_content')
+    requester = OfflineRequester(db='large_content', verbose=False)
     ext = Extractor(requester=requester, dbms=SQLite())
 
     if len(sys.argv) == 3:
@@ -60,58 +60,58 @@ if __name__ == '__main__':
 # {
 #     "users": {
 #         "username": [
-#             42124,
-#             5.738182808881624
+#             42125,
+#             5.738319030104891
 #         ],
 #         "first_name": [
-#             27901,
-#             4.882919145957298
+#             27902,
+#             4.883094154707735
 #         ],
 #         "last_name": [
-#             32701,
-#             5.344173884621671
+#             32702,
+#             5.344337310017977
 #         ],
 #         "sex": [
-#             1608,
-#             0.3216
+#             1609,
+#             0.3218
 #         ],
 #         "email": [
-#             78138,
-#             3.7532062058696383
+#             78139,
+#             3.7532542389163743
 #         ],
 #         "password": [
-#             137115,
-#             4.28484375
+#             137116,
+#             4.284875
 #         ],
 #         "address": [
-#             86872,
-#             2.1946795341434453
+#             86873,
+#             2.1947047975140843
 #         ]
 #     },
 #     "posts": {
 #         "text": [
-#             409302,
-#             4.312482220185226
+#             409303,
+#             4.312492756371759
 #         ]
 #     },
 #     "comments": {
 #         "text": [
-#             346373,
-#             3.920464063384267
+#             346374,
+#             3.9204753820033957
 #         ]
 #     },
 #     "products": {
 #         "name": [
-#             491174,
-#             3.8737341871983344
+#             491175,
+#             3.873742073882457
 #         ],
 #         "category": [
-#             6721,
-#             0.42975893599334997
+#             6753,
+#             0.4318051026280453
 #         ],
 #         "description": [
-#             966309,
-#             3.2259549579023976
+#             966310,
+#             3.2259582963324007
 #         ]
 #     }
 # }

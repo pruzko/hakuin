@@ -163,3 +163,4 @@ cython_debug/
 
 # Hakuin
 tmp/
+demos/

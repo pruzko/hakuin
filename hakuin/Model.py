@@ -26,8 +26,9 @@ class Model:
 
     @property
     def order(self):
-        assert self.model
-        return self.model.order
+        if self.model:
+            return self.model.order
+        return None
 
 
     def load(self, file):
@@ -49,7 +50,7 @@ class Model:
         Returns:
             dict: likelihood distribution
         '''
-        context = context[-(self.order - 1):]
+        context = [] if self.order == 1 else context[-(self.order - 1):]
 
         while context:
             scores = self._scores(context)

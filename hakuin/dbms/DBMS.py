@@ -3,54 +3,75 @@ from abc import ABCMeta, abstractmethod
 
 
 
-class DBMS(metaclass=ABCMeta):
-    RE_NORM = re.compile(r'[ \n]+')
-
-    DATA_TYPES = []
-
+class Queries(metaclass=ABCMeta):
+    '''Class for constructing SQL queries.'''
+    _RE_NORMALIZE = re.compile(r'[ \n]+')
 
 
     @staticmethod
     def normalize(s):
-        return DBMS.RE_NORM.sub(' ', s).strip()
+        return Queries._RE_NORMALIZE.sub(' ', s).strip()
 
 
+    @staticmethod
+    def hex(s):
+        return s.encode("utf-8").hex()
+
+
+
+class MetaQueries(Queries):
+    '''Interface for queries that infer DB metadata.'''
     @abstractmethod
-    def count_rows(self, ctx, n):
-        raise NotImplementedError()
-
+    def column_data_type(self, ctx, values): raise NotImplementedError()
     @abstractmethod
-    def count_tables(self, ctx, n):
-        raise NotImplementedError()
-
+    def column_is_nullable(self, ctx): raise NotImplementedError()
     @abstractmethod
-    def count_columns(self, ctx, n):
-        raise NotImplementedError()
+    def column_is_pk(self, ctx): raise NotImplementedError()
 
-    @abstractmethod
-    def meta_type(self, ctx, values):
-        raise NotImplementedError()
 
-    @abstractmethod
-    def meta_is_nullable(self, ctx):
-        raise NotImplementedError()
 
+class UniformQueries(Queries):
+    '''Interface for queries that can be unified.'''
     @abstractmethod
-    def meta_is_pk(self, ctx):
-        raise NotImplementedError()
+    def rows_count(self, ctx): raise NotImplementedError()
+    @abstractmethod
+    def rows_are_ascii(self, ctx): raise NotImplementedError()
+    @abstractmethod
+    def row_is_ascii(self, ctx): raise NotImplementedError()
+    @abstractmethod
+    def char_is_ascii(self, ctx): raise NotImplementedError()
+    @abstractmethod
+    def char(self, ctx): raise NotImplementedError()
+    @abstractmethod
+    def char_unicode(self, ctx): raise NotImplementedError()
+    @abstractmethod
+    def string(self, ctx, values): raise NotImplementedError()
 
-    @abstractmethod
-    def char_rows(self, ctx, values):
-        raise NotImplementedError()
 
-    @abstractmethod
-    def char_tables(self, ctx, values):
-        raise NotImplementedError()
 
-    @abstractmethod
-    def char_columns(self, ctx, values):
-        raise NotImplementedError()
+class DBMS(metaclass=ABCMeta):
+    '''Database Management System (DBMS) interface.
 
-    @abstractmethod
-    def string_rows(self, ctx, values):
-        raise NotImplementedError()
+    Attributes:
+        DATA_TYPES (list): all data types available
+        MetaQueries (MetaQueries): queries of metadata extraction
+        TablesQueries (UniformQueries): queries for table names extraction
+        ColumnsQueries (UniformQueries): queries for column names extraction
+        RowsQueries (UniformQueries): queries for rows extraction
+    '''
+    _RE_ESCAPE = re.compile(r'[a-zA-Z0-9_#@]+')
+
+    DATA_TYPES = []
+
+    MetaQueries = None
+    TablesQueries = None
+    ColumnsQueries = None
+    RowsQueries = None
+
+
+    @staticmethod
+    def escape(s):
+        if DBMS._RE_ESCAPE.match(s):
+            return s
+        assert ']' not in s, f'Cannot escape "{s}"'
+        return f'[{s}]'

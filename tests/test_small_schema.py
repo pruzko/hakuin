@@ -13,10 +13,10 @@ logging.basicConfig(level=logging.INFO)
 
 
 def main():
-    requester = OfflineRequester(db='large_schema')
+    requester = OfflineRequester(db='large_content')
     ext = Extractor(requester=requester, dbms=SQLite())
 
-    res = ext.extract_schema()
+    res = ext.extract_schema(metadata=True)
     print(json.dumps(res, indent=4))
 
     res_len = sum([len(table) for table in res])
@@ -27,8 +27,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-# Expected results:
-# Total requests: 27376
-# Average RPC: 2.2098805295447206

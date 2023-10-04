@@ -1,7 +1,6 @@
 import hakuin
 import hakuin.search_algorithms as search_alg
 import hakuin.collectors as collect
-from hakuin.utils import CHARSET_SCHEMA
 
 
 
@@ -33,24 +32,23 @@ class Extractor:
 
         ctx = search_alg.Context(None, None, None, None)
 
-        n_rows = search_alg.IntExponentialSearch(
-            self.requester,
-            self.dbms.count_tables,
-            upper=8
+        n_rows = search_alg.IntExponentialBinarySearch(
+            requester=self.requester,
+            query_cb=self.dbms.TablesQueries.rows_count,
+            upper=8,
+            find_range=True,
         ).run(ctx)
 
         if strategy == 'binary':
             return collect.BinaryTextCollector(
-                self.requester,
-                self.dbms.char_tables,
-                charset=CHARSET_SCHEMA,
+                requester=self.requester,
+                queries=self.dbms.TablesQueries,
             ).run(ctx, n_rows)
         else:
             return collect.ModelTextCollector(
-                self.requester,
-                self.dbms.char_tables,
+                requester=self.requester,
+                queries=self.dbms.TablesQueries,
                 model=hakuin.get_model_tables(),
-                charset=CHARSET_SCHEMA,
             ).run(ctx, n_rows)
 
 
@@ -70,24 +68,23 @@ class Extractor:
 
         ctx = search_alg.Context(table, None, None, None)
 
-        n_rows = search_alg.IntExponentialSearch(
-            self.requester,
-            self.dbms.count_columns,
-            upper=8
+        n_rows = search_alg.IntExponentialBinarySearch(
+            requester=self.requester,
+            query_cb=self.dbms.ColumnsQueries.rows_count,
+            upper=8,
+            find_range=True,
         ).run(ctx)
 
         if strategy == 'binary':
             return collect.BinaryTextCollector(
-                self.requester,
-                self.dbms.char_columns,
-                charset=CHARSET_SCHEMA,
+                requester=self.requester,
+                queries=self.dbms.ColumnsQueries,
             ).run(ctx, n_rows)
         else:
             return collect.ModelTextCollector(
-                self.requester,
-                self.dbms.char_columns,
+                requester=self.requester,
+                queries=self.dbms.ColumnsQueries,
                 model=hakuin.get_model_columns(),
-                charset=CHARSET_SCHEMA,
             ).run(ctx, n_rows)
 
 
@@ -104,15 +101,15 @@ class Extractor:
         ctx = search_alg.Context(table, column, None, None)
 
         d_type = search_alg.BinarySearch(
-            self.requester,
-            self.dbms.meta_type,
+            requester=self.requester,
+            query_cb=self.dbms.MetaQueries.column_data_type,
             values=self.dbms.DATA_TYPES,
         ).run(ctx)
 
         return {
             'type': d_type,
-            'nullable': self.requester.request(ctx, self.dbms.meta_is_nullable(ctx)),
-            'pk': self.requester.request(ctx, self.dbms.meta_is_pk(ctx)),
+            'nullable': self.requester.request(ctx, self.dbms.MetaQueries.column_is_nullable(ctx)),
+            'pk': self.requester.request(ctx, self.dbms.MetaQueries.column_is_pk(ctx)),
         }
 
 
@@ -140,7 +137,7 @@ class Extractor:
         return schema
 
 
-    def extract_column(self, table, column, strategy='dynamic', charset=None, n_rows=None, n_rows_guess=128):
+    def extract_column(self, table, column, strategy='dynamic', charset=None, n_rows_guess=128):
         '''Extracts text column.
 
         Params:
@@ -152,7 +149,6 @@ class Extractor:
                         'dynamic' for dynamically choosing the best search strategy and
                                          opportunistically guessing strings
             charset (list|None): list of possible characters
-            n_rows (int|None): number of rows
             n_rows_guess (int|None): approximate number of rows when 'n_rows' is not set
 
         Returns:
@@ -162,32 +158,30 @@ class Extractor:
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
         ctx = search_alg.Context(table, column, None, None)
-
-        if n_rows is None:
-            n_rows = search_alg.IntExponentialSearch(
-                self.requester,
-                self.dbms.count_rows,
-                upper=n_rows_guess
-            ).run(ctx)
+        n_rows = search_alg.IntExponentialBinarySearch(
+            requester=self.requester,
+            query_cb=self.dbms.RowsQueries.rows_count,
+            upper=n_rows_guess,
+            find_range=True,
+        ).run(ctx)
 
         if strategy == 'binary':
             return collect.BinaryTextCollector(
-                self.requester,
-                self.dbms.char_rows,
+                requester=self.requester,
+                queries=self.dbms.RowsQueries,
                 charset=charset,
             ).run(ctx, n_rows)
         elif strategy in ['unigram', 'fivegram']:
             ngram = 1 if strategy == 'unigram' else 5
             return collect.AdaptiveTextCollector(
-                self.requester,
-                self.dbms.char_rows,
+                requester=self.requester,
+                queries=self.dbms.RowsQueries,
                 model=hakuin.Model(ngram),
                 charset=charset,
             ).run(ctx, n_rows)
         else:
             return collect.DynamicTextCollector(
-                self.requester,
-                self.dbms.char_rows,
-                self.dbms.string_rows,
+                requester=self.requester,
+                queries=self.dbms.RowsQueries,
                 charset=charset,
             ).run(ctx, n_rows)

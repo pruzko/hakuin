@@ -25,13 +25,17 @@ class R(Requester):
 
         r = requests.get(url)
         assert r.status_code in [200, 404], f'Unexpected resposne code: {r.status_code}'
+
+        # print(ctx.s, r.status_code == 200, query)
         return r.status_code == 200
 
 
 
 def main():
-    assert len(sys.argv) == 4, 'python3 experiment_generic_db.py <dbms> <table> <column>'
-    _, dbms_type, table, column = sys.argv
+    assert len(sys.argv) >= 2, 'python3 experiment_generic_db.py <dbms> [<table> <column>]'
+    argv = sys.argv + [None, None]
+    _, dbms_type, table, column = argv[:4]
+
     allowed = ['sqlite', 'mysql']
     assert dbms_type in allowed, f'dbms must be in {allowed}'
 
@@ -39,10 +43,12 @@ def main():
     dbms = SQLite() if dbms_type == 'sqlite' else MySQL()
     ext = Extractor(requester, dbms)
 
-    res = ext.extract_schema(metadata=True)
-    print(json.dumps(res, indent=4))
-    res = ext.extract_column(table, column)
-    print(json.dumps(res, indent=4))
+    if table is None:
+        res = ext.extract_schema(strategy='model', metadata=True)
+        print(json.dumps(res, indent=4))
+    else:
+        res = ext.extract_column(table, column)
+        print(json.dumps(res, indent=4))
 
 
 
