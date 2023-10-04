@@ -16,7 +16,7 @@ hakuin = ["data/models/*.pkl"]
 
 [project]
 name = "hakuin"
-version = "0.1.0"
+version = "0.1.1"
 authors = [{ name = "Jakub Pruzinec", email = "j.pruzinec@gmail.com" }]
 description = "Blind SQL Injection optimization and automation framework"
 readme = "README.md"
