@@ -60,6 +60,22 @@ class Collector(metaclass=ABCMeta):
         raise NotImplementedError()
 
 
+class IntCollector(Collector):
+    '''Collector for integer columns'''
+    def __init__(self, requester, queries):
+        super().__init__(requester, queries)
+
+
+    def collect_row(self, ctx):
+        return IntExponentialBinarySearch(
+            requester=self.requester,
+            query_cb=self.queries.int,
+            lower=0,
+            upper=128,
+            find_lower=True,
+            find_upper=True,
+        ).run(ctx)
+
 
 class TextCollector(Collector):
     '''Collector for text columns.'''
@@ -218,7 +234,8 @@ class BinaryTextCollector(TextCollector):
             query_cb=self.queries.char_unicode,
             lower=ASCII_MAX + 1,
             upper=UNICODE_MAX + 1,
-            find_range=False,
+            find_lower=False,
+            find_upper=False,
             correct=correct_ord,
         )
         res = search_alg.run(ctx)

@@ -47,7 +47,8 @@ def main():
         res = ext.extract_schema(strategy='model', metadata=True)
         print(json.dumps(res, indent=4))
     else:
-        res = ext.extract_column(table, column)
+        res = ext.extract_column_text(table, column)
+        # res = ext.extract_column_int(table, column)
         print(json.dumps(res, indent=4))
 
 

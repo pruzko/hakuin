@@ -293,6 +293,16 @@ class MySQLRowsQueries(UniformQueries):
         return self.normalize(query)
 
 
+    def int(self, ctx, n):
+        query = f'''
+            SELECT  {MySQL.escape(ctx.column)} < {n}
+            FROM    {MySQL.escape(ctx.table)}
+            LIMIT   1
+            OFFSET  {ctx.row}
+        '''
+        return self.normalize(query)
+
+
 
 class MySQL(DBMS):
     DATA_TYPES = [

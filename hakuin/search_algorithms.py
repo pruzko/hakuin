@@ -44,7 +44,7 @@ class SearchAlgorithm(metaclass=ABCMeta):
 
 class IntExponentialBinarySearch(SearchAlgorithm):
     '''Exponential and binary search for integers.'''
-    def __init__(self, requester, query_cb, lower=0, upper=16, find_range=True, correct=None):
+    def __init__(self, requester, query_cb, lower=0, upper=16, find_lower=False, find_upper=True, correct=None):
         '''Constructor.
 
         Params:
@@ -52,13 +52,15 @@ class IntExponentialBinarySearch(SearchAlgorithm):
             query_cb (function): query construction function
             lower (int): lower bound of search range
             upper (int): upper bound of search range
-            find_range (bool): exponentially expands range until the correct value is within 
+            find_lower (bool): exponentially expands the lower bound until the correct value is within 
+            find_upper (bool): exponentially expands the upper bound until the correct value is within 
             correct (int|None): correct value. If provided, the search is emulated
         '''
         super().__init__(requester, query_cb)
         self.lower = lower
         self.upper = upper
-        self.find_range = find_range
+        self.find_lower = find_lower
+        self.find_upper = find_upper
         self.correct = correct
         self.n_queries = 0
 
@@ -74,29 +76,42 @@ class IntExponentialBinarySearch(SearchAlgorithm):
         '''
         self.n_queries = 0
 
-        if self.find_range:
-            lower, upper = self._find_range(ctx, lower=self.lower, upper=self.upper)
-        else:
-            lower, upper = self.lower, self.upper
+        if self.find_lower:
+            self._find_lower(ctx, self.upper - self.lower)
+        if self.find_upper:
+            self._find_upper(ctx, self.upper - self.lower)
 
-        return self._search(ctx, lower, upper)
+        return self._search(ctx, self.lower, self.upper)
 
 
-    def _find_range(self, ctx, lower, upper):
-        '''Exponentially expands the search range until the correct value is within.
+    def _find_lower(self, ctx, step):
+        '''Exponentially expands the lower bound until the correct value is within.
 
         Params:
             ctx (Context): extraction context
-            lower (int): lower bound
-            upper (int): upper bound
-
-        Returns:
-            int: correct upper bound
+            step (int): initial step
         '''
-        if self._query(ctx, upper):
-            return lower, upper
+        if not self._query(ctx, self.lower):
+            return
 
-        return self._find_range(ctx, upper, upper * 2)
+        self.upper = self.lower
+        self.lower -= step
+        self._find_lower(ctx, step * 2)
+
+
+    def _find_upper(self, ctx, step):
+        '''Exponentially expands the upper bound until the correct value is within.
+
+        Params:
+            ctx (Context): extraction context
+            step (int): initial step
+        '''
+        if self._query(ctx, self.upper):
+            return
+
+        self.lower = self.upper
+        self.upper += step
+        self._find_upper(ctx, step * 2)
 
 
     def _search(self, ctx, lower, upper):

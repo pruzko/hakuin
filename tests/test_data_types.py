@@ -14,13 +14,13 @@ logging.basicConfig(level=logging.INFO)
 
 
 def main():
-    requester = OfflineRequester(db='unicode', verbose=False)
+    requester = OfflineRequester(db='data_types', verbose=True)
     ext = Extractor(requester=requester, dbms=SQLite())
 
-    res = ext.extract_schema(strategy='binary')
-    print(res)
+    # res = ext.extract_schema(strategy='binary')
+    # print(res)
 
-    res = ext.extract_column_text('Ħ€ȽȽ©', 'ŴǑȒȽƉ')
+    res = ext.extract_column_int('data_types', 'integer')
     
 
 

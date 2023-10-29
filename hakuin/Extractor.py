@@ -25,7 +25,7 @@ class Extractor:
                             models with Huffman trees
 
         Returns:
-            list: List of extracted table names
+            list: list of extracted table names
         '''
         allowed = ['binary', 'model']
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
@@ -35,8 +35,10 @@ class Extractor:
         n_rows = search_alg.IntExponentialBinarySearch(
             requester=self.requester,
             query_cb=self.dbms.TablesQueries.rows_count,
+            lower=0,
             upper=8,
-            find_range=True,
+            find_lower=False,
+            find_upper=True,
         ).run(ctx)
 
         if strategy == 'binary':
@@ -61,7 +63,7 @@ class Extractor:
                         models with Huffman trees
 
         Returns:
-            list: List of extracted column names
+            list: list of extracted column names
         '''
         allowed = ['binary', 'model']
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
@@ -71,8 +73,10 @@ class Extractor:
         n_rows = search_alg.IntExponentialBinarySearch(
             requester=self.requester,
             query_cb=self.dbms.ColumnsQueries.rows_count,
+            lower=0,
             upper=8,
-            find_range=True,
+            find_lower=False,
+            find_upper=True,
         ).run(ctx)
 
         if strategy == 'binary':
@@ -137,7 +141,7 @@ class Extractor:
         return schema
 
 
-    def extract_column(self, table, column, strategy='dynamic', charset=None, n_rows_guess=128):
+    def extract_column_text(self, table, column, strategy='dynamic', charset=None, n_rows_guess=128):
         '''Extracts text column.
 
         Params:
@@ -152,7 +156,7 @@ class Extractor:
             n_rows_guess (int|None): approximate number of rows when 'n_rows' is not set
 
         Returns:
-            list: List of strings in the column
+            list: list of strings in the column
         '''
         allowed = ['binary', 'unigram', 'fivegram', 'dynamic']
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
@@ -161,8 +165,10 @@ class Extractor:
         n_rows = search_alg.IntExponentialBinarySearch(
             requester=self.requester,
             query_cb=self.dbms.RowsQueries.rows_count,
+            lower=0,
             upper=n_rows_guess,
-            find_range=True,
+            find_lower=False,
+            find_upper=True,
         ).run(ctx)
 
         if strategy == 'binary':
@@ -185,3 +191,30 @@ class Extractor:
                 queries=self.dbms.RowsQueries,
                 charset=charset,
             ).run(ctx, n_rows)
+
+
+    def extract_column_int(self, table, column, n_rows_guess=128):
+        '''Extracts text column.
+
+        Params:
+            table (str): table name
+            column (str): column name
+            n_rows_guess (int|None): approximate number of rows when 'n_rows' is not set
+
+        Returns:
+            list: list of integers in the column
+        '''
+        ctx = search_alg.Context(table, column, None, None)
+        n_rows = search_alg.IntExponentialBinarySearch(
+            requester=self.requester,
+            query_cb=self.dbms.RowsQueries.rows_count,
+            lower=0,
+            upper=n_rows_guess,
+            find_lower=False,
+            find_upper=True,
+        ).run(ctx)
+
+        return collect.IntCollector(
+                requester=self.requester,
+                queries=self.dbms.RowsQueries,
+        ).run(ctx, n_rows)

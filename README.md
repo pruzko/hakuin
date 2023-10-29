@@ -2,13 +2,14 @@
     <img width="150" src="https://raw.githubusercontent.com/pruzko/hakuin/main/logo.png">
 </p>
 
-Hakuin is a Blind SQL Injection (BSQLI) inference optimization and automation framework written in Python 3. It abstract away the inference logic and allows users to easily and efficiently extract textual data in databases (DB) from vulnerable web applications. To speed up the process, Hakuin uses pre-trained language models for DB schemas and adaptive language models in combination with opportunistic string guessing for DB content.
+Hakuin is a Blind SQL Injection (BSQLI) optimization and automation framework written in Python 3. It abstract away the inference logic and allows users to easily and efficiently extract databases (DB) from vulnerable web applications. To speed up the process, Hakuin uses pre-trained language models for DB schemas and adaptive language models in combination with opportunistic string guessing for textual DB content.
 
-Hakuin been presented at academic and industrial conferences:
-- [IEEE Workshop on Offsensive Technology (WOOT)](https://wootconference.org/papers/woot23-paper17.pdf), 2023
+Hakuin has been presented at esteemed academic and industrial conferences:
+- [BlackHat MEA, Riyadh](https://blackhatmea.com/session/hakuin-injecting-brain-blind-sql-injection), 2023
 - [Hack in the Box, Phuket](https://conference.hitb.org/hitbsecconf2023hkt/session/hakuin-injecting-brains-into-blind-sql-injection/), 2023
+- [IEEE S&P Workshop on Offsensive Technology (WOOT)](https://wootconference.org/papers/woot23-paper17.pdf), 2023
 
-Also, make sure to read our [paper](https://github.com/pruzko/hakuin/blob/main/publications/Hakuin_WOOT_23.pdf) or see the [slides](https://github.com/pruzko/hakuin/blob/main/publications/Hakuin_HITB_23.pdf).
+More information can be found in our [paper](https://github.com/pruzko/hakuin/blob/main/publications/Hakuin_WOOT_23.pdf) and [slides](https://github.com/pruzko/hakuin/blob/main/publications/Hakuin_HITB_23.pdf).
 
 
 ## Installation
@@ -48,9 +49,9 @@ class ContentRequester(Requester):
         return 'found' in r.content.decode()
 ```
 
-To start infering data, use the `Extractor` class. It requires a `DBMS` object to contruct queries and a `Requester` object to inject them. Currently, Hakuin supports SQLite and MySQL DBMSs, but will soon include more options. If you wish to support another DBMS, implement the `DBMS` interface defined in `hakuin/dbms/DBMS.py`.
+To start extracting data, use the `Extractor` class. It requires a `DBMS` object to contruct queries and a `Requester` object to inject them. Currently, Hakuin supports SQLite and MySQL DBMSs, but will soon include more options. If you wish to support another DBMS, implement the `DBMS` interface defined in `hakuin/dbms/DBMS.py`.
 
-##### Example 1 - Inferring SQLite DBs
+##### Example 1 - Extracting SQLite DBs
 ```python
 from hakuin.dbms import SQLite
 from hakuin import Extractor, Requester
@@ -58,43 +59,43 @@ from hakuin import Extractor, Requester
 class StatusRequester(Requester):
     ...
 
-exf = Extractor(requester=StatusRequester(), dbms=SQLite())
+ext = Extractor(requester=StatusRequester(), dbms=SQLite())
 ```
 
-##### Example 2 - Inferring MySQL DBs
+##### Example 2 - Extracting MySQL DBs
 ```python
 from hakuin.dbms import MySQL
 ...
-exf = Extractor(requester=StatusRequester(), dbms=MySQL())
+ext = Extractor(requester=StatusRequester(), dbms=MySQL())
 ```
 
-Now that eveything is set, you can start inferring DB schemas.
+Now that eveything is set, you can start extracting DB schemas.
 
-##### Example 1 - Inferring DB Schemas
+##### Example 1 - Extracting DB Schemas
 ```python
 # strategy:
 #   'binary':   Use binary search
 #   'model':    Use pre-trained models
-schema = exf.extract_schema(strategy='model')
+schema = ext.extract_schema(strategy='model')
 ```
 
-##### Example 2 - Inferring DB Schemas with Metadata
+##### Example 2 - Extracting DB Schemas with Metadata
 ```python
 # metadata:
 #   True:   Detect column settings (data type, nullable, primary key)
 #   False:  Pass
-schema = exf.extract_schema(strategy='model', metadata=True)
+schema = ext.extract_schema(strategy='model', metadata=True)
 ```
 
-##### Example 3 - Inferring only Table/Column Names
+##### Example 3 - Extracting only Table/Column Names
 ```python
-tables = exf.extract_table_names(strategy='model')
-columns = exf.extract_column_names(table='users', strategy='model')
+tables = ext.extract_table_names(strategy='model')
+columns = ext.extract_column_names(table='users', strategy='model')
 ```
 
 Once you know the schema, you can extract the actual content.
 
-##### Example 1 - Inferring Textual Columns
+##### Example 1 - Extracting Textual Columns
 ```python
 # strategy:
 #   'binary':       Use binary search
@@ -102,7 +103,12 @@ Once you know the schema, you can extract the actual content.
 #   'unigram':      Use unigram model
 #   'dynamic':      Dynamically identify the best strategy. This setting
 #                   also enables opportunistic guessing.
-res = exfiltrate_text_data(table='users', column='address', strategy='dynamic'):
+res = ext.extract_column_text(table='users', column='address', strategy='dynamic'):
+```
+
+##### Example 2 - Extracting Integer Columns
+```python
+res = ext.extract_column_int(table='users', column='id'):
 ```
 
 More examples can be found in the `tests` directory.
@@ -110,7 +116,7 @@ More examples can be found in the `tests` directory.
 
 
 ## For Researchers
-This repository is maintained to fit the needs of security practitioners. Researchers looking to reproduce the experiments described in our paper should install the [frozen version](https://zenodo.org/record/7804243) as it contains the original code, experiment scripts, and an instruction manual for reproducing the results.
+This repository is actively developed to fit the needs of security practitioners. Researchers looking to reproduce the experiments described in our paper should install the [frozen version](https://zenodo.org/record/7804243) as it contains the original code, experiment scripts, and an instruction manual for reproducing the results.
 
 
 #### Cite Hakuin

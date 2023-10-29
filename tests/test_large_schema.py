@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 def main():
-    requester = OfflineRequester(db='large_schema')
+    requester = OfflineRequester(db='large_schema', verbose=False)
     ext = Extractor(requester=requester, dbms=SQLite())
 
     res = ext.extract_schema()

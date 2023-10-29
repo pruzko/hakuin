@@ -278,6 +278,14 @@ class SQLiteRowsQueries(UniformQueries):
         return self.normalize(query)
 
 
+    def int(self, ctx, n):
+        query = f'''
+            SELECT  {SQLite.escape(ctx.column)} < {n}
+            FROM    {SQLite.escape(ctx.table)}
+            LIMIT   1
+            OFFSET  {ctx.row}
+        '''
+        return self.normalize(query)
 
 
 
