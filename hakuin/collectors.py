@@ -5,7 +5,36 @@ from collections import Counter
 import hakuin
 from hakuin.utils import tokenize, CHARSET_ASCII, EOS, ASCII_MAX, UNICODE_MAX
 from hakuin.utils.huffman import make_tree
-from hakuin.search_algorithms import Context, BinarySearch, TreeSearch, IntExponentialBinarySearch
+from hakuin.search_algorithms import BinarySearch, TreeSearch, IntExponentialBinarySearch
+
+
+
+class Context:
+    '''Collection state.'''
+    def __init__(
+        self, table=None, column=None, n_rows=None, row_idx=None, rows_have_null=None,
+        s=None, rows_are_ascii=None, row_is_ascii=None
+    ):
+        '''Constructor.
+
+        Params:
+            table (str|None): table name
+            column (str|None): column name
+            n_rows (int|None): number of rows
+            row_idx (int|None): row index
+            rows_have_null (bool|None): flag for columns with NULL values
+            s (str|None): buffer for extracted strings
+            rows_are_ascii (bool|None): flag for ASCII columns
+            row_is_ascii (bool|None): flag for a single ASCII row
+        '''
+        self.table = table
+        self.column = column
+        self.n_rows = n_rows
+        self.row_idx = row_idx
+        self.rows_have_null = rows_have_null
+        self.s = s
+        self.rows_are_ascii = rows_are_ascii
+        self.row_is_ascii = row_is_ascii
 
 
 
@@ -24,25 +53,42 @@ class Collector(metaclass=ABCMeta):
         self.queries = queries
 
 
-    def run(self, ctx, n_rows, *args, **kwargs):
+    def run(self, ctx):
         '''Collects the whole column.
 
         Params:
-            ctx (Context): extraction context
-            n_rows (int): number of rows in column
+            ctx (Context): collection context
 
         Returns:
             list: column rows
         '''
         logging.info(f'Inferring "{ctx.table}.{ctx.column}"')
 
+        if ctx.n_rows is None:
+            ctx.n_rows = IntExponentialBinarySearch(
+                requester=self.requester,
+                query_cb=self.queries.rows_count,
+                lower=0,
+                upper=128,
+                find_lower=False,
+                find_upper=True,
+            ).run(ctx)
+
+        if ctx.rows_have_null is None:
+            ctx.rows_have_null = self.check_rows_have_null(ctx)
+
         data = []
-        for row in range(n_rows):
-            ctx = Context(ctx.table, ctx.column, row, None)
-            res = self.collect_row(ctx, *args, **kwargs)
+        for row_idx in range(ctx.n_rows):
+            ctx.row_idx = row_idx
+
+            if ctx.rows_have_null and self.check_row_is_null(ctx):
+                res = None
+            else:
+                res = self.collect_row(ctx)
+
             data.append(res)
 
-            logging.info(f'({row + 1}/{n_rows}) "{ctx.table}.{ctx.column}": {res}')
+            logging.info(f'({ctx.row_idx + 1}/{ctx.n_rows}) "{ctx.table}.{ctx.column}": {res}')
 
         return data
 
@@ -52,7 +98,7 @@ class Collector(metaclass=ABCMeta):
         '''Collects a row.
 
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
 
         Returns:
             value: single row
@@ -60,12 +106,18 @@ class Collector(metaclass=ABCMeta):
         raise NotImplementedError()
 
 
+    def check_rows_have_null(self, ctx):
+        query = self.queries.rows_have_null(ctx)
+        return self.requester.request(ctx, query)
+
+
+    def check_row_is_null(self, ctx):
+        query = self.queries.row_is_null(ctx)
+        return self.requester.request(ctx, query)
+
+
 class IntCollector(Collector):
     '''Collector for integer columns'''
-    def __init__(self, requester, queries):
-        super().__init__(requester, queries)
-
-
     def collect_row(self, ctx):
         return IntExponentialBinarySearch(
             requester=self.requester,
@@ -93,47 +145,45 @@ class TextCollector(Collector):
             self.charset.append(EOS)
 
 
-    def run(self, ctx, n_rows):
+    def run(self, ctx):
         '''Collects the whole column.
 
         Params:
-            ctx (Context): extraction context
-            n_rows (int): number of rows in column
+            ctx (Context): collection context
 
         Returns:
             list: column rows
         '''
-        rows_are_ascii = self.check_rows_are_ascii(ctx)
-        return super().run(ctx, n_rows, rows_are_ascii)
+        if ctx.rows_are_ascii is None:
+            ctx.rows_are_ascii = self.check_rows_are_ascii(ctx)
+        return super().run(ctx)
 
 
-    def collect_row(self, ctx, rows_are_ascii):
+    def collect_row(self, ctx):
         '''Collects a row.
 
         Params:
-            ctx (Context): extraction context
-            rows_are_ascii (bool): ASCII flag for all rows in column
+            ctx (Context): collection context
 
         Returns:
             string: single row
         '''
-        row_is_ascii = True if rows_are_ascii else self.check_row_is_ascii(ctx)
+        ctx.row_is_ascii = True if ctx.rows_are_ascii else self.check_row_is_ascii(ctx)
 
         ctx.s = ''
         while True:
-            c = self.collect_char(ctx, row_is_ascii)
+            c = self.collect_char(ctx)
             if c == EOS:
                 return ctx.s
             ctx.s += c
 
 
     @abstractmethod
-    def collect_char(self, ctx, row_is_ascii):
+    def collect_char(self, ctx):
         '''Collects a character.
 
         Params:
-            ctx (Context): extraction context
-            row_is_ascii (bool): row ASCII flag
+            ctx (Context): collection context
 
         Returns:
             string: single character
@@ -145,7 +195,7 @@ class TextCollector(Collector):
         '''Finds out whether all rows in column are ASCII.
 
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
 
         Returns:
             bool: ASCII flag
@@ -158,7 +208,7 @@ class TextCollector(Collector):
         '''Finds out whether current row is ASCII.
 
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
 
         Returns:
             bool: ASCII flag
@@ -171,7 +221,7 @@ class TextCollector(Collector):
         '''Finds out whether current character is ASCII.
 
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
 
         Returns:
             bool: ASCII flag
@@ -183,38 +233,36 @@ class TextCollector(Collector):
 
 class BinaryTextCollector(TextCollector):
     '''Binary search text collector'''
-    def collect_char(self, ctx, row_is_ascii):
+    def collect_char(self, ctx):
         '''Collects a character.
 
         Params:
-            ctx (Context): extraction context
-            row_is_ascii (bool): row ASCII flag
+            ctx (Context): collection context
 
         Returns:
             string: single character
         '''
-        return self._collect_or_emulate_char(ctx, row_is_ascii)[0]
+        return self._collect_or_emulate_char(ctx)[0]
 
 
-    def emulate_char(self, ctx, row_is_ascii, correct):
+    def emulate_char(self, ctx, correct):
         '''Emulates character collection without sending requests.
 
         Params:
-            ctx (Context): extraction context
-            row_is_ascii (bool): row ASCII flag
+            ctx (Context): collection context
             correct (str): correct character
 
         Returns:
             int: number of requests necessary
         '''
-        return self._collect_or_emulate_char(ctx, row_is_ascii, correct)[1]
+        return self._collect_or_emulate_char(ctx, correct)[1]
 
 
-    def _collect_or_emulate_char(self, ctx, row_is_ascii, correct=None):
+    def _collect_or_emulate_char(self, ctx, correct=None):
         total_queries = 0
 
         # custom charset or ASCII
-        if self.charset is not CHARSET_ASCII or row_is_ascii or self._check_or_emulate_char_is_ascii(ctx, correct):
+        if self.charset is not CHARSET_ASCII or ctx.row_is_ascii or self._check_or_emulate_char_is_ascii(ctx, correct):
             search_alg = BinarySearch(
                 requester=self.requester,
                 query_cb=self.queries.char,
@@ -238,10 +286,10 @@ class BinaryTextCollector(TextCollector):
             find_upper=False,
             correct=correct_ord,
         )
-        res = search_alg.run(ctx)
+        res = chr(search_alg.run(ctx))
         total_queries += search_alg.n_queries
 
-        return chr(res), total_queries
+        return res, total_queries
 
 
     def _check_or_emulate_char_is_ascii(self, ctx, correct):
@@ -274,34 +322,32 @@ class ModelTextCollector(TextCollector):
         )
 
 
-    def collect_char(self, ctx, row_is_ascii):
+    def collect_char(self, ctx):
         '''Collects a character.
 
         Params:
-            ctx (Context): extraction context
-            row_is_ascii (bool): row ASCII flag
+            ctx (Context): collection context
 
         Returns:
             string: single character
         '''
-        return self._collect_or_emulate_char(ctx, row_is_ascii)[0]
+        return self._collect_or_emulate_char(ctx)[0]
 
 
-    def emulate_char(self, ctx, row_is_ascii, correct):
+    def emulate_char(self, ctx, correct):
         '''Emulates character collection without sending requests.
 
         Params:
-            ctx (Context): extraction context
-            row_is_ascii (bool): row ASCII flag
+            ctx (Context): collection context
             correct (str): correct character
 
         Returns:
             int: number of requests necessary
         '''
-        return self._collect_or_emulate_char(ctx, row_is_ascii, correct)[1]
+        return self._collect_or_emulate_char(ctx, correct)[1]
 
 
-    def _collect_or_emulate_char(self, ctx, row_is_ascii, correct=None):
+    def _collect_or_emulate_char(self, ctx, correct=None):
         n_queries_model = 0
 
         model_ctx = tokenize(ctx.s, add_eos=False)
@@ -319,7 +365,7 @@ class ModelTextCollector(TextCollector):
         if res is not None:
             return res, n_queries_model
 
-        res, n_queries_binary = self.binary_collector._collect_or_emulate_char(ctx, row_is_ascii, correct)
+        res, n_queries_binary = self.binary_collector._collect_or_emulate_char(ctx, correct)
         return res, n_queries_model + n_queries_binary
 
 
@@ -411,35 +457,35 @@ class DynamicTextCollector(TextCollector):
         self.stats = DynamicTextStats()
 
 
-    def collect_row(self, ctx, rows_are_ascii):
-        row_is_ascii = True if rows_are_ascii else self.check_row_is_ascii(ctx)
+    def collect_row(self, ctx):
+        ctx.row_is_ascii = True if ctx.rows_are_ascii else self.check_row_is_ascii(ctx)
 
-        s = self._collect_string(ctx, row_is_ascii)
+        s = self._collect_string(ctx)
         self.guess_collector.model.fit_single(s, context=[])
         self.stats.update_str(s)
 
         return s
 
 
-    def _collect_string(self, ctx, row_is_ascii):
+    def _collect_string(self, ctx):
         '''Tries to guess strings or extracts them on per-character basis if guessing fails'''
         exp_c = self.stats.str_len_mean * self.stats.rpc(self.stats.best_strategy())
         correct_str = self.guess_collector.collect_row(ctx, exp_c)
 
         if correct_str is not None:
-            self._update_stats_str(ctx, row_is_ascii, correct_str)
+            self._update_stats_str(ctx, correct_str)
             self.unigram_collector.model.fit_data([correct_str])
             self.fivegram_collector.model.fit_data([correct_str])
             return correct_str
 
-        return self._collect_string_per_char(ctx, row_is_ascii)
+        return self._collect_string_per_char(ctx)
 
 
-    def _collect_string_per_char(self, ctx, row_is_ascii):
+    def _collect_string_per_char(self, ctx):
         ctx.s = ''
         while True:
-            c = self.collect_char(ctx, row_is_ascii)
-            self._update_stats(ctx, row_is_ascii, c)
+            c = self.collect_char(ctx)
+            self._update_stats(ctx, c)
             self.unigram_collector.model.fit_correct_char(c, partial_str=ctx.s)
             self.fivegram_collector.model.fit_correct_char(c, partial_str=ctx.s)
 
@@ -450,19 +496,19 @@ class DynamicTextCollector(TextCollector):
         return ctx.s
 
 
-    def collect_char(self, ctx, row_is_ascii):
+    def collect_char(self, ctx):
         '''Chooses the best strategy and uses it to infer a character.'''
         best = self.stats.best_strategy()
         # print(f'b: {self.stats.rpc("binary")}, u: {self.stats.rpc("unigram")}, f: {self.stats.rpc("fivegram")}')
         if best == 'binary':
-            return self.binary_collector.collect_char(ctx, row_is_ascii)
+            return self.binary_collector.collect_char(ctx)
         elif best == 'unigram':
-            return self.unigram_collector.collect_char(ctx, row_is_ascii)
+            return self.unigram_collector.collect_char(ctx)
         else:
-            return self.fivegram_collector.collect_char(ctx, row_is_ascii)
+            return self.fivegram_collector.collect_char(ctx)
 
 
-    def _update_stats(self, ctx, row_is_ascii, correct):
+    def _update_stats(self, ctx, correct):
         '''Emulates all strategies without sending requests and updates the statistical information.'''
         collectors = (
             ('binary', self.binary_collector),
@@ -471,15 +517,15 @@ class DynamicTextCollector(TextCollector):
         )
 
         for strategy, collector in collectors:
-            n_queries = collector.emulate_char(ctx, row_is_ascii, correct)
+            n_queries = collector.emulate_char(ctx, correct)
             self.stats.update_rpc(strategy, n_queries)
 
 
-    def _update_stats_str(self, ctx, row_is_ascii, correct_str):
+    def _update_stats_str(self, ctx, correct_str):
         '''Like _update_stats but for whole strings.'''
         ctx.s = ''
         for c in correct_str:
-            self._update_stats(ctx, row_is_ascii, c)
+            self._update_stats(ctx, c)
             ctx.s += c
 
 
@@ -512,7 +558,7 @@ class StringGuessingCollector(Collector):
         '''Tries to construct a guessing Huffman tree and searches it in case of success.
 
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
             exp_alt (float|None): expectation for alternative extraction method or None if it does not exist
 
         Returns:
@@ -532,7 +578,7 @@ class StringGuessingCollector(Collector):
         it constructs a Huffman tree from previously inferred strings.
 
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
             exp_alt (float): expectation for alternative extraction method
 
         Returns:

@@ -15,12 +15,12 @@ class Queries(metaclass=ABCMeta):
 
     @staticmethod
     def hex(s):
-        return s.encode("utf-8").hex()
+        return s.encode('utf-8').hex()
 
 
 
 class MetaQueries(Queries):
-    '''Interface for queries that infer DB metadata.'''
+    '''Interface for queries that infer DB schema metadata.'''
     @abstractmethod
     def column_data_type(self, ctx, values): raise NotImplementedError()
     @abstractmethod
@@ -30,10 +30,19 @@ class MetaQueries(Queries):
 
 
 
-class UniformQueries(Queries):
-    '''Interface for queries that can be unified.'''
+class ColumnQueries(Queries):
+    '''Interface for column queries.'''
     @abstractmethod
     def rows_count(self, ctx): raise NotImplementedError()
+    @abstractmethod
+    def rows_have_null(self, ctx): raise NotImplementedError()
+    @abstractmethod
+    def row_is_null(self, ctx): raise NotImplementedError()
+
+
+
+class TextQueries(ColumnQueries):
+    '''Interface for text column queries.'''
     @abstractmethod
     def rows_are_ascii(self, ctx): raise NotImplementedError()
     @abstractmethod
@@ -48,13 +57,19 @@ class UniformQueries(Queries):
     def string(self, ctx, values): raise NotImplementedError()
 
 
+class IntQueries(ColumnQueries):
+    '''Interface for int column queries.'''
+    @abstractmethod
+    def int(self, ctx, n): raise NotImplementedError()
+
+
 
 class DBMS(metaclass=ABCMeta):
     '''Database Management System (DBMS) interface.
 
     Attributes:
         DATA_TYPES (list): all data types available
-        MetaQueries (MetaQueries): queries of metadata extraction
+        MetaQueries (MetaQueries): queries for schema metadata extraction
         TablesQueries (UniformQueries): queries for table names extraction
         ColumnsQueries (UniformQueries): queries for column names extraction
         RowsQueries (UniformQueries): queries for rows extraction
@@ -66,7 +81,8 @@ class DBMS(metaclass=ABCMeta):
     MetaQueries = None
     TablesQueries = None
     ColumnsQueries = None
-    RowsQueries = None
+    TextQueries = None
+    IntQueries = None
 
 
     @staticmethod

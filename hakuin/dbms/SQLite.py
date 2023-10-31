@@ -1,6 +1,6 @@
 from hakuin.utils import EOS
 
-from .DBMS import DBMS, MetaQueries, UniformQueries
+from .DBMS import DBMS, MetaQueries, ColumnQueries, TextQueries
 
 
 
@@ -34,7 +34,110 @@ class SQLiteMetaQueries(MetaQueries):
 
 
 
-class SQLiteTablesQueries(UniformQueries):
+class SQLiteColumnQueries(ColumnQueries):
+    def rows_count(self, ctx, n):
+        query = f'''
+            SELECT  count(*) < {n}
+            FROM    {SQLite.escape(ctx.table)}
+        '''
+        return self.normalize(query)
+
+
+    def rows_have_null(self, ctx):
+        query = f'''
+            SELECT  count(*)
+            FROM    {SQLite.escape(ctx.table)}
+            WHERE   {SQLite.escape(ctx.column)} is NULL
+        '''
+        return self.normalize(query)
+
+
+    def row_is_null(self, ctx):
+        query = f'''
+            SELECT  {SQLite.escape(ctx.column)} is NULL
+            FROM    {SQLite.escape(ctx.table)}
+            LIMIT   1
+            OFFSET  {ctx.row_idx}
+        '''
+        return self.normalize(query)
+
+
+
+class SQLiteTextQueries(TextQueries, SQLiteColumnQueries):
+    def rows_are_ascii(self, ctx):
+        query = f'''
+            SELECT  sum({SQLite.escape(ctx.column)} not glob cast(x'2a5b5e012d7f5d2a' as TEXT))
+            FROM    {SQLite.escape(ctx.table)}
+        '''
+        return self.normalize(query)
+
+
+    def row_is_ascii(self, ctx):
+        query = f'''
+            SELECT  {SQLite.escape(ctx.column)} not glob cast(x'2a5b5e012d7f5d2a' as TEXT)
+            FROM    {SQLite.escape(ctx.table)}
+            LIMIT   1
+            OFFSET  {ctx.row_idx}
+        '''
+        return self.normalize(query)
+
+
+    def char_is_ascii(self, ctx):
+        query = f'''
+            SELECT  substr({SQLite.escape(ctx.column)}, {len(ctx.s) + 1}, 1) not glob cast(x'2a5b5e012d7f5d2a' as TEXT)
+            FROM    {SQLite.escape(ctx.table)}
+            LIMIT   1
+            OFFSET  {ctx.row_idx}
+        '''
+        return self.normalize(query)
+
+
+    def char(self, ctx, values):
+        has_eos = EOS in values
+        values = [v for v in values if v != EOS]
+        values = ''.join(values).encode('utf-8').hex()
+
+        if has_eos:
+            query = f'''
+                SELECT  instr(x'{values}', substr({SQLite.escape(ctx.column)}, {len(ctx.s) + 1}, 1))
+                FROM    {SQLite.escape(ctx.table)}
+                LIMIT   1
+                OFFSET  {ctx.row_idx}
+            '''
+        else:
+            query = f'''
+                SELECT  length({SQLite.escape(ctx.column)}) != {len(ctx.s)} AND
+                        instr(x'{values}', substr({SQLite.escape(ctx.column)}, {len(ctx.s) + 1}, 1))
+                FROM    {SQLite.escape(ctx.table)}
+                LIMIT   1
+                OFFSET  {ctx.row_idx}
+            '''
+        return self.normalize(query)
+
+
+    def char_unicode(self, ctx, n):
+        query = f'''
+            SELECT  unicode(substr({SQLite.escape(ctx.column)}, {len(ctx.s) + 1}, 1)) < {n}
+            FROM    {SQLite.escape(ctx.table)}
+            LIMIT   1
+            OFFSET  {ctx.row_idx}
+        '''
+        return self.normalize(query)
+
+
+    def string(self, ctx, values):
+        values = [f"x'{v.encode('utf-8').hex()}'" for v in values]
+        query = f'''
+            SELECT  cast({SQLite.escape(ctx.column)} as BLOB) in ({','.join(values)})
+            FROM    {SQLite.escape(ctx.table)}
+            LIMIT   1
+            OFFSET  {ctx.row_idx}
+        '''
+        return self.normalize(query)
+
+
+
+class SQLiteTableNamesQueries(TextQueries, SQLiteColumnQueries):
     def rows_count(self, ctx, n):
         query = f'''
             SELECT  count(*) < {n}
@@ -65,7 +168,7 @@ class SQLiteTablesQueries(UniformQueries):
             FROM    sqlite_master
             WHERE   type='table'
             LIMIT   1
-            OFFSET  {ctx.row}
+            OFFSET  {ctx.row_idx}
         '''
         return self.normalize(query)
 
@@ -76,7 +179,7 @@ class SQLiteTablesQueries(UniformQueries):
             FROM    sqlite_master
             WHERE   type='table'
             LIMIT   1
-            OFFSET  {ctx.row}
+            OFFSET  {ctx.row_idx}
         '''
         return self.normalize(query)
 
@@ -92,7 +195,7 @@ class SQLiteTablesQueries(UniformQueries):
                 FROM    sqlite_master
                 WHERE   type='table'
                 LIMIT   1
-                OFFSET  {ctx.row}
+                OFFSET  {ctx.row_idx}
             '''
         else:
             query = f'''
@@ -101,7 +204,7 @@ class SQLiteTablesQueries(UniformQueries):
                 FROM    sqlite_master
                 WHERE   type='table'
                 LIMIT   1
-                OFFSET  {ctx.row}
+                OFFSET  {ctx.row_idx}
             '''
         return self.normalize(query)
 
@@ -112,7 +215,7 @@ class SQLiteTablesQueries(UniformQueries):
             FROM    sqlite_master
             WHERE   type='table'
             LIMIT   1
-            OFFSET  {ctx.row}
+            OFFSET  {ctx.row_idx}
         '''
         return self.normalize(query)
 
@@ -122,7 +225,7 @@ class SQLiteTablesQueries(UniformQueries):
 
 
 
-class SQLiteColumnsQueries(UniformQueries):
+class SQLiteColumnNamesQueries(TextQueries, SQLiteColumnQueries):
     def rows_count(self, ctx, n):
         query = f'''
             SELECT  count(*) < {n}
@@ -144,7 +247,7 @@ class SQLiteColumnsQueries(UniformQueries):
             SELECT  name not glob cast(x'2a5b5e012d7f5d2a' as TEXT)
             FROM    pragma_table_info(x'{self.hex(ctx.table)}')
             LIMIT   1
-            OFFSET  {ctx.row}
+            OFFSET  {ctx.row_idx}
         '''
         return self.normalize(query)
 
@@ -154,7 +257,7 @@ class SQLiteColumnsQueries(UniformQueries):
             SELECT  substr(name, {len(ctx.s) + 1}, 1) not glob cast(x'2a5b5e012d7f5d2a' as TEXT)
             FROM    pragma_table_info(x'{self.hex(ctx.table)}')
             LIMIT   1
-            OFFSET  {ctx.row}
+            OFFSET  {ctx.row_idx}
         '''
         return self.normalize(query)
 
@@ -169,7 +272,7 @@ class SQLiteColumnsQueries(UniformQueries):
                 SELECT  instr(x'{values}', substr(name, {len(ctx.s) + 1}, 1))
                 FROM    pragma_table_info(x'{self.hex(ctx.table)}')
                 LIMIT   1
-                OFFSET  {ctx.row}
+                OFFSET  {ctx.row_idx}
             '''
         else:
             query = f'''
@@ -177,7 +280,7 @@ class SQLiteColumnsQueries(UniformQueries):
                         instr(x'{values}', substr(name, {len(ctx.s) + 1}, 1))
                 FROM    pragma_table_info(x'{self.hex(ctx.table)}')
                 LIMIT   1
-                OFFSET  {ctx.row}
+                OFFSET  {ctx.row_idx}
             '''
         return self.normalize(query)
 
@@ -187,7 +290,7 @@ class SQLiteColumnsQueries(UniformQueries):
             SELECT  unicode(substr(name, {len(ctx.s) + 1}, 1)) < {n}
             FROM    pragma_table_info(x'{self.hex(ctx.table)}')
             LIMIT   1
-            OFFSET  {ctx.row}
+            OFFSET  {ctx.row_idx}
         '''
         return self.normalize(query)
 
@@ -197,93 +300,13 @@ class SQLiteColumnsQueries(UniformQueries):
 
 
 
-class SQLiteRowsQueries(UniformQueries):
-    def rows_count(self, ctx, n):
-        query = f'''
-            SELECT  count(*) < {n}
-            FROM    {SQLite.escape(ctx.table)}
-        '''
-        return self.normalize(query)
-
-
-    def rows_are_ascii(self, ctx):
-        query = f'''
-            SELECT  sum({SQLite.escape(ctx.column)} not glob cast(x'2a5b5e012d7f5d2a' as TEXT))
-            FROM    {SQLite.escape(ctx.table)}
-        '''
-        return self.normalize(query)
-
-
-    def row_is_ascii(self, ctx):
-        query = f'''
-            SELECT  {SQLite.escape(ctx.column)} not glob cast(x'2a5b5e012d7f5d2a' as TEXT)
-            FROM    {SQLite.escape(ctx.table)}
-            LIMIT   1
-            OFFSET  {ctx.row}
-        '''
-        return self.normalize(query)
-
-
-    def char_is_ascii(self, ctx):
-        query = f'''
-            SELECT  substr({SQLite.escape(ctx.column)}, {len(ctx.s) + 1}, 1) not glob cast(x'2a5b5e012d7f5d2a' as TEXT)
-            FROM    {SQLite.escape(ctx.table)}
-            LIMIT   1
-            OFFSET  {ctx.row}
-        '''
-        return self.normalize(query)
-
-
-    def char(self, ctx, values):
-        has_eos = EOS in values
-        values = [v for v in values if v != EOS]
-        values = ''.join(values).encode('utf-8').hex()
-
-        if has_eos:
-            query = f'''
-                SELECT  instr(x'{values}', substr({SQLite.escape(ctx.column)}, {len(ctx.s) + 1}, 1))
-                FROM    {SQLite.escape(ctx.table)}
-                LIMIT   1
-                OFFSET  {ctx.row}
-            '''
-        else:
-            query = f'''
-                SELECT  length({SQLite.escape(ctx.column)}) != {len(ctx.s)} AND
-                        instr(x'{values}', substr({SQLite.escape(ctx.column)}, {len(ctx.s) + 1}, 1))
-                FROM    {SQLite.escape(ctx.table)}
-                LIMIT   1
-                OFFSET  {ctx.row}
-            '''
-        return self.normalize(query)
-
-
-    def char_unicode(self, ctx, n):
-        query = f'''
-            SELECT  unicode(substr({SQLite.escape(ctx.column)}, {len(ctx.s) + 1}, 1)) < {n}
-            FROM    {SQLite.escape(ctx.table)}
-            LIMIT   1
-            OFFSET  {ctx.row}
-        '''
-        return self.normalize(query)
-
-
-    def string(self, ctx, values):
-        values = [f"x'{v.encode('utf-8').hex()}'" for v in values]
-        query = f'''
-            SELECT  cast({SQLite.escape(ctx.column)} as BLOB) in ({','.join(values)})
-            FROM    {SQLite.escape(ctx.table)}
-            LIMIT   1
-            OFFSET  {ctx.row}
-        '''
-        return self.normalize(query)
-
-
+class SQLiteIntQueries(SQLiteColumnQueries):
     def int(self, ctx, n):
         query = f'''
             SELECT  {SQLite.escape(ctx.column)} < {n}
             FROM    {SQLite.escape(ctx.table)}
             LIMIT   1
-            OFFSET  {ctx.row}
+            OFFSET  {ctx.row_idx}
         '''
         return self.normalize(query)
 
@@ -293,6 +316,7 @@ class SQLite(DBMS):
     DATA_TYPES = ['INTEGER', 'TEXT', 'REAL', 'NUMERIC', 'BLOB']
 
     MetaQueries = SQLiteMetaQueries()
-    TablesQueries = SQLiteTablesQueries()
-    ColumnsQueries = SQLiteColumnsQueries()
-    RowsQueries = SQLiteRowsQueries()
+    TablesQueries = SQLiteTableNamesQueries()
+    ColumnsQueries = SQLiteColumnNamesQueries()
+    TextQueries = SQLiteTextQueries()
+    IntQueries = SQLiteIntQueries()

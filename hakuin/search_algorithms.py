@@ -4,23 +4,6 @@ from hakuin.utils import split_at
 
 
 
-class Context:
-    '''Inference state.'''
-    def __init__(self, table, column, row, s):
-        '''Constructor.
-
-        Params:
-            table (str|None): table name
-            column (str|None): column name
-            row (int|None): row index
-            s (str|None): partially or completely inferred string
-        '''
-        self.table = table
-        self.column = column
-        self.row = row
-        self.s = s
-
-
 
 class SearchAlgorithm(metaclass=ABCMeta):
     '''Abstract class for various search algorithms.'''
@@ -69,7 +52,7 @@ class IntExponentialBinarySearch(SearchAlgorithm):
         '''Runs the search algorithm.
 
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
 
         Returns:
             int: inferred number
@@ -88,7 +71,7 @@ class IntExponentialBinarySearch(SearchAlgorithm):
         '''Exponentially expands the lower bound until the correct value is within.
 
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
             step (int): initial step
         '''
         if not self._query(ctx, self.lower):
@@ -103,7 +86,7 @@ class IntExponentialBinarySearch(SearchAlgorithm):
         '''Exponentially expands the upper bound until the correct value is within.
 
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
             step (int): initial step
         '''
         if self._query(ctx, self.upper):
@@ -118,7 +101,7 @@ class IntExponentialBinarySearch(SearchAlgorithm):
         '''Numeric binary search.
 
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
             lower (int): lower bound
             upper (int): upper bound
 
@@ -167,7 +150,7 @@ class BinarySearch(SearchAlgorithm):
         '''Runs the search algorithm.
 
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
 
         Returns:
             value|None: inferred value or None on fail
@@ -226,7 +209,7 @@ class TreeSearch(SearchAlgorithm):
         '''Runs the search algorithm.
 
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
 
         Returns:
             value|None: inferred value or None on fail
@@ -239,7 +222,7 @@ class TreeSearch(SearchAlgorithm):
         '''Tree search.
         
         Params:
-            ctx (Context): extraction context
+            ctx (Context): collection context
             tree (utils.huffman.Node): Huffman tree to search
             in_tree (bool): True if the correct value is known to be in the tree
 

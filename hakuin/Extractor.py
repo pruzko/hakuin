@@ -1,6 +1,6 @@
 import hakuin
-import hakuin.search_algorithms as search_alg
-import hakuin.collectors as collect
+import hakuin.search_algorithms as alg
+import hakuin.collectors as coll
 
 
 
@@ -30,9 +30,8 @@ class Extractor:
         allowed = ['binary', 'model']
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
-        ctx = search_alg.Context(None, None, None, None)
-
-        n_rows = search_alg.IntExponentialBinarySearch(
+        ctx = coll.Context(rows_have_null=False)
+        ctx.n_rows = alg.IntExponentialBinarySearch(
             requester=self.requester,
             query_cb=self.dbms.TablesQueries.rows_count,
             lower=0,
@@ -42,16 +41,16 @@ class Extractor:
         ).run(ctx)
 
         if strategy == 'binary':
-            return collect.BinaryTextCollector(
+            return coll.BinaryTextCollector(
                 requester=self.requester,
                 queries=self.dbms.TablesQueries,
-            ).run(ctx, n_rows)
+            ).run(ctx)
         else:
-            return collect.ModelTextCollector(
+            return coll.ModelTextCollector(
                 requester=self.requester,
                 queries=self.dbms.TablesQueries,
                 model=hakuin.get_model_tables(),
-            ).run(ctx, n_rows)
+            ).run(ctx)
 
 
     def extract_column_names(self, table, strategy='model'):
@@ -68,9 +67,8 @@ class Extractor:
         allowed = ['binary', 'model']
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
-        ctx = search_alg.Context(table, None, None, None)
-
-        n_rows = search_alg.IntExponentialBinarySearch(
+        ctx = coll.Context(table=table, rows_have_null=False)
+        ctx.n_rows = alg.IntExponentialBinarySearch(
             requester=self.requester,
             query_cb=self.dbms.ColumnsQueries.rows_count,
             lower=0,
@@ -80,16 +78,16 @@ class Extractor:
         ).run(ctx)
 
         if strategy == 'binary':
-            return collect.BinaryTextCollector(
+            return coll.BinaryTextCollector(
                 requester=self.requester,
                 queries=self.dbms.ColumnsQueries,
-            ).run(ctx, n_rows)
+            ).run(ctx)
         else:
-            return collect.ModelTextCollector(
+            return coll.ModelTextCollector(
                 requester=self.requester,
                 queries=self.dbms.ColumnsQueries,
                 model=hakuin.get_model_columns(),
-            ).run(ctx, n_rows)
+            ).run(ctx)
 
 
     def extract_column_metadata(self, table, column):
@@ -102,9 +100,9 @@ class Extractor:
         Returns:
             dict: column metadata
         '''
-        ctx = search_alg.Context(table, column, None, None)
+        ctx = coll.Context(table, column, None, None)
 
-        d_type = search_alg.BinarySearch(
+        d_type = alg.BinarySearch(
             requester=self.requester,
             query_cb=self.dbms.MetaQueries.column_data_type,
             values=self.dbms.DATA_TYPES,
@@ -135,13 +133,13 @@ class Extractor:
         for table in self.extract_table_names(strategy):
             schema[table] = {}
             for column in self.extract_column_names(table, strategy):
-                md = self.extract_column_metadata(table, column) if metadata else None
-                schema[table][column] = md
+                metadata = self.extract_column_metadata(table, column) if metadata else None
+                schema[table][column] = metadata
 
         return schema
 
 
-    def extract_column_text(self, table, column, strategy='dynamic', charset=None, n_rows_guess=128):
+    def extract_column_text(self, table, column, strategy='dynamic', charset=None):
         '''Extracts text column.
 
         Params:
@@ -153,7 +151,6 @@ class Extractor:
                         'dynamic' for dynamically choosing the best search strategy and
                                          opportunistically guessing strings
             charset (list|None): list of possible characters
-            n_rows_guess (int|None): approximate number of rows when 'n_rows' is not set
 
         Returns:
             list: list of strings in the column
@@ -161,60 +158,41 @@ class Extractor:
         allowed = ['binary', 'unigram', 'fivegram', 'dynamic']
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
-        ctx = search_alg.Context(table, column, None, None)
-        n_rows = search_alg.IntExponentialBinarySearch(
-            requester=self.requester,
-            query_cb=self.dbms.RowsQueries.rows_count,
-            lower=0,
-            upper=n_rows_guess,
-            find_lower=False,
-            find_upper=True,
-        ).run(ctx)
-
+        ctx = coll.Context(table=table, column=column)
         if strategy == 'binary':
-            return collect.BinaryTextCollector(
+            return coll.BinaryTextCollector(
                 requester=self.requester,
-                queries=self.dbms.RowsQueries,
+                queries=self.dbms.TextQueries,
                 charset=charset,
-            ).run(ctx, n_rows)
+            ).run(ctx)
         elif strategy in ['unigram', 'fivegram']:
             ngram = 1 if strategy == 'unigram' else 5
-            return collect.AdaptiveTextCollector(
+            return coll.AdaptiveTextCollector(
                 requester=self.requester,
-                queries=self.dbms.RowsQueries,
+                queries=self.dbms.TextQueries,
                 model=hakuin.Model(ngram),
                 charset=charset,
-            ).run(ctx, n_rows)
+            ).run(ctx)
         else:
-            return collect.DynamicTextCollector(
+            return coll.DynamicTextCollector(
                 requester=self.requester,
-                queries=self.dbms.RowsQueries,
+                queries=self.dbms.TextQueries,
                 charset=charset,
-            ).run(ctx, n_rows)
+            ).run(ctx)
 
 
-    def extract_column_int(self, table, column, n_rows_guess=128):
+    def extract_column_int(self, table, column):
         '''Extracts text column.
 
         Params:
             table (str): table name
             column (str): column name
-            n_rows_guess (int|None): approximate number of rows when 'n_rows' is not set
 
         Returns:
             list: list of integers in the column
         '''
-        ctx = search_alg.Context(table, column, None, None)
-        n_rows = search_alg.IntExponentialBinarySearch(
-            requester=self.requester,
-            query_cb=self.dbms.RowsQueries.rows_count,
-            lower=0,
-            upper=n_rows_guess,
-            find_lower=False,
-            find_upper=True,
-        ).run(ctx)
-
-        return collect.IntCollector(
+        ctx = coll.Context(table=table, column=column)
+        return coll.IntCollector(
                 requester=self.requester,
-                queries=self.dbms.RowsQueries,
-        ).run(ctx, n_rows)
+                queries=self.dbms.IntQueries,
+        ).run(ctx)
