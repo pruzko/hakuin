@@ -7,14 +7,15 @@ build-backend = "setuptools.build_meta"
 
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["hakuin"]
+include = ["hakuin*"]
 
 
 [tool.setuptools.package-data]
 hakuin = [
     "data/models/*.pkl",
-    "data/queries/*.jinja",
+    "data/queries/DBMS/*.jinja",
+    "data/queries/MySQL/*.jinja",
+    "data/queries/SQLite/*.jinja",
 ]
 
 
