@@ -20,7 +20,8 @@ def main():
     res = ext.extract_schema(strategy='binary')
     print(res)
 
-    res = ext.extract_column_text('Ħ€ȽȽ©', 'ŴǑȒȽƉ')
+    res = ext.extract_column_text('Ħ€ȽȽ©', 'ŴǑȒȽƉ', strategy='dynamic')
+    print(res)
     
 
 

@@ -3,9 +3,9 @@ from abc import ABCMeta, abstractmethod
 from collections import Counter
 
 import hakuin
-from hakuin.utils import tokenize, CHARSET_ASCII, EOS, ASCII_MAX, UNICODE_MAX
+from hakuin.utils import tokenize, EOS, ASCII_MAX, UNICODE_MAX
 from hakuin.utils.huffman import make_tree
-from hakuin.search_algorithms import BinarySearch, TreeSearch, IntExponentialBinarySearch
+from hakuin.search_algorithms import BinarySearch, TreeSearch, NumericBinarySearch
 
 
 
@@ -42,15 +42,15 @@ class Collector(metaclass=ABCMeta):
     '''Abstract class for collectors. Collectors repeatidly run
     search algorithms to extract column rows.
     '''
-    def __init__(self, requester, queries):
+    def __init__(self, requester, dbms):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
-            queries (UniformQueries): injection queries
+            dbms (DBMS): Database engine
         '''
         self.requester = requester
-        self.queries = queries
+        self.dbms = dbms
 
 
     def run(self, ctx):
@@ -65,9 +65,9 @@ class Collector(metaclass=ABCMeta):
         logging.info(f'Inferring "{ctx.table}.{ctx.column}"')
 
         if ctx.n_rows is None:
-            ctx.n_rows = IntExponentialBinarySearch(
+            ctx.n_rows = NumericBinarySearch(
                 requester=self.requester,
-                query_cb=self.queries.rows_count,
+                query_cb=self.dbms.q_rows_count_lt,
                 lower=0,
                 upper=128,
                 find_lower=False,
@@ -107,21 +107,21 @@ class Collector(metaclass=ABCMeta):
 
 
     def check_rows_have_null(self, ctx):
-        query = self.queries.rows_have_null(ctx)
+        query = self.dbms.q_rows_have_null(ctx)
         return self.requester.request(ctx, query)
 
 
     def check_row_is_null(self, ctx):
-        query = self.queries.row_is_null(ctx)
+        query = self.dbms.q_row_is_null(ctx)
         return self.requester.request(ctx, query)
 
 
 class IntCollector(Collector):
     '''Collector for integer columns'''
     def collect_row(self, ctx):
-        return IntExponentialBinarySearch(
+        return NumericBinarySearch(
             requester=self.requester,
-            query_cb=self.queries.int,
+            query_cb=self.dbms.q_int_lt,
             lower=0,
             upper=128,
             find_lower=True,
@@ -131,17 +131,17 @@ class IntCollector(Collector):
 
 class TextCollector(Collector):
     '''Collector for text columns.'''
-    def __init__(self, requester, queries, charset=None):
+    def __init__(self, requester, dbms, charset=None):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
-            queries (UniformQueries): injection queries
+            dbms (DBMS): Database engine
             charset (list|None): list of possible characters, None for default ASCII
         '''
-        super().__init__(requester, queries)
-        self.charset = charset if charset is not None else CHARSET_ASCII
-        if EOS not in self.charset:
+        super().__init__(requester, dbms)
+        self.charset = charset
+        if self.charset and EOS not in self.charset:
             self.charset.append(EOS)
 
 
@@ -200,7 +200,7 @@ class TextCollector(Collector):
         Returns:
             bool: ASCII flag
         '''
-        query = self.queries.rows_are_ascii(ctx)
+        query = self.dbms.q_rows_are_ascii(ctx)
         return self.requester.request(ctx, query)
 
 
@@ -213,7 +213,7 @@ class TextCollector(Collector):
         Returns:
             bool: ASCII flag
         '''
-        query = self.queries.row_is_ascii(ctx)
+        query = self.dbms.q_row_is_ascii(ctx)
         return self.requester.request(ctx, query)
 
 
@@ -226,7 +226,7 @@ class TextCollector(Collector):
         Returns:
             bool: ASCII flag
         '''
-        query = self.queries.char_is_ascii(ctx)
+        query = self.dbms.q_char_is_ascii(ctx)
         return self.requester.request(ctx, query)
 
 
@@ -261,11 +261,11 @@ class BinaryTextCollector(TextCollector):
     def _collect_or_emulate_char(self, ctx, correct=None):
         total_queries = 0
 
-        # custom charset or ASCII
-        if self.charset is not CHARSET_ASCII or ctx.row_is_ascii or self._check_or_emulate_char_is_ascii(ctx, correct):
+        # custom charset
+        if self.charset:
             search_alg = BinarySearch(
                 requester=self.requester,
-                query_cb=self.queries.char,
+                query_cb=self.dbms.q_char_in_set,
                 values=self.charset,
                 correct=correct,
             )
@@ -275,11 +275,32 @@ class BinaryTextCollector(TextCollector):
             if res is not None:
                 return res, total_queries
 
+        # ASCII
+        if correct is not None:
+            correct_ord = ASCII_MAX + 1 if correct == EOS else ord(correct)
+        else:
+            correct_ord = None
+
+        if ctx.row_is_ascii or self._check_or_emulate_char_is_ascii(ctx, correct):
+            search_alg = NumericBinarySearch(
+                requester=self.requester,
+                query_cb=self.dbms.q_char_lt,
+                lower=0,
+                upper=ASCII_MAX + 2,
+                find_lower=False,
+                find_upper=False,
+                correct=correct_ord,
+            )
+            res = search_alg.run(ctx)
+            res = EOS if res == ASCII_MAX + 1 else chr(res)
+
+            total_queries += search_alg.n_queries
+            return res, total_queries
+
         # Unicode
-        correct_ord = ord(correct) if correct is not None else correct
-        search_alg = IntExponentialBinarySearch(
+        search_alg = NumericBinarySearch(
             requester=self.requester,
-            query_cb=self.queries.char_unicode,
+            query_cb=self.dbms.q_char_lt,
             lower=ASCII_MAX + 1,
             upper=UNICODE_MAX + 1,
             find_lower=False,
@@ -287,8 +308,8 @@ class BinaryTextCollector(TextCollector):
             correct=correct_ord,
         )
         res = chr(search_alg.run(ctx))
-        total_queries += search_alg.n_queries
 
+        total_queries += search_alg.n_queries
         return res, total_queries
 
 
@@ -301,23 +322,23 @@ class BinaryTextCollector(TextCollector):
 
 class ModelTextCollector(TextCollector):
     '''Language model-based text collector.'''
-    def __init__(self, requester, queries, model, charset=None):
+    def __init__(self, requester, dbms, model, charset=None):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
-            queries (UniformQueries): injection queries
+            dbms (DBMS): Database engine
             model (Model): language model
             charset (list|None): list of possible characters
 
         Returns:
             list: column rows
         '''
-        super().__init__(requester, queries, charset)
+        super().__init__(requester, dbms, charset)
         self.model = model
         self.binary_collector = BinaryTextCollector(
             requester=self.requester,
-            queries=self.queries,
+            dbms=self.dbms,
             charset=self.charset,
         )
 
@@ -355,7 +376,7 @@ class ModelTextCollector(TextCollector):
 
         search_alg = TreeSearch(
             requester=self.requester,
-            query_cb=self.queries.char,
+            query_cb=self.dbms.q_char_in_set,
             tree=make_tree(scores),
             correct=correct,
         )
@@ -419,12 +440,12 @@ class DynamicTextCollector(TextCollector):
     identify when guessing whole strings is likely to succeed and then uses
     previously inferred strings to make the guesses.
     '''
-    def __init__(self, requester, queries, charset=None):
+    def __init__(self, requester, dbms, charset=None):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
-            queries (UniformQueries): injection queries
+            dbms (DBMS): Database engine
             charset (list|None): list of possible characters
 
         Other Attributes:
@@ -432,27 +453,27 @@ class DynamicTextCollector(TextCollector):
             model_fivegram (Model): adaptive five-gram model
             guess_collector (StringGuessCollector): collector for guessing
         '''
-        super().__init__(requester, queries, charset)
+        super().__init__(requester, dbms, charset)
         self.binary_collector = BinaryTextCollector(
             requester=self.requester,
-            queries=self.queries,
+            dbms=self.dbms,
             charset=self.charset,
         )
         self.unigram_collector = ModelTextCollector(
             requester=self.requester,
-            queries=self.queries,
+            dbms=self.dbms,
             model=hakuin.Model(1),
             charset=self.charset,
         )
         self.fivegram_collector = ModelTextCollector(
             requester=self.requester,
-            queries=self.queries,
+            dbms=self.dbms,
             model=hakuin.Model(5),
             charset=self.charset,
         )
         self.guess_collector = StringGuessingCollector(
             requester=self.requester,
-            queries=self.queries,
+            dbms=self.dbms,
         )
         self.stats = DynamicTextStats()
 
@@ -538,19 +559,19 @@ class StringGuessingCollector(Collector):
     GUESS_SCORE_TH = 0.01
 
 
-    def __init__(self, requester, queries):
+    def __init__(self, requester, dbms):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
-            queries (UniformQueries): injection queries
+            dbms (DBMS): Database engine
 
         Other Attributes:
             GUESS_TH (float): minimal threshold necessary to start guessing
             GUESS_SCORE_TH (float): minimal threshold for strings to be eligible for guessing
             model (Model): adaptive string-based model for guessing
         '''
-        super().__init__(requester, queries)
+        super().__init__(requester, dbms)
         self.model = hakuin.Model(1)
 
 
@@ -568,7 +589,7 @@ class StringGuessingCollector(Collector):
         tree = self._get_guess_tree(ctx, exp_alt)
         return TreeSearch(
             requester=self.requester,
-            query_cb=self.queries.string,
+            query_cb=self.dbms.q_string_in_set,
             tree=tree,
         ).run(ctx)
 

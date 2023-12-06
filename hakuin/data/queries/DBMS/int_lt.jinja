@@ -1,0 +1,4 @@
+SELECT  {{ ctx.column | sql_escape }} < {{ n }}
+FROM    {{ ctx.table | sql_escape }}
+LIMIT   1
+OFFSET  {{ ctx.row_idx }}

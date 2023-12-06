@@ -79,15 +79,9 @@ Now that eveything is set, you can start extracting DB schemas.
 schema = ext.extract_schema(strategy='model')
 ```
 
-##### Example 2 - Extracting DB Schemas with Metadata
-```python
-# metadata:
-#   True:   Detect column settings (data type, nullable, primary key)
-#   False:  Pass
-schema = ext.extract_schema(strategy='model', metadata=True)
 ```
 
-##### Example 3 - Extracting only Table/Column Names
+##### Example 2 - Extracting only Table/Column Names
 ```python
 tables = ext.extract_table_names(strategy='model')
 columns = ext.extract_column_names(table='users', strategy='model')

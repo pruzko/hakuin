@@ -1,0 +1,2 @@
+SELECT  count(*) < {{ n }}
+FROM    {{ ctx.table | sql_escape }}

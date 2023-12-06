@@ -1,0 +1,12 @@
+SELECT  count(*) < {{ n }}
+
+{% if ctx.table is none %}
+FROM    information_schema.TABLES
+WHERE   TABLE_SCHEMA=database()
+{% elif ctx.column is none %}
+FROM    information_schema.COLUMNS
+WHERE   TABLE_SCHEMA=database() AND
+        TABLE_NAME={{ ctx.table | sql_hex_lit }}
+{% else %}
+FROM    {{ ctx.table | sql_escape }}
+{% endif %}

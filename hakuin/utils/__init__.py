@@ -6,11 +6,12 @@ import string
 DIR_FILE = os.path.dirname(os.path.realpath(__file__))
 DIR_ROOT = os.path.abspath(os.path.join(DIR_FILE, '..'))
 DIR_MODELS = os.path.join(DIR_ROOT, 'data', 'models')
+DIR_QUERIES = os.path.join(DIR_ROOT, 'data', 'queries')
 
 ASCII_MAX = 0x7f
 UNICODE_MAX = 0x10ffff
 
-CHARSET_ASCII = [chr(x) for x in range(128)] + ['</s>']
+CHARSET_DIGITS = list(string.digits) + ['-', '.', '</s>']
 
 EOS = '</s>'
 SOS = '<s>'
@@ -23,7 +24,6 @@ def split_at(s, i):
     Params:
         s (list|str): sequence
         i (int): index to split at
-
 
     Returns:
         (list|str, list|str): split sequences

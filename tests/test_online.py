@@ -44,7 +44,7 @@ def main():
     ext = Extractor(requester, dbms)
 
     if table is None:
-        res = ext.extract_schema(strategy='model', metadata=True)
+        res = ext.extract_schema(strategy='model')
         print(json.dumps(res, indent=4))
     else:
         res = ext.extract_column_text(table, column)

@@ -1,322 +1,66 @@
-from hakuin.utils import EOS
+import os
 
-from .DBMS import DBMS, MetaQueries, ColumnQueries, TextQueries
+import jinja2
 
-
-
-class SQLiteMetaQueries(MetaQueries):
-    def column_data_type(self, ctx, values):
-        values = [f"'{v}'" for v in values]
-        query = f'''
-            SELECT  type in ({','.join(values)})
-            FROM    pragma_table_info(x'{self.hex(ctx.table)}')
-            WHERE   name=x'{self.hex(ctx.column)}'
-        '''
-        return self.normalize(query)
-
-
-    def column_is_nullable(self, ctx):
-        query = f'''
-            SELECT  [notnull] == 0
-            FROM    pragma_table_info(x'{self.hex(ctx.table)}')
-            WHERE   name=x'{self.hex(ctx.column)}'
-        '''
-        return self.normalize(query)
-
-
-    def column_is_pk(self, ctx):
-        query = f'''
-            SELECT  pk
-            FROM    pragma_table_info(x'{self.hex(ctx.table)}')
-            WHERE   name=x'{self.hex(ctx.column)}'
-        '''
-        return self.normalize(query)
-
-
-
-class SQLiteColumnQueries(ColumnQueries):
-    def rows_count(self, ctx, n):
-        query = f'''
-            SELECT  count(*) < {n}
-            FROM    {SQLite.escape(ctx.table)}
-        '''
-        return self.normalize(query)
-
-
-    def rows_have_null(self, ctx):
-        query = f'''
-            SELECT  count(*)
-            FROM    {SQLite.escape(ctx.table)}
-            WHERE   {SQLite.escape(ctx.column)} is NULL
-        '''
-        return self.normalize(query)
-
-
-    def row_is_null(self, ctx):
-        query = f'''
-            SELECT  {SQLite.escape(ctx.column)} is NULL
-            FROM    {SQLite.escape(ctx.table)}
-            LIMIT   1
-            OFFSET  {ctx.row_idx}
-        '''
-        return self.normalize(query)
-
-
-
-class SQLiteTextQueries(TextQueries, SQLiteColumnQueries):
-    def rows_are_ascii(self, ctx):
-        query = f'''
-            SELECT  sum({SQLite.escape(ctx.column)} not glob cast(x'2a5b5e012d7f5d2a' as TEXT))
-            FROM    {SQLite.escape(ctx.table)}
-        '''
-        return self.normalize(query)
-
-
-    def row_is_ascii(self, ctx):
-        query = f'''
-            SELECT  {SQLite.escape(ctx.column)} not glob cast(x'2a5b5e012d7f5d2a' as TEXT)
-            FROM    {SQLite.escape(ctx.table)}
-            LIMIT   1
-            OFFSET  {ctx.row_idx}
-        '''
-        return self.normalize(query)
-
-
-    def char_is_ascii(self, ctx):
-        query = f'''
-            SELECT  substr({SQLite.escape(ctx.column)}, {len(ctx.s) + 1}, 1) not glob cast(x'2a5b5e012d7f5d2a' as TEXT)
-            FROM    {SQLite.escape(ctx.table)}
-            LIMIT   1
-            OFFSET  {ctx.row_idx}
-        '''
-        return self.normalize(query)
-
-
-    def char(self, ctx, values):
-        has_eos = EOS in values
-        values = [v for v in values if v != EOS]
-        values = ''.join(values).encode('utf-8').hex()
-
-        if has_eos:
-            query = f'''
-                SELECT  instr(x'{values}', substr({SQLite.escape(ctx.column)}, {len(ctx.s) + 1}, 1))
-                FROM    {SQLite.escape(ctx.table)}
-                LIMIT   1
-                OFFSET  {ctx.row_idx}
-            '''
-        else:
-            query = f'''
-                SELECT  length({SQLite.escape(ctx.column)}) != {len(ctx.s)} AND
-                        instr(x'{values}', substr({SQLite.escape(ctx.column)}, {len(ctx.s) + 1}, 1))
-                FROM    {SQLite.escape(ctx.table)}
-                LIMIT   1
-                OFFSET  {ctx.row_idx}
-            '''
-        return self.normalize(query)
-
-
-    def char_unicode(self, ctx, n):
-        query = f'''
-            SELECT  unicode(substr({SQLite.escape(ctx.column)}, {len(ctx.s) + 1}, 1)) < {n}
-            FROM    {SQLite.escape(ctx.table)}
-            LIMIT   1
-            OFFSET  {ctx.row_idx}
-        '''
-        return self.normalize(query)
-
-
-    def string(self, ctx, values):
-        values = [f"x'{v.encode('utf-8').hex()}'" for v in values]
-        query = f'''
-            SELECT  cast({SQLite.escape(ctx.column)} as BLOB) in ({','.join(values)})
-            FROM    {SQLite.escape(ctx.table)}
-            LIMIT   1
-            OFFSET  {ctx.row_idx}
-        '''
-        return self.normalize(query)
-
-
-
-class SQLiteTableNamesQueries(TextQueries, SQLiteColumnQueries):
-    def rows_count(self, ctx, n):
-        query = f'''
-            SELECT  count(*) < {n}
-            FROM    sqlite_master
-            WHERE   type='table'
-        '''
-        return self.normalize(query)
-
-
-    def rows_are_ascii(self, ctx):
-        # SQLite does not have native "isascii" function. As a workaround we try to look for
-        # non-ascii characters with "*[^\x01-0x7f]*" glob patterns. The pattern does not need to
-        # include the null terminator (0x00) because SQLite will never pass it to the GLOB expression.
-        # Also, the pattern is hex-encoded because SQLite does not support special characters in
-        # string literals. Lastly, sum() simulates the logical ANY operator here. Note that an empty string
-        # resolves to True, which is correct.
-        query = f'''
-            SELECT  sum(name not glob cast(x'2a5b5e012d7f5d2a' as TEXT))
-            FROM    sqlite_master
-            WHERE   type='table'
-        '''
-        return self.normalize(query)
-
-
-    def row_is_ascii(self, ctx):
-        query = f'''
-            SELECT  name not glob cast(x'2a5b5e012d7f5d2a' as TEXT)
-            FROM    sqlite_master
-            WHERE   type='table'
-            LIMIT   1
-            OFFSET  {ctx.row_idx}
-        '''
-        return self.normalize(query)
-
-
-    def char_is_ascii(self, ctx):
-        query = f'''
-            SELECT  substr(name, {len(ctx.s) + 1}, 1) not glob cast(x'2a5b5e012d7f5d2a' as TEXT)
-            FROM    sqlite_master
-            WHERE   type='table'
-            LIMIT   1
-            OFFSET  {ctx.row_idx}
-        '''
-        return self.normalize(query)
-
-
-    def char(self, ctx, values):
-        has_eos = EOS in values
-        values = [v for v in values if v != EOS]
-        values = ''.join(values).encode('utf-8').hex()
-
-        if has_eos:
-            query = f'''
-                SELECT  instr(x'{values}', substr(name, {len(ctx.s) + 1}, 1))
-                FROM    sqlite_master
-                WHERE   type='table'
-                LIMIT   1
-                OFFSET  {ctx.row_idx}
-            '''
-        else:
-            query = f'''
-                SELECT  length(name) != {len(ctx.s)} AND
-                        instr(x'{values}', substr(name, {len(ctx.s) + 1}, 1))
-                FROM    sqlite_master
-                WHERE   type='table'
-                LIMIT   1
-                OFFSET  {ctx.row_idx}
-            '''
-        return self.normalize(query)
-
-
-    def char_unicode(self, ctx, n):
-        query = f'''
-            SELECT  unicode(substr(name, {len(ctx.s) + 1}, 1)) < {n}
-            FROM    sqlite_master
-            WHERE   type='table'
-            LIMIT   1
-            OFFSET  {ctx.row_idx}
-        '''
-        return self.normalize(query)
-
-
-    def string(self, ctx):
-        raise NotImplementedError('TODO?')
-
-
-
-class SQLiteColumnNamesQueries(TextQueries, SQLiteColumnQueries):
-    def rows_count(self, ctx, n):
-        query = f'''
-            SELECT  count(*) < {n}
-            FROM    pragma_table_info(x'{self.hex(ctx.table)}')
-        '''
-        return self.normalize(query)
-
-
-    def rows_are_ascii(self, ctx):
-        query = f'''
-            SELECT  sum(name not glob cast(x'2a5b5e012d7f5d2a' as TEXT))
-            FROM    pragma_table_info(x'{self.hex(ctx.table)}')
-        '''
-        return self.normalize(query)
-
-
-    def row_is_ascii(self, ctx):
-        query = f'''
-            SELECT  name not glob cast(x'2a5b5e012d7f5d2a' as TEXT)
-            FROM    pragma_table_info(x'{self.hex(ctx.table)}')
-            LIMIT   1
-            OFFSET  {ctx.row_idx}
-        '''
-        return self.normalize(query)
-
-
-    def char_is_ascii(self, ctx):
-        query = f'''
-            SELECT  substr(name, {len(ctx.s) + 1}, 1) not glob cast(x'2a5b5e012d7f5d2a' as TEXT)
-            FROM    pragma_table_info(x'{self.hex(ctx.table)}')
-            LIMIT   1
-            OFFSET  {ctx.row_idx}
-        '''
-        return self.normalize(query)
-
-
-    def char(self, ctx, values):
-        has_eos = EOS in values
-        values = [v for v in values if v != EOS]
-        values = ''.join(values).encode('utf-8').hex()
-
-        if has_eos:
-            query = f'''
-                SELECT  instr(x'{values}', substr(name, {len(ctx.s) + 1}, 1))
-                FROM    pragma_table_info(x'{self.hex(ctx.table)}')
-                LIMIT   1
-                OFFSET  {ctx.row_idx}
-            '''
-        else:
-            query = f'''
-                SELECT  length(name) != {len(ctx.s)} AND
-                        instr(x'{values}', substr(name, {len(ctx.s) + 1}, 1))
-                FROM    pragma_table_info(x'{self.hex(ctx.table)}')
-                LIMIT   1
-                OFFSET  {ctx.row_idx}
-            '''
-        return self.normalize(query)
-
-
-    def char_unicode(self, ctx, n):
-        query = f'''
-            SELECT  unicode(substr(name, {len(ctx.s) + 1}, 1)) < {n}
-            FROM    pragma_table_info(x'{self.hex(ctx.table)}')
-            LIMIT   1
-            OFFSET  {ctx.row_idx}
-        '''
-        return self.normalize(query)
-
-
-    def string(self, ctx):
-        raise NotImplementedError('TODO?')
-
-
-
-class SQLiteIntQueries(SQLiteColumnQueries):
-    def int(self, ctx, n):
-        query = f'''
-            SELECT  {SQLite.escape(ctx.column)} < {n}
-            FROM    {SQLite.escape(ctx.table)}
-            LIMIT   1
-            OFFSET  {ctx.row_idx}
-        '''
-        return self.normalize(query)
+from hakuin.utils import EOS, DIR_QUERIES
+from .DBMS import DBMS
 
 
 
 class SQLite(DBMS):
     DATA_TYPES = ['INTEGER', 'TEXT', 'REAL', 'NUMERIC', 'BLOB']
 
-    MetaQueries = SQLiteMetaQueries()
-    TablesQueries = SQLiteTableNamesQueries()
-    ColumnsQueries = SQLiteColumnNamesQueries()
-    TextQueries = SQLiteTextQueries()
-    IntQueries = SQLiteIntQueries()
+
+    def __init__(self):
+        super().__init__()
+        self.jj_sqlite = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(DIR_QUERIES, 'SQLite')))
+        self.jj_sqlite.filters = self.jj.filters
+        self.jj_sqlite.filters['sql_in_str_set'] = self.sql_in_str_set
+        self.jj_sqlite.filters['sql_is_ascii'] = self.sql_is_ascii
+
+
+    # Template Filters
+    @staticmethod
+    def sql_in_str_set(s, strings):
+        return f'cast({s} as BLOB) in ({",".join([DBMS.sql_hex_lit(x) for x in strings])})'
+
+    @staticmethod
+    def sql_is_ascii(s):
+        # SQLite does not have native "isascii" function. As a workaround we try to look for
+        # non-ascii characters with "*[^\x01-0x7f]*" glob patterns. The pattern does not need to
+        # include the null terminator (0x00) because SQLite will never pass it to the GLOB expression.
+        # Also, the pattern is hex-encoded because SQLite does not support special characters in
+        # string literals.
+        return f'{s} not glob cast(x\'2a5b5e012d7f5d2a\' as TEXT)'
+
+
+    # Queries
+    def q_column_data_type(self, ctx, types):
+        query = self.jj_sqlite.get_template('column_data_type.jinja').render(ctx=ctx, types=types)
+        return self.normalize(query)
+
+    def q_rows_are_ascii(self, ctx):
+        query = self.jj_sqlite.get_template('rows_are_ascii.jinja').render(ctx=ctx)
+        return self.normalize(query)
+
+    def q_row_is_ascii(self, ctx):
+        query = self.jj_sqlite.get_template('row_is_ascii.jinja').render(ctx=ctx)
+        return self.normalize(query)
+
+    def q_char_is_ascii(self, ctx):
+        query = self.jj_sqlite.get_template('char_is_ascii.jinja').render(ctx=ctx)
+        return self.normalize(query)
+
+    def q_rows_count_lt(self, ctx, n):
+        query = self.jj_sqlite.get_template('rows_count_lt.jinja').render(ctx=ctx, n=n)
+        return self.normalize(query)
+
+    def q_char_in_set(self, ctx, values):
+        has_eos = EOS in values
+        values = ''.join([v for v in values if v != EOS])
+        query = self.jj_sqlite.get_template('char_in_set.jinja').render(ctx=ctx, values=values, has_eos=has_eos)
+        return self.normalize(query)
+
+    def q_char_lt(self, ctx, n):
+        query = self.jj_sqlite.get_template('char_lt.jinja').render(ctx=ctx, n=n)
+        return self.normalize(query)

@@ -2,6 +2,8 @@ import hakuin
 import hakuin.search_algorithms as alg
 import hakuin.collectors as coll
 
+from hakuin.utils import CHARSET_DIGITS
+
 
 
 class Extractor:
@@ -31,9 +33,9 @@ class Extractor:
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
         ctx = coll.Context(rows_have_null=False)
-        ctx.n_rows = alg.IntExponentialBinarySearch(
+        ctx.n_rows = alg.NumericBinarySearch(
             requester=self.requester,
-            query_cb=self.dbms.TablesQueries.rows_count,
+            query_cb=self.dbms.q_rows_count_lt,
             lower=0,
             upper=8,
             find_lower=False,
@@ -43,12 +45,12 @@ class Extractor:
         if strategy == 'binary':
             return coll.BinaryTextCollector(
                 requester=self.requester,
-                queries=self.dbms.TablesQueries,
+                dbms=self.dbms,
             ).run(ctx)
         else:
             return coll.ModelTextCollector(
                 requester=self.requester,
-                queries=self.dbms.TablesQueries,
+                dbms=self.dbms,
                 model=hakuin.get_model_tables(),
             ).run(ctx)
 
@@ -68,9 +70,9 @@ class Extractor:
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
         ctx = coll.Context(table=table, rows_have_null=False)
-        ctx.n_rows = alg.IntExponentialBinarySearch(
+        ctx.n_rows = alg.NumericBinarySearch(
             requester=self.requester,
-            query_cb=self.dbms.ColumnsQueries.rows_count,
+            query_cb=self.dbms.q_rows_count_lt,
             lower=0,
             upper=8,
             find_lower=False,
@@ -80,49 +82,22 @@ class Extractor:
         if strategy == 'binary':
             return coll.BinaryTextCollector(
                 requester=self.requester,
-                queries=self.dbms.ColumnsQueries,
+                dbms=self.dbms,
             ).run(ctx)
         else:
             return coll.ModelTextCollector(
                 requester=self.requester,
-                queries=self.dbms.ColumnsQueries,
+                dbms=self.dbms,
                 model=hakuin.get_model_columns(),
             ).run(ctx)
 
 
-    def extract_column_metadata(self, table, column):
-        '''Extracts column metadata (data type, nullable, and primary key).
-
-        Params:
-            table (str): table name
-            column (str): column name
-
-        Returns:
-            dict: column metadata
-        '''
-        ctx = coll.Context(table, column, None, None)
-
-        d_type = alg.BinarySearch(
-            requester=self.requester,
-            query_cb=self.dbms.MetaQueries.column_data_type,
-            values=self.dbms.DATA_TYPES,
-        ).run(ctx)
-
-        return {
-            'type': d_type,
-            'nullable': self.requester.request(ctx, self.dbms.MetaQueries.column_is_nullable(ctx)),
-            'pk': self.requester.request(ctx, self.dbms.MetaQueries.column_is_pk(ctx)),
-        }
-
-
-    def extract_schema(self, strategy='model', metadata=False):
+    def extract_schema(self, strategy='model'):
         '''Extracts schema.
 
         Params:
             strategy (str): 'binary' for binary search or 'model' for pre-trained
                             models with Huffman trees
-            metadata (bool): if set, the metadata will be extracted as well
-
         Returns:
             dict: schema
         '''
@@ -131,12 +106,28 @@ class Extractor:
 
         schema = {}
         for table in self.extract_table_names(strategy):
-            schema[table] = {}
-            for column in self.extract_column_names(table, strategy):
-                metadata = self.extract_column_metadata(table, column) if metadata else None
-                schema[table][column] = metadata
+            schema[table] = self.extract_column_names(table, strategy)
 
         return schema
+
+
+    def extract_column_data_type(self, table, column):
+        '''Extracts column data type.
+
+        Params:
+            table (str): table name
+            column (str): column name
+
+        Returns:
+            string: column data type
+        '''
+        ctx = coll.Context(table=table, column=column)
+
+        return alg.BinarySearch(
+            requester=self.requester,
+            query_cb=self.dbms.q_column_data_type,
+            values=self.dbms.DATA_TYPES,
+        ).run(ctx)
 
 
     def extract_column_text(self, table, column, strategy='dynamic', charset=None):
@@ -162,27 +153,27 @@ class Extractor:
         if strategy == 'binary':
             return coll.BinaryTextCollector(
                 requester=self.requester,
-                queries=self.dbms.TextQueries,
+                dbms=self.dbms,
                 charset=charset,
             ).run(ctx)
         elif strategy in ['unigram', 'fivegram']:
             ngram = 1 if strategy == 'unigram' else 5
             return coll.AdaptiveTextCollector(
                 requester=self.requester,
-                queries=self.dbms.TextQueries,
+                dbms=self.dbms,
                 model=hakuin.Model(ngram),
                 charset=charset,
             ).run(ctx)
         else:
             return coll.DynamicTextCollector(
                 requester=self.requester,
-                queries=self.dbms.TextQueries,
+                dbms=self.dbms,
                 charset=charset,
             ).run(ctx)
 
 
     def extract_column_int(self, table, column):
-        '''Extracts text column.
+        '''Extracts integer column.
 
         Params:
             table (str): table name
@@ -194,5 +185,24 @@ class Extractor:
         ctx = coll.Context(table=table, column=column)
         return coll.IntCollector(
                 requester=self.requester,
-                queries=self.dbms.IntQueries,
+                dbms=self.dbms,
         ).run(ctx)
+
+
+    def extract_column_float(self, table, column):
+        '''Extracts float column.
+
+        Params:
+            table (str): table name
+            column (str): column name
+
+        Returns:
+            list: list of floats in the column
+        '''
+        ctx = coll.Context(table=table, column=column, rows_are_ascii=True)
+        res = coll.BinaryTextCollector(
+            requester=self.requester,
+            dbms=self.dbms,
+            charset=CHARSET_DIGITS,
+        ).run(ctx)
+        return [float(v) if v is not None else None for v in res]

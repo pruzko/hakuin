@@ -1,0 +1,4 @@
+SELECT  {{ ctx.column | sql_escape | sql_is_ascii }}
+FROM    {{ ctx.table | sql_escape }}
+LIMIT   1
+OFFSET  {{ ctx.row_idx }}

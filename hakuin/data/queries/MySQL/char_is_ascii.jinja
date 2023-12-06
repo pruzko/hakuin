@@ -1,0 +1,25 @@
+{% if not ctx.table %}
+        {% set column = 'TABLE_NAME' %}
+{% elif not ctx.column %}
+        {% set column = 'COLUMN_NAME' %}
+{% else %}
+        {% set column = ctx.column | sql_escape %}
+{% endif %}
+
+
+SELECT  {{ column | sql_char_at(ctx.s | length) | sql_is_ascii }}
+
+
+{% if ctx.table is none %}
+FROM    information_schema.TABLES
+WHERE   TABLE_SCHEMA=database()
+{% elif ctx.column is none %}
+FROM    information_schema.COLUMNS
+WHERE   TABLE_SCHEMA=database() AND
+        TABLE_NAME={{ ctx.table | sql_hex_lit }}
+{% else %}
+FROM    {{ ctx.table | sql_escape }}
+{% endif %}
+
+LIMIT   1
+OFFSET  {{ ctx.row_idx }}

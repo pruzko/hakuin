@@ -16,7 +16,7 @@ def main():
     requester = OfflineRequester(db='large_schema', verbose=False)
     ext = Extractor(requester=requester, dbms=SQLite())
 
-    res = ext.extract_schema()
+    res = ext.extract_schema(strategy='model')
     print(json.dumps(res, indent=4))
 
     res_len = sum([len(table) for table in res])

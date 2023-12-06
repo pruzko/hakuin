@@ -25,9 +25,9 @@ class SearchAlgorithm(metaclass=ABCMeta):
 
 
 
-class IntExponentialBinarySearch(SearchAlgorithm):
-    '''Exponential and binary search for integers.'''
-    def __init__(self, requester, query_cb, lower=0, upper=16, find_lower=False, find_upper=True, correct=None):
+class NumericBinarySearch(SearchAlgorithm):
+    '''Exponential and binary search for numeric values.'''
+    def __init__(self, requester, query_cb, lower=0, upper=16, find_lower=False, find_upper=False, correct=None):
         '''Constructor.
 
         Params:
@@ -35,8 +35,8 @@ class IntExponentialBinarySearch(SearchAlgorithm):
             query_cb (function): query construction function
             lower (int): lower bound of search range
             upper (int): upper bound of search range
-            find_lower (bool): exponentially expands the lower bound until the correct value is within 
-            find_upper (bool): exponentially expands the upper bound until the correct value is within 
+            find_lower (bool): exponentially expands the lower bound until the correct value is within
+            find_upper (bool): exponentially expands the upper bound until the correct value is within
             correct (int|None): correct value. If provided, the search is emulated
         '''
         super().__init__(requester, query_cb)
@@ -55,7 +55,7 @@ class IntExponentialBinarySearch(SearchAlgorithm):
             ctx (Context): collection context
 
         Returns:
-            int: inferred number
+            int|None: inferred number or None on fail
         '''
         self.n_queries = 0
 
