@@ -2,8 +2,6 @@ import hakuin
 import hakuin.search_algorithms as alg
 import hakuin.collectors as coll
 
-from hakuin.utils import CHARSET_DIGITS
-
 
 
 class Extractor:
@@ -200,12 +198,10 @@ class Extractor:
             list: list of floats in the column
         '''
         ctx = coll.Context(table=table, column=column)
-        res = coll.BinaryTextCollector(
+        return coll.FloatCollector(
             requester=self.requester,
             dbms=self.dbms,
-            charset=CHARSET_DIGITS,
         ).run(ctx)
-        return [float(v) if v is not None else None for v in res]
 
 
     def extract_column_bytes(self, table, column):

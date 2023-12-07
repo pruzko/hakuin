@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from collections import Counter
 
 import hakuin
-from hakuin.utils import tokenize, EOS, ASCII_MAX, UNICODE_MAX, BYTE_MAX
+from hakuin.utils import tokenize, EOS, ASCII_MAX, UNICODE_MAX, BYTE_MAX, CHARSET_DIGITS
 from hakuin.utils.huffman import make_tree
 from hakuin.search_algorithms import BinarySearch, TreeSearch, NumericBinarySearch
 
@@ -116,6 +116,7 @@ class Collector(metaclass=ABCMeta):
         return self.requester.request(ctx, query)
 
 
+
 class IntCollector(Collector):
     '''Collector for integer columns'''
     def collect_row(self, ctx):
@@ -129,12 +130,35 @@ class IntCollector(Collector):
         ).run(ctx)
 
 
+
+class FloatCollector(Collector):
+    '''Collector for integer columns'''
+    def collect_row(self, ctx):
+        ctx.s = ''
+        while True:
+            c = self.collect_one(ctx)
+            if c == EOS:
+                return ctx.s
+            ctx.s += c
+
+        return float(ctx.s)
+
+
+    def collect_one(self, ctx):
+        return BinarySearch(
+            requester=self.requester,
+            query_cb=self.dbms.q_float_char_in_set,
+            values=CHARSET_DIGITS,
+        ).run(ctx)
+
+
+
 class BytesCollector(Collector):
     '''Collector for bytes columns'''
     def collect_row(self, ctx):
         ctx.s = b''
         while True:
-            b = self.collect_byte(ctx)
+            b = self.collect_one(ctx)
             if b == EOS:
                 return ctx.s
             ctx.s += b
@@ -142,7 +166,7 @@ class BytesCollector(Collector):
         return ctx.s
 
 
-    def collect_byte(self, ctx):
+    def collect_one(self, ctx):
         res = NumericBinarySearch(
             requester=self.requester,
             query_cb=self.dbms.q_byte_lt,
@@ -152,6 +176,7 @@ class BytesCollector(Collector):
             find_upper=False,
         ).run(ctx)
         return EOS if res == BYTE_MAX + 1 else res.to_bytes(1, 'big')
+
 
 
 class TextCollector(Collector):

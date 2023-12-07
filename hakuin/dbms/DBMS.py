@@ -114,8 +114,8 @@ class DBMS(metaclass=ABCMeta):
         query = self.jj.get_template('char_in_set.jinja').render(ctx=ctx, values=values, has_eos=has_eos)
         return self.normalize(query)
 
-    def q_char_lt(self, ctx, n, has_eos):
-        query = self.jj.get_template('char_lt.jinja').render(ctx=ctx, n=n, has_eos=has_eos)
+    def q_char_lt(self, ctx, n):
+        query = self.jj.get_template('char_lt.jinja').render(ctx=ctx, n=n)
         return self.normalize(query)
 
     def q_string_in_set(self, ctx, values):
@@ -125,6 +125,9 @@ class DBMS(metaclass=ABCMeta):
     def q_int_lt(self, ctx, n):
         query = self.jj.get_template('int_lt.jinja').render(ctx=ctx, n=n)
         return self.normalize(query)
+
+    def q_float_char_in_set(self, ctx, values):
+        return self.q_char_in_set(ctx, values)
 
     def q_byte_lt(self, ctx, n):
         query = self.jj.get_template('byte_lt.jinja').render(ctx=ctx, n=n)
