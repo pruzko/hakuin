@@ -105,6 +105,16 @@ res = ext.extract_column_text(table='users', column='address', strategy='dynamic
 res = ext.extract_column_int(table='users', column='id'):
 ```
 
+##### Example 3 - Extracting Float Columns
+```python
+res = ext.extract_column_float(table='products', column='price'):
+```
+
+##### Example 4 - Extracting Bytes (Blob) Columns
+```python
+res = ext.extract_column_bytes(table='users', column='id'):
+```
+
 More examples can be found in the `tests` directory.
 
 
