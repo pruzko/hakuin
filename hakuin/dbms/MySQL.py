@@ -345,7 +345,7 @@ class MySQL(DBMS):
 
     @staticmethod
     def sql_in_str(s, string):
-        return f'locate({s}, {DBMS.sql_hex_lit(string)})'
+        return f'locate({s}, {DBMS.sql_hex_str(string)})'
 
     @staticmethod
     def sql_is_ascii(s):

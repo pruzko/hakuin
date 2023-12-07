@@ -10,7 +10,7 @@ SELECT  {% if not has_eos %}
 FROM    sqlite_master
 WHERE   type='table'
 {% elif ctx.column is none %}
-FROM    pragma_table_info({{ ctx.table | sql_hex_lit }})
+FROM    pragma_table_info({{ ctx.table | sql_hex_str }})
 {% else %}
 FROM    {{ ctx.table | sql_escape }}
 {% endif %}

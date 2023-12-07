@@ -1,0 +1,8 @@
+SELECT  {{ ctx.column | sql_escape | sql_len }} != {{ ctx.s | length }}
+        {% if n <= 0xff %}
+        AND
+        {{ ctx.column | sql_escape | sql_char_at(ctx.s | length) }} < {{ n |  sql_hex_byte }}
+        {% endif %}
+FROM    {{ ctx.table | sql_escape }}
+LIMIT   1
+OFFSET  {{ ctx.row_idx }}

@@ -199,10 +199,27 @@ class Extractor:
         Returns:
             list: list of floats in the column
         '''
-        ctx = coll.Context(table=table, column=column, rows_are_ascii=True)
+        ctx = coll.Context(table=table, column=column)
         res = coll.BinaryTextCollector(
             requester=self.requester,
             dbms=self.dbms,
             charset=CHARSET_DIGITS,
         ).run(ctx)
         return [float(v) if v is not None else None for v in res]
+
+
+    def extract_column_bytes(self, table, column):
+        '''Extracts bytes column.
+
+        Params:
+            table (str): table name
+            column (str): column name
+
+        Returns:
+            bytes: list of bytes in the column
+        '''
+        ctx = coll.Context(table=table, column=column)
+        return coll.BytesCollector(
+            requester=self.requester,
+            dbms=self.dbms,
+        ).run(ctx)

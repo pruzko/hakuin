@@ -10,6 +10,7 @@ DIR_QUERIES = os.path.join(DIR_ROOT, 'data', 'queries')
 
 ASCII_MAX = 0x7f
 UNICODE_MAX = 0x10ffff
+BYTE_MAX = 0xff
 
 CHARSET_DIGITS = list(string.digits) + ['-', '.', '</s>']
 

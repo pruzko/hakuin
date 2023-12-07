@@ -4,7 +4,7 @@ import re
 import jinja2
 from abc import ABCMeta, abstractmethod
 
-from hakuin.utils import DIR_QUERIES
+from hakuin.utils import DIR_QUERIES, BYTE_MAX
 
 
 
@@ -22,7 +22,8 @@ class DBMS(metaclass=ABCMeta):
     def __init__(self):
         self.jj = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(DIR_QUERIES, 'DBMS')))
         self.jj.filters['sql_escape'] = self.sql_escape
-        self.jj.filters['sql_hex_lit'] = self.sql_hex_lit
+        self.jj.filters['sql_hex_str'] = self.sql_hex_str
+        self.jj.filters['sql_hex_byte'] = self.sql_hex_byte
         self.jj.filters['sql_len'] = self.sql_len
         self.jj.filters['sql_char_at'] = self.sql_char_at
         self.jj.filters['sql_in_str'] = self.sql_in_str
@@ -45,8 +46,13 @@ class DBMS(metaclass=ABCMeta):
         return f'[{s}]'
 
     @staticmethod
-    def sql_hex_lit(s):
+    def sql_hex_str(s):
         return f'x\'{s.encode("utf-8").hex()}\''
+
+    @staticmethod
+    def sql_hex_byte(n):
+        assert n in range(BYTE_MAX + 1), f'n must be in [0, {BYTE_MAX}]'
+        return f'x\'{n:02x}\''
 
     @staticmethod
     def sql_len(s):
@@ -62,11 +68,11 @@ class DBMS(metaclass=ABCMeta):
 
     @staticmethod
     def sql_in_str(s, string):
-        return f'instr({DBMS.sql_hex_lit(string)}, {s})'
+        return f'instr({DBMS.sql_hex_str(string)}, {s})'
 
     @staticmethod
     def sql_in_str_set(s, strings):
-        return f'{s} in ({",".join([DBMS.sql_hex_lit(x) for x in strings])})'
+        return f'{s} in ({",".join([DBMS.sql_hex_str(x) for x in strings])})'
 
     @staticmethod
     def sql_is_ascii(s):
@@ -118,4 +124,8 @@ class DBMS(metaclass=ABCMeta):
 
     def q_int_lt(self, ctx, n):
         query = self.jj.get_template('int_lt.jinja').render(ctx=ctx, n=n)
+        return self.normalize(query)
+
+    def q_byte_lt(self, ctx, n):
+        query = self.jj.get_template('byte_lt.jinja').render(ctx=ctx, n=n)
         return self.normalize(query)

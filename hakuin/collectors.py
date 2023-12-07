@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from collections import Counter
 
 import hakuin
-from hakuin.utils import tokenize, EOS, ASCII_MAX, UNICODE_MAX
+from hakuin.utils import tokenize, EOS, ASCII_MAX, UNICODE_MAX, BYTE_MAX
 from hakuin.utils.huffman import make_tree
 from hakuin.search_algorithms import BinarySearch, TreeSearch, NumericBinarySearch
 
@@ -127,6 +127,31 @@ class IntCollector(Collector):
             find_lower=True,
             find_upper=True,
         ).run(ctx)
+
+
+class BytesCollector(Collector):
+    '''Collector for bytes columns'''
+    def collect_row(self, ctx):
+        ctx.s = b''
+        while True:
+            b = self.collect_byte(ctx)
+            if b == EOS:
+                return ctx.s
+            ctx.s += b
+
+        return ctx.s
+
+
+    def collect_byte(self, ctx):
+        res = NumericBinarySearch(
+            requester=self.requester,
+            query_cb=self.dbms.q_byte_lt,
+            lower=0,
+            upper=BYTE_MAX + 2,
+            find_lower=False,
+            find_upper=False,
+        ).run(ctx)
+        return EOS if res == BYTE_MAX + 1 else res.to_bytes(1, 'big')
 
 
 class TextCollector(Collector):

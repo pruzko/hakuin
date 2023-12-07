@@ -22,7 +22,7 @@ class SQLite(DBMS):
     # Template Filters
     @staticmethod
     def sql_in_str_set(s, strings):
-        return f'cast({s} as BLOB) in ({",".join([DBMS.sql_hex_lit(x) for x in strings])})'
+        return f'cast({s} as BLOB) in ({",".join([DBMS.sql_hex_str(x) for x in strings])})'
 
     @staticmethod
     def sql_is_ascii(s):
