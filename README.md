@@ -118,7 +118,7 @@ res = ext.extract_column_blob(table='users', column='id'):
 More examples can be found in the `tests` directory.
 
 
-### Using Hakuin from the Command Line
+## Using Hakuin from the Command Line
 Hakuin comes with a simple wrapper tool, `hk.py`, that allows you to use Hakuin's basic functionality directly from the command line. To find out more, run:
 ```
 python3 hk.py -h
