@@ -26,7 +26,7 @@ class R(Requester):
         r = requests.get(url)
         assert r.status_code in [200, 404], f'Unexpected resposne code: {r.status_code}'
 
-        # print(ctx.s, r.status_code == 200, query)
+        # print(ctx.buffer, r.status_code == 200, query)
         return r.status_code == 200
 
 

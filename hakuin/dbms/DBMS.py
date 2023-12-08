@@ -68,7 +68,7 @@ class DBMS(metaclass=ABCMeta):
 
     @staticmethod
     def sql_in_str(s, string):
-        return f'instr({DBMS.sql_hex_str(string)}, {s})'
+        return f'instr({string}, {s})'
 
     @staticmethod
     def sql_in_str_set(s, strings):
@@ -81,7 +81,23 @@ class DBMS(metaclass=ABCMeta):
 
     # Queries
     @abstractmethod
-    def q_column_data_type(self, ctx, types):
+    def q_column_type_in_str_set(self, ctx, types):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def q_column_is_int(self, ctx):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def q_column_is_float(self, ctx):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def q_column_is_text(self, ctx):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def q_column_is_blob(self, ctx):
         raise NotImplementedError()
 
     def q_rows_have_null(self, ctx):

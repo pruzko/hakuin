@@ -1,10 +1,10 @@
 {% set column = ctx.column | sql_escape if ctx.column else 'name' %}
 
 SELECT  {% if not has_eos %}
-        {{ column | sql_len }} != {{ ctx.s | length }}
+        {{ column | sql_len }} != {{ ctx.buffer | length }}
         AND
         {% endif %}
-        {{ column | sql_char_at(ctx.s | length) | sql_in_str(values) }}
+        {{ column | sql_char_at(ctx.buffer | length) | sql_in_str(values | sql_hex_str) }}
 
 {% if ctx.table is none %}
 FROM    sqlite_master

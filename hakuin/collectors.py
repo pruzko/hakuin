@@ -13,7 +13,7 @@ class Context:
     '''Collection state.'''
     def __init__(
         self, table=None, column=None, n_rows=None, row_idx=None, rows_have_null=None,
-        s=None, rows_are_ascii=None, row_is_ascii=None
+        buffer=None, rows_are_ascii=None, row_is_ascii=None
     ):
         '''Constructor.
 
@@ -23,7 +23,7 @@ class Context:
             n_rows (int|None): number of rows
             row_idx (int|None): row index
             rows_have_null (bool|None): flag for columns with NULL values
-            s (str|None): buffer for extracted strings
+            buffer (sequencial|None): buffer for sequential data
             rows_are_ascii (bool|None): flag for ASCII columns
             row_is_ascii (bool|None): flag for a single ASCII row
         '''
@@ -32,7 +32,7 @@ class Context:
         self.n_rows = n_rows
         self.row_idx = row_idx
         self.rows_have_null = rows_have_null
-        self.s = s
+        self.buffer = buffer
         self.rows_are_ascii = rows_are_ascii
         self.row_is_ascii = row_is_ascii
 
@@ -134,17 +134,17 @@ class IntCollector(Collector):
 class FloatCollector(Collector):
     '''Collector for integer columns'''
     def collect_row(self, ctx):
-        ctx.s = ''
+        ctx.buffer = ''
         while True:
-            c = self.collect_one(ctx)
+            c = self.collect_char(ctx)
             if c == EOS:
-                return ctx.s
-            ctx.s += c
+                return ctx.buffer
+            ctx.buffer += c
 
-        return float(ctx.s)
+        return float(ctx.buffer)
 
 
-    def collect_one(self, ctx):
+    def collect_char(self, ctx):
         return BinarySearch(
             requester=self.requester,
             query_cb=self.dbms.q_float_char_in_set,
@@ -153,20 +153,20 @@ class FloatCollector(Collector):
 
 
 
-class BytesCollector(Collector):
-    '''Collector for bytes columns'''
+class BlobCollector(Collector):
+    '''Collector for blob columns'''
     def collect_row(self, ctx):
-        ctx.s = b''
+        ctx.buffer = b''
         while True:
-            b = self.collect_one(ctx)
+            b = self.collect_byte(ctx)
             if b == EOS:
-                return ctx.s
-            ctx.s += b
+                return ctx.buffer
+            ctx.buffer += b
 
-        return ctx.s
+        return ctx.buffer
 
 
-    def collect_one(self, ctx):
+    def collect_byte(self, ctx):
         res = NumericBinarySearch(
             requester=self.requester,
             query_cb=self.dbms.q_byte_lt,
@@ -220,12 +220,12 @@ class TextCollector(Collector):
         '''
         ctx.row_is_ascii = True if ctx.rows_are_ascii else self.check_row_is_ascii(ctx)
 
-        ctx.s = ''
+        ctx.buffer = ''
         while True:
             c = self.collect_char(ctx)
             if c == EOS:
-                return ctx.s
-            ctx.s += c
+                return ctx.buffer
+            ctx.buffer += c
 
 
     @abstractmethod
@@ -421,7 +421,7 @@ class ModelTextCollector(TextCollector):
     def _collect_or_emulate_char(self, ctx, correct=None):
         n_queries_model = 0
 
-        model_ctx = tokenize(ctx.s, add_eos=False)
+        model_ctx = tokenize(ctx.buffer, add_eos=False)
         scores = self.model.scores(context=model_ctx)
 
         search_alg = TreeSearch(
@@ -445,7 +445,7 @@ class AdaptiveTextCollector(ModelTextCollector):
     '''Same as ModelTextCollector but adapts the model.'''
     def collect_char(self, ctx):
         c = super().collect_char(ctx, correct)
-        self.model.fit_correct_char(c, partial_str=ctx.s)
+        self.model.fit_correct_char(c, partial_str=ctx.buffer)
         return c
 
 
@@ -553,18 +553,18 @@ class DynamicTextCollector(TextCollector):
 
 
     def _collect_string_per_char(self, ctx):
-        ctx.s = ''
+        ctx.buffer = ''
         while True:
             c = self.collect_char(ctx)
             self._update_stats(ctx, c)
-            self.unigram_collector.model.fit_correct_char(c, partial_str=ctx.s)
-            self.fivegram_collector.model.fit_correct_char(c, partial_str=ctx.s)
+            self.unigram_collector.model.fit_correct_char(c, partial_str=ctx.buffer)
+            self.fivegram_collector.model.fit_correct_char(c, partial_str=ctx.buffer)
 
             if c == EOS:
-                return ctx.s
-            ctx.s += c
+                return ctx.buffer
+            ctx.buffer += c
 
-        return ctx.s
+        return ctx.buffer
 
 
     def collect_char(self, ctx):
@@ -594,10 +594,10 @@ class DynamicTextCollector(TextCollector):
 
     def _update_stats_str(self, ctx, correct_str):
         '''Like _update_stats but for whole strings.'''
-        ctx.s = ''
+        ctx.buffer = ''
         for c in correct_str:
             self._update_stats(ctx, c)
-            ctx.s += c
+            ctx.buffer += c
 
 
 

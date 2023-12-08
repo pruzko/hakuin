@@ -8,7 +8,7 @@ from .DBMS import DBMS
 
 
 class SQLite(DBMS):
-    DATA_TYPES = ['INTEGER', 'TEXT', 'REAL', 'NUMERIC', 'BLOB']
+    DATA_TYPES = ['integer', 'text', 'real', 'numeric', 'blob']
 
 
     def __init__(self):
@@ -35,9 +35,21 @@ class SQLite(DBMS):
 
 
     # Queries
-    def q_column_data_type(self, ctx, types):
-        query = self.jj_sqlite.get_template('column_data_type.jinja').render(ctx=ctx, types=types)
+    def q_column_type_in_str_set(self, ctx, types):
+        query = self.jj_sqlite.get_template('column_type_in_str_set.jinja').render(ctx=ctx, types=types)
         return self.normalize(query)
+
+    def q_column_is_int(self, ctx):
+        return self.q_column_type_in_str_set(ctx, types=['integer'])
+
+    def q_column_is_float(self, ctx):
+        return self.q_column_type_in_str_set(ctx, types=['real'])
+
+    def q_column_is_text(self, ctx):
+        return self.q_column_type_in_str_set(ctx, types=['text'])
+
+    def q_column_is_blob(self, ctx):
+        return self.q_column_type_in_str_set(ctx, types=['blob'])
 
     def q_rows_are_ascii(self, ctx):
         query = self.jj_sqlite.get_template('rows_are_ascii.jinja').render(ctx=ctx)

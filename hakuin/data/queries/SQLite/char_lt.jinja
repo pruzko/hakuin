@@ -1,8 +1,8 @@
 {% set column = ctx.column | sql_escape if ctx.column else 'name' %}
 
-SELECT  {{ column | sql_len }} != {{ ctx.s | length }}
+SELECT  {{ column | sql_len }} != {{ ctx.buffer | length }}
         AND
-        {{ column | sql_char_at(ctx.s | length) | sql_unicode }} < {{ n }}
+        {{ column | sql_char_at(ctx.buffer | length) | sql_unicode }} < {{ n }}
 
 {% if ctx.table is none %}
 FROM    sqlite_master

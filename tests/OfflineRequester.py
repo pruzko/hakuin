@@ -33,7 +33,7 @@ class OfflineRequester(Requester):
         res = bool(self.db.execute(query).fetchone()[0])
 
         if self.verbose:
-            print(f'"{ctx.s}"\t{res}\t{query}')
+            print(f'"{ctx.buffer}"\t{res}\t{query}')
 
         return res
 

@@ -110,9 +110,9 @@ res = ext.extract_column_int(table='users', column='id'):
 res = ext.extract_column_float(table='products', column='price'):
 ```
 
-##### Example 4 - Extracting Bytes (Blob) Columns
+##### Example 4 - Extracting Blob (Binary Data) Columns
 ```python
-res = ext.extract_column_bytes(table='users', column='id'):
+res = ext.extract_column_blob(table='users', column='id'):
 ```
 
 More examples can be found in the `tests` directory.

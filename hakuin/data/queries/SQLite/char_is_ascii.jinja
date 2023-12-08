@@ -1,6 +1,6 @@
 {% set column = ctx.column | sql_escape if ctx.column else 'name' %}
 
-SELECT  {{ column | sql_char_at(ctx.s | length) | sql_is_ascii }}
+SELECT  {{ column | sql_char_at(ctx.buffer | length) | sql_is_ascii }}
 
 
 {% if ctx.table is none %}

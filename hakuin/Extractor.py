@@ -123,9 +123,44 @@ class Extractor:
 
         return alg.BinarySearch(
             requester=self.requester,
-            query_cb=self.dbms.q_column_data_type,
+            query_cb=self.dbms.q_column_type_in_str_set,
             values=self.dbms.DATA_TYPES,
         ).run(ctx)
+
+
+    def extract_column(self, table, column, text_strategy='dynamic'):
+        '''Extracts column.
+
+        Params:
+            table (str): table name
+            column (str): column name
+            text_strategy (str): strategy for text columns (see extract_column_text)
+
+        Returns:
+            list: list of values in the column
+
+        Raises:
+            NotImplementedError: when the column type is not int/float/text/blob
+        '''
+        ctx = coll.Context(table=table, column=column)
+
+        query = self.dbms.q_column_is_int(ctx)
+        if self.requester.request(ctx, query):
+            return self.extract_column_int(table, column)
+
+        query = self.dbms.q_column_is_float(ctx)
+        if self.requester.request(ctx, query):
+            return self.extract_column_float(table, column)
+
+        query = self.dbms.q_column_is_text(ctx)
+        if self.requester.request(ctx, query):
+            return self.extract_column_text(table, column, strategy=text_strategy)
+
+        query = self.dbms.q_column_is_blob(ctx)
+        if self.requester.request(ctx, query):
+            return self.extract_column_blob(table, column)
+
+        raise NotImplementedError(f'Unsupported column data type of "{ctx.table}.{ctx.column}".')
 
 
     def extract_column_text(self, table, column, strategy='dynamic', charset=None):
@@ -204,8 +239,8 @@ class Extractor:
         ).run(ctx)
 
 
-    def extract_column_bytes(self, table, column):
-        '''Extracts bytes column.
+    def extract_column_blob(self, table, column):
+        '''Extracts blob column.
 
         Params:
             table (str): table name
@@ -215,7 +250,7 @@ class Extractor:
             bytes: list of bytes in the column
         '''
         ctx = coll.Context(table=table, column=column)
-        return coll.BytesCollector(
+        return coll.BlobCollector(
             requester=self.requester,
             dbms=self.dbms,
         ).run(ctx)
