@@ -118,6 +118,12 @@ res = ext.extract_column_blob(table='users', column='id'):
 More examples can be found in the `tests` directory.
 
 
+### Wrapper - "hk.py"
+Hakuin comes with a simple wrapper tool `hk.py` that allows you to use Hakuin's basic functionality directly from the command line. To find out more, run:
+```
+python3 hk.py -h
+```
+
 
 ## For Researchers
 This repository is actively developed to fit the needs of security practitioners. Researchers looking to reproduce the experiments described in our paper should install the [frozen version](https://zenodo.org/record/7804243) as it contains the original code, experiment scripts, and an instruction manual for reproducing the results.
