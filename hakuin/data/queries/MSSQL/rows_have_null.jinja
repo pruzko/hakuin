@@ -1,0 +1,3 @@
+SELECT  CASE WHEN count(*) > 0 THEN 1 ELSE 0 END
+FROM    {{ ctx.table | sql_escape }}
+WHERE   {{ ctx.column | sql_escape}} is NULL

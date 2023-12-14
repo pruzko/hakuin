@@ -1,0 +1,18 @@
+{% if not ctx.table %}
+        {% set column = 'TABLE_NAME' %}
+        {% set table = 'INFORMATION_SCHEMA.TABLES' %}
+{% elif not ctx.column %}
+        {% set column = 'COLUMN_NAME' %}
+        {% set table = 'INFORMATION_SCHEMA.COLUMNS' %}
+{% else %}
+        {% set column = ctx.column | sql_escape %}
+        {% set table = ctx.table | sql_escape %}
+{% endif %}
+
+SELECT  CASE WHEN count(*) < {{ n }} THEN 1 ELSE 0 END
+FROM    {{ table }}
+{% if ctx.table is none %}
+WHERE   TABLE_TYPE='BASE TABLE'
+{% elif ctx.column is none %}
+WHERE   TABLE_NAME={{ ctx.table | sql_hex_str }}
+{% endif %}

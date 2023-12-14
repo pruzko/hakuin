@@ -7,22 +7,14 @@
 {% endif %}
 
 
-SELECT  {% if not has_eos %}
-        {{ column | sql_len }} != {{ ctx.buffer | length }}
-        AND
-        {% endif %}
-        {{ column | sql_char_at(ctx.buffer | length) | sql_in_str(values | sql_hex_str) }}
+SELECT  min({{ column | sql_to_varchar | sql_is_ascii }})
 
 {% if ctx.table is none %}
 FROM    INFORMATION_SCHEMA.TABLES
-WHERE   TABLE_SCHEMA=database()
+WHERE   TABLE_TYPE='BASE TABLE'
 {% elif ctx.column is none %}
 FROM    INFORMATION_SCHEMA.COLUMNS
-WHERE   TABLE_SCHEMA=database() AND
-        TABLE_NAME={{ ctx.table | sql_hex_str }}
+WHERE   TABLE_NAME={{ ctx.table | sql_hex_str }}
 {% else %}
 FROM    {{ ctx.table | sql_escape }}
 {% endif %}
-
-LIMIT   1
-OFFSET  {{ ctx.row_idx }}

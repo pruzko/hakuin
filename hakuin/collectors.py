@@ -206,6 +206,7 @@ class TextCollector(Collector):
         '''
         if ctx.rows_are_ascii is None:
             ctx.rows_are_ascii = self.check_rows_are_ascii(ctx)
+
         return super().run(ctx)
 
 
@@ -570,7 +571,6 @@ class DynamicTextCollector(TextCollector):
     def collect_char(self, ctx):
         '''Chooses the best strategy and uses it to infer a character.'''
         best = self.stats.best_strategy()
-        # print(f'b: {self.stats.rpc("binary")}, u: {self.stats.rpc("unigram")}, f: {self.stats.rpc("fivegram")}')
         if best == 'binary':
             return self.binary_collector.collect_char(ctx)
         elif best == 'unigram':

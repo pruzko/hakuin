@@ -21,10 +21,9 @@ class MySQL(DBMS):
         super().__init__()
         self.jj_mysql = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(DIR_QUERIES, 'MySQL')))
         self.jj_mysql.filters = self.jj.filters
-        self.jj_mysql.filters['sql_escape'] = self.sql_escape
-        self.jj_mysql.filters['sql_is_ascii'] = self.sql_is_ascii
 
 
+    # Template Filters
     @staticmethod
     def sql_escape(s):
         if DBMS._RE_ESCAPE.match(s):
@@ -32,8 +31,6 @@ class MySQL(DBMS):
         assert '`' not in s, f'Cannot escape "{s}"'
         return f'`{s}`'
 
-
-    # Template Filters
     @staticmethod
     def sql_len(s):
         return f'char_length({s})'

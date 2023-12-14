@@ -13,15 +13,13 @@ include = ["hakuin*"]
 [tool.setuptools.package-data]
 hakuin = [
     "data/models/*.pkl",
-    "data/queries/DBMS/*.jinja",
-    "data/queries/MySQL/*.jinja",
-    "data/queries/SQLite/*.jinja",
+    "data/queries/*/*.jinja",
 ]
 
 
 [project]
 name = "hakuin"
-version = "0.1.4"
+version = "0.1.5"
 authors = [{ name = "Jakub Pruzinec", email = "j.pruzinec@gmail.com" }]
 description = "Blind SQL Injection optimization and automation framework"
 readme = "README.md"

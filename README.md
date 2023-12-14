@@ -49,24 +49,19 @@ class ContentRequester(Requester):
         return 'found' in r.content.decode()
 ```
 
-To start extracting data, use the `Extractor` class. It requires a `DBMS` object to contruct queries and a `Requester` object to inject them. Currently, Hakuin supports SQLite and MySQL DBMSs, but will soon include more options. If you wish to support another DBMS, implement the `DBMS` interface defined in `hakuin/dbms/DBMS.py`.
+To start extracting data, use the `Extractor` class. It requires a `DBMS` object to contruct queries and a `Requester` object to inject them. Currently, Hakuin supports SQLite, MySQL, and MSSQL (SQL Server) DBMSs, but will soon include more options. If you wish to support another DBMS, implement the `DBMS` interface defined in `hakuin/dbms/DBMS.py`.
 
-##### Example 1 - Extracting SQLite DBs
+##### Example 1 - Extracting SQLite/MySQL/MSSQL
 ```python
-from hakuin.dbms import SQLite
+from hakuin.dbms import SQLite, MySQL, MSSQL
 from hakuin import Extractor, Requester
 
 class StatusRequester(Requester):
     ...
 
 ext = Extractor(requester=StatusRequester(), dbms=SQLite())
-```
-
-##### Example 2 - Extracting MySQL DBs
-```python
-from hakuin.dbms import MySQL
-...
-ext = Extractor(requester=StatusRequester(), dbms=MySQL())
+# ext = Extractor(requester=StatusRequester(), dbms=MySQL())
+# ext = Extractor(requester=StatusRequester(), dbms=MSSQL())
 ```
 
 Now that eveything is set, you can start extracting DB schemas.

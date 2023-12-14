@@ -12,10 +12,10 @@ SELECT  {{ column | sql_len }} != {{ ctx.buffer | length }}
         {{ column | sql_char_at(ctx.buffer | length) | sql_unicode }} < {{ n }}
 
 {% if ctx.table is none %}
-FROM    information_schema.TABLES
+FROM    INFORMATION_SCHEMA.TABLES
 WHERE   TABLE_SCHEMA=database()
 {% elif ctx.column is none %}
-FROM    information_schema.COLUMNS
+FROM    INFORMATION_SCHEMA.COLUMNS
 WHERE   TABLE_SCHEMA=database() AND
         TABLE_NAME={{ ctx.table | sql_hex_str }}
 {% else %}

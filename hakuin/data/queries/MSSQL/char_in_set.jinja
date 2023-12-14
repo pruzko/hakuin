@@ -1,0 +1,37 @@
+{% if not ctx.table %}
+        {% set column = 'TABLE_NAME' %}
+        {% set table = 'INFORMATION_SCHEMA.TABLES' %}
+{% elif not ctx.column %}
+        {% set column = 'COLUMN_NAME' %}
+        {% set table = 'INFORMATION_SCHEMA.COLUMNS' %}
+{% else %}
+        {% set column = ctx.column | sql_escape %}
+        {% set table = ctx.table | sql_escape %}
+{% endif %}
+
+{% set row_number_alias = 'i' if column != 'i' else '_i' %}
+{% set table_alias = 't' if table != 't' else '_t' %}
+
+
+SELECT  CASE WHEN (
+                {% if not has_eos %}
+                        {{ column | sql_to_varchar | sql_len }} != {{ ctx.buffer | length }}
+                        AND
+                        {{ column | sql_char_at(ctx.buffer | length) | sql_in_str(values | sql_hex_str) }} > 0
+                {% elif not values %}
+                        {{ column | sql_to_varchar | sql_len }} = {{ ctx.buffer | length }}
+                {% else %}
+                        {{ column | sql_char_at(ctx.buffer | length) | sql_in_str(values | sql_hex_str) }} > 0
+                {% endif %}
+        ) THEN 1 ELSE 0 END
+FROM    (
+        SELECT  row_number() OVER (ORDER BY {{ column | sql_to_varchar }} ASC) as {{ row_number_alias }}, {{ column }}
+        FROM    {{ table }}
+{% if ctx.table is none %}
+        WHERE   TABLE_TYPE='BASE TABLE'
+{% elif ctx.column is none %}
+        WHERE   TABLE_NAME={{ ctx.table | sql_hex_str }}
+{% endif %}
+)
+AS      {{ table_alias }}
+WHERE   {{ row_number_alias }} = {{ ctx.row_idx + 1 }}

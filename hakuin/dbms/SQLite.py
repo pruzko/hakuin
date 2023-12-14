@@ -15,8 +15,6 @@ class SQLite(DBMS):
         super().__init__()
         self.jj_sqlite = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(DIR_QUERIES, 'SQLite')))
         self.jj_sqlite.filters = self.jj.filters
-        self.jj_sqlite.filters['sql_in_str_set'] = self.sql_in_str_set
-        self.jj_sqlite.filters['sql_is_ascii'] = self.sql_is_ascii
 
 
     # Template Filters

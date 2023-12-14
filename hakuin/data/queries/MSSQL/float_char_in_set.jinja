@@ -1,0 +1,24 @@
+{% set column = ctx.column | sql_escape %}
+{% set table = ctx.table | sql_escape %}
+{% set row_number_alias = 'i' if column != 'i' else '_i' %}
+{% set table_alias = 't' if table != 't' else '_t' %}
+{% set cast_column_alias = 'c' if column != 'c' else '_c' %}
+
+
+SELECT  CASE WHEN
+                {% if not has_eos %}
+                        {{ cast_column_alias | sql_len }} != {{ ctx.buffer | length }}
+                        AND
+                        {{ cast_column_alias | sql_char_at(ctx.buffer | length) | sql_in_str(values | sql_hex_str) }} > 0
+                {% elif not values %}
+                        {{ cast_column_alias | sql_len }} = {{ ctx.buffer | length }}
+                {% else %}
+                        {{ cast_column_alias | sql_char_at(ctx.buffer | length) | sql_in_str(values | sql_hex_str) }} > 0
+                {% endif %}
+        THEN 1 ELSE 0 END
+FROM    (
+        SELECT  row_number() OVER (ORDER BY {{ column | sql_to_varchar }} ASC) as {{ row_number_alias }}, {{ column | sql_to_varchar }} as {{ cast_column_alias }}
+        FROM    {{ table }}
+)
+AS      {{ table_alias }}
+WHERE   {{ row_number_alias }} = {{ ctx.row_idx + 1 }}

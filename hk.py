@@ -5,7 +5,7 @@ import re
 import requests
 import sys
 
-from hakuin.dbms import SQLite, MySQL
+from hakuin.dbms import SQLite, MySQL, MSSQL
 from hakuin import Extractor, Requester
 
 
@@ -29,6 +29,7 @@ class UniversalRequester(Requester):
         self.body = args.body
         self.inference = self._process_inference(args.inference)
         self.dbg = args.dbg
+        self.n_requests = 0
 
 
     def _process_dict(self, dict_str):
@@ -58,7 +59,9 @@ class UniversalRequester(Requester):
 
 
     def request(self, ctx, query):
-        url = self.RE_QUERY_TAG.sub(query, self.url)
+        self.n_requests += 1
+
+        url = self.RE_QUERY_TAG.sub(requests.utils.quote(query), self.url)
         headers = {self.RE_QUERY_TAG.sub(query, k): self.RE_QUERY_TAG.sub(query, v) for k, v in self.headers.items()}
         cookies = {self.RE_QUERY_TAG.sub(query, k): self.RE_QUERY_TAG.sub(query, v) for k, v in self.cookies.items()}
         body = self.RE_QUERY_TAG.sub(query, self.body) if self.body else None
@@ -76,7 +79,7 @@ class UniversalRequester(Requester):
             result = not result
 
         if self.dbg:
-            print(result, query, file=sys.stderr)
+            print(result, '(err)' if resp.status_code == 500 else '',  query, file=sys.stderr)
 
         return result
 
@@ -85,6 +88,7 @@ class UniversalRequester(Requester):
 class HK:
     DBMS_DICT = {
         'sqlite': SQLite,
+        'mssql': MSSQL,
         'mysql': MySQL,
     }
 
@@ -105,6 +109,7 @@ class HK:
         else:
             res = self.extract_tables(schema_strategy=args.schema_strategy, text_strategy=args.text_strategy)
 
+        print(f'Number of requests: {self.ext.requester.n_requests}')
         print(json.dumps(res, cls=BytesEncoder, indent=2))
 
 
@@ -131,7 +136,7 @@ class HK:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A simple wrapper to easily call Hakuin\'s basic functionality.')
     parser.add_argument('url', help='URL pointing to a vulnerable endpoint. The URL can contain the {query} tag, which will be replaced with injected queries.')
-    parser.add_argument('-d', '--dbms', required=True, choices=['sqlite', 'mysql'], help='Assume this DBMS engine.')
+    parser.add_argument('-d', '--dbms', required=True, choices=HK.DBMS_DICT.keys(), help='Assume this DBMS engine.')
     parser.add_argument('-M', '--method', choices=['get', 'post', 'put', 'delete', 'head', 'patch'], default='get', help='HTTP request method.')
     parser.add_argument('-H', '--headers', help='Headers attached to requests. The header names and values can contain the {query} tag.')
     parser.add_argument('-C', '--cookies', help='Cookies attached to requests. The cookie names and values can contain the {query} tag.')

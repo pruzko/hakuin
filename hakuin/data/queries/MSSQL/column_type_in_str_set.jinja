@@ -1,0 +1,4 @@
+SELECT  CASE WHEN {{ 'lower(DATA_TYPE)' | sql_in_str_set(types) }} THEN 1 ELSE 0 END
+FROM    INFORMATION_SCHEMA.COLUMNS
+WHERE   TABLE_NAME={{ ctx.table | sql_hex_str }} AND
+        COLUMN_NAME={{ ctx.column | sql_hex_str }}
