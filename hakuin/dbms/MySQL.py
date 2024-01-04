@@ -2,7 +2,7 @@ import os
 
 import jinja2
 
-from hakuin.utils import EOS, DIR_QUERIES
+from hakuin.utils import EOS, DIR_QUERIES, BYTE_MAX
 from .DBMS import DBMS
 
 
@@ -32,11 +32,17 @@ class MySQL(DBMS):
         return f'`{s}`'
 
     @staticmethod
+    def sql_str_lit(s):
+        if not s.isascii() or not s.isprintable() or "'" in s:
+            return f"x'{s.encode('utf-8').hex()}'"
+        return f"'{s}'"
+
+    @staticmethod
     def sql_len(s):
         return f'char_length({s})'
 
     @staticmethod
-    def sql_unicode(s):
+    def sql_to_unicode(s):
         return f'ord(convert({s} using utf32))'
 
     @staticmethod
@@ -45,7 +51,7 @@ class MySQL(DBMS):
 
     @staticmethod
     def sql_is_ascii(s):
-        return f'{s} = convert({s} using ASCII)'
+        return f'({s} = convert({s} using ASCII))'
 
 
     # Queries
@@ -72,6 +78,14 @@ class MySQL(DBMS):
         query = self.jj_mysql.get_template('column_is_blob.jinja').render(ctx=ctx, types=types)
         return self.normalize(query)
 
+    def q_rows_have_null(self, ctx):
+        query = self.jj_mysql.get_template('rows_have_null.jinja').render(ctx=ctx)
+        return self.normalize(query)
+
+    def q_row_is_null(self, ctx):
+        query = self.jj_mysql.get_template('row_is_null.jinja').render(ctx=ctx)
+        return self.normalize(query)
+
     def q_rows_are_ascii(self, ctx):
         query = self.jj_mysql.get_template('rows_are_ascii.jinja').render(ctx=ctx)
         return self.normalize(query)
@@ -96,4 +110,19 @@ class MySQL(DBMS):
 
     def q_char_lt(self, ctx, n):
         query = self.jj_mysql.get_template('char_lt.jinja').render(ctx=ctx, n=n)
+        return self.normalize(query)
+
+    def q_string_in_set(self, ctx, values):
+        query = self.jj_mysql.get_template('string_in_set.jinja').render(ctx=ctx, values=values)
+        return self.normalize(query)
+
+    def q_int_lt(self, ctx, n):
+        query = self.jj_mysql.get_template('int_lt.jinja').render(ctx=ctx, n=n)
+        return self.normalize(query)
+
+    def q_float_char_in_set(self, ctx, values):
+        return self.q_char_in_set(ctx, values)
+
+    def q_byte_lt(self, ctx, n):
+        query = self.jj_mysql.get_template('byte_lt.jinja').render(ctx=ctx, n=n)
         return self.normalize(query)

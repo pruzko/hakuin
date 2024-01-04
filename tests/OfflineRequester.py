@@ -30,7 +30,13 @@ class OfflineRequester(Requester):
         self.n_queries += 1
         query = f'SELECT cast(({query}) as bool)'
 
-        res = bool(self.db.execute(query).fetchone()[0])
+        res = None
+        try:
+            res = bool(self.db.execute(query).fetchone()[0])
+        except Exception as e:
+            if self.verbose:
+                print(f'"{ctx.buffer}"\t(err)\t{query}')
+                raise e
 
         if self.verbose:
             print(f'"{ctx.buffer}"\t{res}\t{query}')

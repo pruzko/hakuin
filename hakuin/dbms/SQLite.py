@@ -2,7 +2,7 @@ import os
 
 import jinja2
 
-from hakuin.utils import EOS, DIR_QUERIES
+from hakuin.utils import EOS, DIR_QUERIES, BYTE_MAX
 from .DBMS import DBMS
 
 
@@ -19,8 +19,19 @@ class SQLite(DBMS):
 
     # Template Filters
     @staticmethod
+    def sql_str_lit(s):
+        if not s.isascii() or not s.isprintable() or "'" in s:
+            return f"cast(x'{s.encode('utf-8').hex()}' as TEXT)"
+        return f"'{s}'"
+
+    @staticmethod
+    def sql_byte_lit(n):
+        assert n in range(BYTE_MAX + 1), f'n must be in [0, {BYTE_MAX}]'
+        return f"x'{n:02x}'"
+
+    @staticmethod
     def sql_in_str_set(s, strings):
-        return f'cast({s} as BLOB) in ({",".join([DBMS.sql_hex_str(x) for x in strings])})'
+        return f'{s} in ({",".join([SQLite.sql_str_lit(x) for x in strings])})'
 
     @staticmethod
     def sql_is_ascii(s):
@@ -49,6 +60,14 @@ class SQLite(DBMS):
     def q_column_is_blob(self, ctx):
         return self.q_column_type_in_str_set(ctx, types=['blob'])
 
+    def q_rows_have_null(self, ctx):
+        query = self.jj_sqlite.get_template('rows_have_null.jinja').render(ctx=ctx)
+        return self.normalize(query)
+
+    def q_row_is_null(self, ctx):
+        query = self.jj_sqlite.get_template('row_is_null.jinja').render(ctx=ctx)
+        return self.normalize(query)
+
     def q_rows_are_ascii(self, ctx):
         query = self.jj_sqlite.get_template('rows_are_ascii.jinja').render(ctx=ctx)
         return self.normalize(query)
@@ -73,4 +92,19 @@ class SQLite(DBMS):
 
     def q_char_lt(self, ctx, n):
         query = self.jj_sqlite.get_template('char_lt.jinja').render(ctx=ctx, n=n)
+        return self.normalize(query)
+
+    def q_string_in_set(self, ctx, values):
+        query = self.jj_sqlite.get_template('string_in_set.jinja').render(ctx=ctx, values=values)
+        return self.normalize(query)
+
+    def q_int_lt(self, ctx, n):
+        query = self.jj_sqlite.get_template('int_lt.jinja').render(ctx=ctx, n=n)
+        return self.normalize(query)
+
+    def q_float_char_in_set(self, ctx, values):
+        return self.q_char_in_set(ctx, values)
+
+    def q_byte_lt(self, ctx, n):
+        query = self.jj_sqlite.get_template('byte_lt.jinja').render(ctx=ctx, n=n)
         return self.normalize(query)

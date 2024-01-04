@@ -1,0 +1,7 @@
+SELECT  {{ 'lower(DATA_TYPE)' | sql_in_str_set(types) }}
+FROM    INFORMATION_SCHEMA.COLUMNS
+WHERE   TABLE_CATALOG=current_database()
+        AND
+        TABLE_NAME={{ ctx.table | sql_str_lit }}
+        AND
+        COLUMN_NAME={{ ctx.column | sql_str_lit }}

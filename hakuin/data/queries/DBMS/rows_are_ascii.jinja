@@ -1,2 +1,0 @@
-SELECT  min({{ ctx.column | sql_escape | sql_is_ascii }})
-FROM    {{ ctx.table | sql_escape }}

@@ -1,0 +1,17 @@
+{% if not ctx.table %}
+    {% set column = 'name' %}
+    {% set table = 'sqlite_master' %}
+{% elif not ctx.column %}
+    {% set column = 'name' %}
+    {% set table = 'pragma_table_info(%s)' % (ctx.table | sql_str_lit) %}
+{% endif %}
+{% extends "_base.jinja" %}
+
+
+{% block where %}
+{% if ctx.table is none %}
+    WHERE   type='table'
+{% else %}
+    {{ super() }}
+{% endif %}
+{% endblock %}

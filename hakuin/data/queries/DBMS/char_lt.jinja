@@ -1,6 +1,0 @@
-SELECT  {{ ctx.column | sql_escape | sql_len }} != {{ ctx.buffer | length }}
-        AND
-        {{ ctx.column | sql_escape | sql_char_at(ctx.buffer | length) | sql_unicode }} < {{ n }}
-FROM    {{ ctx.table | sql_escape }}
-LIMIT   1
-OFFSET  {{ ctx.row_idx }}

@@ -26,9 +26,11 @@ class MSSQL(DBMS):
 
     # Template Filters
     @staticmethod
-    def sql_hex_str(s):
-        hex_str = s.encode('cp1252').hex()
-        return f'convert(varchar(MAX), 0x{hex_str})'
+    def sql_str_lit(s):
+        if not s.isascii() or "'" in s:
+            hex_str = s.encode('cp1252').hex()
+            return f'convert(varchar(MAX), 0x{hex_str})'
+        return f"'{s}'"
 
     @staticmethod
     def sql_len(s):
@@ -44,7 +46,7 @@ class MSSQL(DBMS):
 
     @staticmethod
     def sql_in_str_set(s, strings):
-        return f'{s} in ({",".join([MSSQL.sql_hex_str(x) for x in strings])})'
+        return f'{s} in ({",".join([MSSQL.sql_str_lit(x) for x in strings])})'
 
     @staticmethod
     def sql_is_ascii(s):

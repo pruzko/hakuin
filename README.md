@@ -49,11 +49,11 @@ class ContentRequester(Requester):
         return 'found' in r.content.decode()
 ```
 
-To start extracting data, use the `Extractor` class. It requires a `DBMS` object to contruct queries and a `Requester` object to inject them. Currently, Hakuin supports SQLite, MySQL, and MSSQL (SQL Server) DBMSs, but will soon include more options. If you wish to support another DBMS, implement the `DBMS` interface defined in `hakuin/dbms/DBMS.py`.
+To start extracting data, use the `Extractor` class. It requires a `DBMS` object to contruct queries and a `Requester` object to inject them. Currently, Hakuin supports SQLite, MySQL, PSQL (PostgreSQL), and MSSQL (SQL Server) DBMSs, but will soon include more options. If you wish to support another DBMS, implement the `DBMS` interface defined in `hakuin/dbms/DBMS.py`.
 
-##### Example 1 - Extracting SQLite/MySQL/MSSQL
+##### Example 1 - Extracting SQLite/MySQL/PSQL/MSSQL
 ```python
-from hakuin.dbms import SQLite, MySQL, MSSQL
+from hakuin.dbms import SQLite, MySQL, PSQL, MSSQL
 from hakuin import Extractor, Requester
 
 class StatusRequester(Requester):
@@ -61,6 +61,7 @@ class StatusRequester(Requester):
 
 ext = Extractor(requester=StatusRequester(), dbms=SQLite())
 # ext = Extractor(requester=StatusRequester(), dbms=MySQL())
+# ext = Extractor(requester=StatusRequester(), dbms=PSQL())
 # ext = Extractor(requester=StatusRequester(), dbms=MSSQL())
 ```
 
@@ -74,9 +75,8 @@ Now that eveything is set, you can start extracting DB schemas.
 schema = ext.extract_schema(strategy='model')
 ```
 
-```
-
 ##### Example 2 - Extracting only Table/Column Names
+
 ```python
 tables = ext.extract_table_names(strategy='model')
 columns = ext.extract_column_names(table='users', strategy='model')
@@ -84,7 +84,13 @@ columns = ext.extract_column_names(table='users', strategy='model')
 
 Once you know the schema, you can extract the actual content.
 
-##### Example 1 - Extracting Textual Columns
+##### Example 1 - Extracting Generic Columns
+```python
+# text_strategy:    Use this strategy if the column is text
+res = ext.extract_column(table='users', column='address', text_strategy='dynamic'):
+```
+
+##### Example 2 - Extracting Textual Columns
 ```python
 # strategy:
 #   'binary':       Use binary search
@@ -95,17 +101,17 @@ Once you know the schema, you can extract the actual content.
 res = ext.extract_column_text(table='users', column='address', strategy='dynamic'):
 ```
 
-##### Example 2 - Extracting Integer Columns
+##### Example 3 - Extracting Integer Columns
 ```python
 res = ext.extract_column_int(table='users', column='id'):
 ```
 
-##### Example 3 - Extracting Float Columns
+##### Example 4 - Extracting Float Columns
 ```python
 res = ext.extract_column_float(table='products', column='price'):
 ```
 
-##### Example 4 - Extracting Blob (Binary Data) Columns
+##### Example 5 - Extracting Blob (Binary Data) Columns
 ```python
 res = ext.extract_column_blob(table='users', column='id'):
 ```

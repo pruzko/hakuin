@@ -1,0 +1,31 @@
+{% if table is not defined %}
+    {% set table = ctx.table | sql_escape if ctx.table else none %}
+{% endif %}
+{% if column is not defined %}
+    {% set column = ctx.column | sql_escape if ctx.column else none %}
+{% endif %}
+{% set row_number_alias = 'i' if column != 'i' else '_i' %}
+{% set table_alias = 't' if table != 't' else '_t' %}
+
+
+
+{% block select %}
+{% endblock %}
+
+{% block from %}
+{% if single %}
+FROM    (
+        SELECT  row_number() OVER (ORDER BY {{ column | sql_to_varchar }} ASC) as {{ row_number_alias }}, {{ column }}
+        FROM    {{ table }}
+)
+AS      {{ table_alias }}
+{% else %}
+FROM    {{ table }}
+{% endif %}
+{% endblock %}
+
+{% block where %}
+{% if single %}
+WHERE   {{ row_number_alias }} = {{ ctx.row_idx + 1 }}
+{% endif %}
+{% endblock %}

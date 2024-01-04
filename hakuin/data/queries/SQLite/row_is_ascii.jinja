@@ -1,15 +1,7 @@
-{% set column = ctx.column | sql_escape if ctx.column else 'name' %}
+{% set single = true %}
+{% extends "_base_schema.jinja" %}
 
+
+{% block select %}
 SELECT  {{ column | sql_is_ascii }}
-
-{% if ctx.table is none %}
-FROM    sqlite_master
-WHERE   type='table'
-{% elif ctx.column is none %}
-FROM    pragma_table_info({{ ctx.table | sql_hex_str }})
-{% else %}
-FROM    {{ ctx.table | sql_escape }}
-{% endif %}
-
-LIMIT   1
-OFFSET  {{ ctx.row_idx }}
+{% endblock %}

@@ -1,8 +1,0 @@
-SELECT  {% if not has_eos %}
-        {{ ctx.column | sql_escape | sql_len }} != {{ ctx.buffer | length }}
-        AND
-        {% endif %}
-        {{ ctx.column | sql_escape | sql_char_at(ctx.buffer | length) | sql_in_str(values | sql_hex_str) }}
-FROM    {{ ctx.table | sql_escape }}
-LIMIT   1
-OFFSET  {{ ctx.row_idx }}

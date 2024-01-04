@@ -5,7 +5,7 @@ import re
 import requests
 import sys
 
-from hakuin.dbms import SQLite, MySQL, MSSQL
+from hakuin.dbms import SQLite, MySQL, MSSQL, PSQL
 from hakuin import Extractor, Requester
 
 
@@ -90,6 +90,7 @@ class HK:
         'sqlite': SQLite,
         'mssql': MSSQL,
         'mysql': MySQL,
+        'psql': PSQL,
     }
 
 
@@ -110,16 +111,16 @@ class HK:
             res = self.extract_tables(schema_strategy=args.schema_strategy, text_strategy=args.text_strategy)
 
         print(f'Number of requests: {self.ext.requester.n_requests}')
-        print(json.dumps(res, cls=BytesEncoder, indent=2))
+        print(json.dumps(res, cls=BytesEncoder, indent=4))
 
 
     def extract_schema(self):
         return self.ext.extract_schema(strategy=self.args.schema_strategy)
 
     def extract_tables(self, schema_strategy, text_strategy):
-        res = []
+        res = {}
         for table in self.ext.extract_table_names(strategy=schema_strategy):
-            res.append(self.extract_table(table, schema_strategy, text_strategy))
+            res[table] = self.extract_table(table, schema_strategy, text_strategy)
         return res
 
     def extract_table(self, table, schema_strategy, text_strategy):

@@ -1,0 +1,7 @@
+{% set single = true %}
+{% extends "_base.jinja" %}
+
+
+{% block select %}
+SELECT  {{ column }} < {{ n }}
+{% endblock %}

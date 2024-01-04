@@ -138,10 +138,8 @@ class FloatCollector(Collector):
         while True:
             c = self.collect_char(ctx)
             if c == EOS:
-                return ctx.buffer
+                return float(ctx.buffer)
             ctx.buffer += c
-
-        return float(ctx.buffer)
 
 
     def collect_char(self, ctx):
@@ -162,8 +160,6 @@ class BlobCollector(Collector):
             if b == EOS:
                 return ctx.buffer
             ctx.buffer += b
-
-        return ctx.buffer
 
 
     def collect_byte(self, ctx):

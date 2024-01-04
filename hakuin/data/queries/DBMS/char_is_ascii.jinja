@@ -1,4 +1,0 @@
-SELECT  {{ ctx.column | sql_escape | sql_char_at(ctx.buffer | length) | sql_is_ascii }}
-FROM    {{ ctx.table | sql_escape }}
-LIMIT   1
-OFFSET  {{ ctx.row_idx }}

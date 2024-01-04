@@ -1,10 +1,6 @@
-SELECT  count(*) < {{ n }}
+{% extends "_base_schema.jinja" %}
 
-{% if ctx.table is none %}
-FROM    sqlite_master
-WHERE   type='table'
-{% elif ctx.column is none %}
-FROM    pragma_table_info({{ ctx.table | sql_hex_str }})
-{% else %}
-FROM    {{ ctx.table | sql_escape }}
-{% endif %}
+
+{% block select %}
+SELECT count(*) < {{ n }}
+{% endblock %}
