@@ -19,7 +19,7 @@ hakuin = [
 
 [project]
 name = "hakuin"
-version = "0.1.5"
+version = "0.1.6"
 authors = [{ name = "Jakub Pruzinec", email = "j.pruzinec@gmail.com" }]
 description = "Blind SQL Injection optimization and automation framework"
 readme = "README.md"
