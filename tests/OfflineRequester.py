@@ -26,7 +26,7 @@ class OfflineRequester(Requester):
         self.n_queries = 0
 
 
-    def request(self, ctx, query):
+    async def request(self, ctx, query):
         self.n_queries += 1
         query = f'SELECT cast(({query}) as bool)'
 

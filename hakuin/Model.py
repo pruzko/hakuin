@@ -1,3 +1,5 @@
+import asyncio
+import logging
 import os
 import pickle
 
@@ -22,6 +24,7 @@ class Model:
             order (int|None): everygram order
         '''
         self.model = MLE(order) if order is not None else None
+        self._lock = asyncio.Lock()
 
 
     @property
@@ -37,11 +40,15 @@ class Model:
         Params:
             file (str): model file
         '''
+        logging.info(f'Loading model "{file}".')
+
         with open(file, 'rb') as f:
             self.model = pickle.load(f)
 
+        logging.info(f'Model loaded.')
 
-    def scores(self, context):
+
+    async def scores(self, context):
         '''Calculates likelihood distribution of next value.
 
         Params:
@@ -53,21 +60,23 @@ class Model:
         context = [] if self.order == 1 else context[-(self.order - 1):]
 
         while context:
-            scores = self._scores(context)
+            scores = await self._scores(context)
             if scores:
                 return scores
             context.pop(0)
 
-        return self._scores([])
+        return await self._scores([])
 
 
-    def _scores(self, context):
-        context = self.model.vocab.lookup(context) if context else None
-        counts = self.model.context_counts(context)
+    async def _scores(self, context):
+        async with self._lock:
+            context = self.model.vocab.lookup(context) if context else None
+            counts = self.model.context_counts(context)
+
         return {c: counts.freq(c) for c in counts}
 
 
-    def count(self, value, context):
+    async def count(self, value, context):
         '''Counts the number of occurences of value in a given context
 
         Params:
@@ -77,21 +86,22 @@ class Model:
         Returns:
             int: value count
         '''
-        context = self.model.vocab.lookup(context) if context else None
-        return self.model.context_counts(context).get(value, 0)
+        async with self._lock:
+            context = self.model.vocab.lookup(context) if context else None
+            return self.model.context_counts(context).get(value, 0)
 
 
-    def fit_data(self, data):
+    async def fit_data(self, data):
         '''Splits samples in data into character-based ngrams and trains model with them.
 
         Params:
             data (list): list of train samples
         '''
         train, vocab = ngrams.padded_everygram_pipeline(data, self.order)
-        self._fit(train, vocab)
+        await self._fit(train, vocab)
 
 
-    def fit_single(self, value, context):
+    async def fit_single(self, value, context):
         '''Trains model with single ngram.
 
         Params:
@@ -103,10 +113,10 @@ class Model:
 
         train = (context[i:] for i in range(self.order))
         train = (train, )
-        self._fit(train, context)
+        await self._fit(train, context)
 
 
-    def fit_correct_char(self, correct, partial_str):
+    async def fit_correct_char(self, correct, partial_str):
         '''Trains model with ngram, where partially extracted string is followed
         with the correct character.
 
@@ -115,12 +125,13 @@ class Model:
             partial_str (str): partially extracted string 
         '''
         context = tokenize(partial_str, add_eos=False, pad_left=self.order)
-        self.fit_single(correct, context)
+        await self.fit_single(correct, context)
 
 
-    def _fit(self, train, vocab):
-        self.model.vocab.update(vocab)
-        self.model.counts.update(self.model.vocab.lookup(t) for t in train)
+    async def _fit(self, train, vocab):
+        async with self._lock:
+            self.model.vocab.update(vocab)
+            self.model.counts.update(self.model.vocab.lookup(t) for t in train)
 
 
 

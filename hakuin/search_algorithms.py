@@ -19,7 +19,7 @@ class SearchAlgorithm(metaclass=ABCMeta):
 
 
     @abstractmethod
-    def run(self, ctx, correct=None):
+    async def run(self, ctx, correct=None):
         '''Runs the search algorithm.'''
         raise NotImplementedError()
 
@@ -48,7 +48,7 @@ class NumericBinarySearch(SearchAlgorithm):
         self.n_queries = 0
 
 
-    def run(self, ctx):
+    async def run(self, ctx):
         '''Runs the search algorithm.
 
         Params:
@@ -60,44 +60,44 @@ class NumericBinarySearch(SearchAlgorithm):
         self.n_queries = 0
 
         if self.find_lower:
-            self._find_lower(ctx, self.upper - self.lower)
+            await self._find_lower(ctx, self.upper - self.lower)
         if self.find_upper:
-            self._find_upper(ctx, self.upper - self.lower)
+            await self._find_upper(ctx, self.upper - self.lower)
 
-        return self._search(ctx, self.lower, self.upper)
+        return await self._search(ctx, self.lower, self.upper)
 
 
-    def _find_lower(self, ctx, step):
+    async def _find_lower(self, ctx, step):
         '''Exponentially expands the lower bound until the correct value is within.
 
         Params:
             ctx (Context): collection context
             step (int): initial step
         '''
-        if not self._query(ctx, self.lower):
+        if not await self._query(ctx, self.lower):
             return
 
         self.upper = self.lower
         self.lower -= step
-        self._find_lower(ctx, step * 2)
+        await self._find_lower(ctx, step * 2)
 
 
-    def _find_upper(self, ctx, step):
+    async def _find_upper(self, ctx, step):
         '''Exponentially expands the upper bound until the correct value is within.
 
         Params:
             ctx (Context): collection context
             step (int): initial step
         '''
-        if self._query(ctx, self.upper):
+        if await self._query(ctx, self.upper):
             return
 
         self.lower = self.upper
         self.upper += step
-        self._find_upper(ctx, step * 2)
+        await self._find_upper(ctx, step * 2)
 
 
-    def _search(self, ctx, lower, upper):
+    async def _search(self, ctx, lower, upper):
         '''Numeric binary search.
 
         Params:
@@ -112,18 +112,18 @@ class NumericBinarySearch(SearchAlgorithm):
             return lower
 
         middle = (lower + upper) // 2
-        if self._query(ctx, middle):
-            return self._search(ctx, lower, middle)
+        if await self._query(ctx, middle):
+            return await self._search(ctx, lower, middle)
 
-        return self._search(ctx, middle, upper)
+        return await self._search(ctx, middle, upper)
 
 
-    def _query(self, ctx, n):
+    async def _query(self, ctx, n):
         self.n_queries += 1
 
         if self.correct is None:
             query_string = self.query_cb(ctx, n)
-            return self.requester.request(ctx, query_string)
+            return await self.requester.request(ctx, query_string)
 
         return self.correct < n
 
@@ -146,7 +146,7 @@ class BinarySearch(SearchAlgorithm):
         self.n_queries = 0
 
 
-    def run(self, ctx):
+    async def run(self, ctx):
         '''Runs the search algorithm.
 
         Params:
@@ -156,10 +156,10 @@ class BinarySearch(SearchAlgorithm):
             value|None: inferred value or None on fail
         '''
         self.n_queries = 0
-        return self._search(ctx, self.values)
+        return await self._search(ctx, self.values)
 
 
-    def _search(self, ctx, values):
+    async def _search(self, ctx, values):
         if not values:
             return None
 
@@ -168,18 +168,18 @@ class BinarySearch(SearchAlgorithm):
 
         left, right = split_at(values, len(values) // 2)
 
-        if self._query(ctx, left):
-            return self._search(ctx, left)
+        if await self._query(ctx, left):
+            return await self._search(ctx, left)
 
-        return self._search(ctx, right)
+        return await self._search(ctx, right)
 
 
-    def _query(self, ctx, values):
+    async def _query(self, ctx, values):
         self.n_queries += 1
 
         if self.correct is None:
             query_string = self.query_cb(ctx, values)
-            return self.requester.request(ctx, query_string)
+            return await self.requester.request(ctx, query_string)
 
         return self.correct in values
 
@@ -205,7 +205,7 @@ class TreeSearch(SearchAlgorithm):
         self.n_queries = 0
 
 
-    def run(self, ctx):
+    async def run(self, ctx):
         '''Runs the search algorithm.
 
         Params:
@@ -215,10 +215,10 @@ class TreeSearch(SearchAlgorithm):
             value|None: inferred value or None on fail
         '''
         self.n_queries = 0
-        return self._search(ctx, self.tree, in_tree=self.in_tree)
+        return await self._search(ctx, self.tree, in_tree=self.in_tree)
 
 
-    def _search(self, ctx, tree, in_tree):
+    async def _search(self, ctx, tree, in_tree):
         '''Tree search.
         
         Params:
@@ -235,24 +235,24 @@ class TreeSearch(SearchAlgorithm):
         if tree.is_leaf():
             if in_tree:
                 return tree.values()[0]
-            if self._query(ctx, tree.values()):
+            if await self._query(ctx, tree.values()):
                 return tree.values()[0]
             return None
 
-        if self._query(ctx, tree.left.values()):
-            return self._search(ctx, tree.left, True)
+        if await self._query(ctx, tree.left.values()):
+            return await self._search(ctx, tree.left, True)
 
         if tree.right is None:
             return None
 
-        return self._search(ctx, tree.right, in_tree)
+        return await self._search(ctx, tree.right, in_tree)
 
 
-    def _query(self, ctx, values):
+    async def _query(self, ctx, values):
         self.n_queries += 1
 
         if self.correct is None:
             query_string = self.query_cb(ctx, values)
-            return self.requester.request(ctx, query_string)
+            return await self.requester.request(ctx, query_string)
 
         return self.correct in values

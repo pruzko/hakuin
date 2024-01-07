@@ -19,12 +19,13 @@ hakuin = [
 
 [project]
 name = "hakuin"
-version = "0.1.6"
+version = "0.1.7"
 authors = [{ name = "Jakub Pruzinec", email = "j.pruzinec@gmail.com" }]
 description = "Blind SQL Injection optimization and automation framework"
 readme = "README.md"
 requires-python = ">=3"
 dependencies = [
+    "aiohttp",
     "jinja2",
     "nltk",
 ]

@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -18,14 +19,14 @@ DIR_DBS = os.path.abspath(os.path.join(DIR_FILE, 'dbs'))
 FILE_LARGE_CONTENT_JSON = os.path.join(DIR_DBS, 'large_content.json')
 
 
-def main():
+async def main():
     assert len(sys.argv) in [1, 3], 'python3 experiment_generic_db_offline.py [table> <column>]'
 
     requester = OfflineRequester(db='large_content', verbose=False)
     ext = Extractor(requester=requester, dbms=SQLite())
 
     if len(sys.argv) == 3:
-        res = ext.extract_column_text(sys.argv[1], sys.argv[2])
+        res = await ext.extract_column_text(sys.argv[1], sys.argv[2])
         print('Total requests:', requester.n_queries)
         print('Average RPC:', requester.n_queries / len(''.join(res)))
     else:
@@ -43,7 +44,7 @@ def main():
         # measure rpc
         for table, columns in rpc.items():
             for column in columns:
-                res = ext.extract_column_text(table, column)
+                res = await ext.extract_column_text(table, column)
                 res_len = len(''.join(res))
                 col_rpc = requester.n_queries / len(''.join(res))
                 rpc[table][column] = (requester.n_queries, col_rpc)
@@ -53,7 +54,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.get_event_loop().run_until_complete(main())
 
 
 # Expected RPCs:

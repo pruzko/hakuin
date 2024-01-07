@@ -1,4 +1,4 @@
-import json
+import asyncio
 import logging
 
 import hakuin
@@ -13,17 +13,17 @@ logging.basicConfig(level=logging.INFO)
 
 
 
-def main():
+async def main():
     requester = OfflineRequester(db='unicode', verbose=False)
     ext = Extractor(requester=requester, dbms=SQLite())
 
-    res = ext.extract_schema(strategy='binary')
+    res = await ext.extract_schema(strategy='binary')
     print(res)
 
-    res = ext.extract_column_text('Ħ€ȽȽ©', 'ŴǑȒȽƉ', strategy='dynamic')
+    res = await ext.extract_column_text('Ħ€ȽȽ©', 'ŴǑȒȽƉ', strategy='dynamic')
     print(res)
     
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.get_event_loop().run_until_complete(main())

@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 
@@ -12,11 +13,11 @@ logging.basicConfig(level=logging.INFO)
 
 
 
-def main():
+async def main():
     requester = OfflineRequester(db='large_schema', verbose=False)
     ext = Extractor(requester=requester, dbms=SQLite())
 
-    res = ext.extract_schema(strategy='model')
+    res = await ext.extract_schema(strategy='model')
     print(json.dumps(res, indent=4))
 
     res_len = sum([len(table) for table in res])
@@ -26,7 +27,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.get_event_loop().run_until_complete(main())
 
 
 # Expected results:

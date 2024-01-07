@@ -8,7 +8,7 @@ class Requester(metaclass=ABCMeta):
     injected queries, send them, and infer the query's results.
     '''
     @abstractmethod
-    def request(self, ctx, query):
+    async def request(self, ctx, query):
         '''Sends a request with injected query and infers its result.
 
         Params:

