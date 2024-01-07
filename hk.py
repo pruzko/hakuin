@@ -111,7 +111,7 @@ class HK:
         async with aiohttp.ClientSession() as http:
             requester = UniversalRequester(http, args)
             dbms = self.DBMS_DICT[args.dbms]()
-            self.ext = Extractor(requester, dbms, args.threads)
+            self.ext = Extractor(requester, dbms, args.tasks)
 
             await self._main(args)
 
@@ -156,7 +156,7 @@ class HK:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A simple wrapper to easily call Hakuin\'s basic functionality.')
     parser.add_argument('url', help='URL pointing to a vulnerable endpoint. The URL can contain the {query} tag, which will be replaced with injected queries.')
-    parser.add_argument('-T', '--threads', default=1, type=int, help='Run several coroutines in parallel.')
+    parser.add_argument('-T', '--tasks', default=1, type=int, help='Run several coroutines in parallel.')
     parser.add_argument('-d', '--dbms', required=True, choices=HK.DBMS_DICT.keys(), help='Assume this DBMS engine.')
     parser.add_argument('-M', '--method', choices=['get', 'post', 'put', 'delete', 'head', 'patch'], default='get', help='HTTP request method.')
     parser.add_argument('-H', '--headers', help='Headers attached to requests. The header names and values can contain the {query} tag.')
@@ -184,7 +184,7 @@ if __name__ == '__main__':
     if args.column:
         assert args.table, 'You must specify --table when using --column.'
 
-    assert args.threads > 0, 'The --threads parameter must be possitive.'
+    assert args.tasks > 0, 'The --tasks parameter must be positive.'
 
     logging.basicConfig(level=logging.INFO)
     asyncio.get_event_loop().run_until_complete(HK().main(args))

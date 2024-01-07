@@ -2,7 +2,7 @@
     <img width="150" src="https://raw.githubusercontent.com/pruzko/hakuin/main/logo.png">
 </p>
 
-Hakuin is a Blind SQL Injection (BSQLI) optimization and automation framework written in Python 3. It abstract away the inference logic and allows users to easily and efficiently extract databases (DB) from vulnerable web applications. To speed up the process, Hakuin utilizes a variety of optimization methods, such as pre-trained and adaptive language models, opportunistic guessing, and more.
+Hakuin is a Blind SQL Injection (BSQLI) optimization and automation framework written in Python 3. It abstract away the inference logic and allows users to easily and efficiently extract databases (DB) from vulnerable web applications. To speed up the process, Hakuin utilizes a variety of optimization methods, such as pre-trained and adaptive language models, opportunistic guessing, parallelism and more.
 
 Hakuin has been presented at esteemed academic and industrial conferences:
 - [BlackHat MEA, Riyadh](https://blackhatmea.com/session/hakuin-injecting-brain-blind-sql-injection), 2023
@@ -61,7 +61,10 @@ class StatusRequester(Requester):
     ...
 
 async def main():
-    ext = await Extractor(requester=StatusRequester(), dbms=SQLite())
+    # requester:    Use this Requester
+    # dbms:         Use this DBMS
+    # n_tasks:      Spawns N tasks that extract column rows in parallel 
+    ext = await Extractor(requester=StatusRequester(), dbms=SQLite(), n_tasks=1)
     ...
 
 if __name__ == '__main__':
