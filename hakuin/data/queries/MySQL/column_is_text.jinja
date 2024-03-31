@@ -1,7 +1,8 @@
+{% extends 'column_type_in_str_set.jinja' %}
+
+
+{% block select %}
 SELECT  {{ 'lower(DATA_TYPE)' | sql_in_str_set(types) }}
         OR
         {{ 'text' | sql_str_lit | sql_in_str('lower(DATA_TYPE)') }}
-FROM    INFORMATION_SCHEMA.COLUMNS
-WHERE   TABLE_SCHEMA=database() AND
-        TABLE_NAME={{ ctx.table | sql_str_lit }} AND
-        COLUMN_NAME={{ ctx.column | sql_str_lit }}
+{% endblock %}

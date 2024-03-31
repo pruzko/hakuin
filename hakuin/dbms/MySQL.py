@@ -26,8 +26,12 @@ class MySQL(DBMS):
     # Template Filters
     @staticmethod
     def sql_escape(s):
+        if s is None:
+            return None
+
         if DBMS._RE_ESCAPE.match(s):
             return s
+
         assert '`' not in s, f'Cannot escape "{s}"'
         return f'`{s}`'
 
@@ -47,7 +51,11 @@ class MySQL(DBMS):
 
     @staticmethod
     def sql_in_str(s, string):
-        return f'locate({s}, {string})'
+        return f'locate({s}, BINARY {string})'
+
+    @staticmethod
+    def sql_in_str_set(s, strings):
+        return f'{s} in (BINARY {",".join([DBMS.sql_str_lit(x) for x in strings])})'
 
     @staticmethod
     def sql_is_ascii(s):
@@ -114,6 +122,7 @@ class MySQL(DBMS):
 
     def q_string_in_set(self, ctx, values):
         query = self.jj_mysql.get_template('string_in_set.jinja').render(ctx=ctx, values=values)
+        print(self.normalize(query))
         return self.normalize(query)
 
     def q_int_lt(self, ctx, n):

@@ -1,3 +1,4 @@
+import asyncio
 import os
 import pickle
 
@@ -23,11 +24,20 @@ def fetch_data(fname):
     return data
 
 
-def main():
+async def main():
+    print('Schemas...')
+    data = fetch_data(os.path.join(DIR_CORPORA, 'schemas.csv'))
+    m = hakuin.Model(5)
+    await m.fit_data(data)
+
+    with open(os.path.join(DIR_MODELS, 'model_schemas.pkl'), 'wb') as f:
+        pickle.dump(m.model, f)
+    print('Done.')
+
     print('Tables...')
     data = fetch_data(os.path.join(DIR_CORPORA, 'tables.csv'))
     m = hakuin.Model(5)
-    m.fit_data(data)
+    await m.fit_data(data)
 
     with open(os.path.join(DIR_MODELS, 'model_tables.pkl'), 'wb') as f:
         pickle.dump(m.model, f)
@@ -36,7 +46,7 @@ def main():
     print('Columns...')
     data = fetch_data(os.path.join(DIR_CORPORA, 'columns.csv'))
     m = hakuin.Model(5)
-    m.fit_data(data)
+    await m.fit_data(data)
 
     with open(os.path.join(DIR_MODELS, 'model_columns.pkl'), 'wb') as f:
         pickle.dump(m.model, f)
@@ -44,4 +54,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())

@@ -13,14 +13,16 @@ from hakuin.search_algorithms import BinarySearch, TreeSearch, NumericBinarySear
 class Context:
     '''Collection state.'''
     def __init__(
-        self, table=None, column=None, n_rows=None, row_idx=None, rows_have_null=None,
+        self, target, table=None, column=None, schema=None, n_rows=None, row_idx=None, rows_have_null=None,
         buffer=None, rows_are_ascii=None, row_is_ascii=None
     ):
         '''Constructor.
 
         Params:
+            target (str): extraction target
             table (str|None): table name
             column (str|None): column name
+            schema (str|None): schema name
             n_rows (int|None): number of rows
             row_idx (int|None): row index
             rows_have_null (bool|None): flag for columns with NULL values
@@ -28,6 +30,8 @@ class Context:
             rows_are_ascii (bool|None): flag for ASCII columns
             row_is_ascii (bool|None): flag for a single ASCII row
         '''
+        self.target = target
+        self.schema = schema
         self.table = table
         self.column = column
         self.n_rows = n_rows

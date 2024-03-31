@@ -17,10 +17,10 @@ async def main():
     requester = OfflineRequester(db='unicode', verbose=False)
     ext = Extractor(requester=requester, dbms=SQLite())
 
-    res = await ext.extract_schema(strategy='binary')
+    res = await ext.extract_meta(strategy='binary')
     print(res)
 
-    res = await ext.extract_column_text('Ħ€ȽȽ©', 'ŴǑȒȽƉ', strategy='dynamic')
+    res = await ext.extract_column_text(table='Ħ€ȽȽ©', column='ŴǑȒȽƉ', strategy='dynamic')
     print(res)
     
 

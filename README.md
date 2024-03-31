@@ -2,7 +2,7 @@
     <img width="150" src="https://raw.githubusercontent.com/pruzko/hakuin/main/logo.png">
 </p>
 
-Hakuin is a Blind SQL Injection (BSQLI) optimization and automation framework written in Python 3. It abstract away the inference logic and allows users to easily and efficiently extract databases (DB) from vulnerable web applications. To speed up the process, Hakuin utilizes a variety of optimization methods, such as pre-trained and adaptive language models, opportunistic guessing, parallelism and more.
+Hakuin is a Blind SQL Injection (BSQLI) optimization and automation framework written in Python 3. It abstracts away the inference logic and allows users to easily and efficiently extract databases (DB) from vulnerable web applications. To speed up the process, Hakuin utilizes a variety of optimization methods, including pre-trained and adaptive language models, opportunistic guessing, parallelism and more.
 
 Hakuin has been presented at esteemed academic and industrial conferences:
 - [BlackHat MEA, Riyadh](https://blackhatmea.com/session/hakuin-injecting-brain-blind-sql-injection), 2023
@@ -64,30 +64,39 @@ async def main():
     # requester:    Use this Requester
     # dbms:         Use this DBMS
     # n_tasks:      Spawns N tasks that extract column rows in parallel 
-    ext = await Extractor(requester=StatusRequester(), dbms=SQLite(), n_tasks=1)
+    ext = Extractor(requester=StatusRequester(), dbms=SQLite(), n_tasks=1)
     ...
 
 if __name__ == '__main__':
     asyncio.get_event_loop().run_until_complete(main())
 ```
 
-Now that eveything is set, you can start extracting DB schemas.
+Now that eveything is set, you can start extracting DB metadata.
 
 ##### Example 1 - Extracting DB Schemas
 ```python
 # strategy:
 #   'binary':   Use binary search
-#   'model':    Use pre-trained models
-schema = await ext.extract_schema(strategy='model')
+#   'model':    Use pre-trained model
+schema_names = await ext.extract_schema_names(strategy='model')
 ```
 
-##### Example 2 - Extracting only Table/Column Names
+##### Example 2 - Extracting Tables
 ```python
 tables = await ext.extract_table_names(strategy='model')
+```
+
+##### Example 3 - Extracting Columns
+```python
 columns = await ext.extract_column_names(table='users', strategy='model')
 ```
 
-Once you know the schema, you can extract the actual content.
+##### Example 4 - Extracting Tables and Columns Together
+```python
+metadata = await ext.extract_meta(strategy='model')
+```
+
+Once you know the structure, you can extract the actual content.
 
 ##### Example 1 - Extracting Generic Columns
 ```python

@@ -23,11 +23,11 @@ class OfflineRequester(Requester):
         assert os.path.exists(db_file), f'DB not found: {db_file}'
         self.db = sqlite3.connect(db_file).cursor()
         self.verbose = verbose
-        self.n_queries = 0
+        self.n_requests = 0
 
 
     async def request(self, ctx, query):
-        self.n_queries += 1
+        self.n_requests += 1
         query = f'SELECT cast(({query}) as bool)'
 
         res = None
@@ -36,7 +36,7 @@ class OfflineRequester(Requester):
         except Exception as e:
             if self.verbose:
                 print(f'"{ctx.buffer}"\t(err)\t{query}')
-                raise e
+            raise e
 
         if self.verbose:
             print(f'"{ctx.buffer}"\t{res}\t{query}')
@@ -46,4 +46,4 @@ class OfflineRequester(Requester):
 
 
     def reset(self):
-        self.n_queries = 0
+        self.n_requests = 0

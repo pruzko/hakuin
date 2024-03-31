@@ -10,6 +10,7 @@ import hakuin.utils.ngrams as ngrams
 from hakuin.utils import tokenize, DIR_MODELS
 
 
+_m_schemas = None
 _m_tables = None
 _m_columns = None
 
@@ -134,6 +135,13 @@ class Model:
             self.model.counts.update(self.model.vocab.lookup(t) for t in train)
 
 
+
+def get_model_schemas():
+    global _m_schemas
+    if _m_schemas is None:
+        _m_schemas = Model(None)
+        _m_schemas.load(os.path.join(DIR_MODELS, 'model_schemas.pkl'))
+    return _m_schemas
 
 
 def get_model_tables():

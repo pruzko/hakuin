@@ -17,8 +17,9 @@ async def main():
     requester = OfflineRequester(db='data_types', verbose=False)
     ext = Extractor(requester=requester, dbms=SQLite())
 
-    res = await ext.extract_column_int('data_types', 'integer')
-    print(res)
+    for column in ['integer', 'text', 'blob', 'real']:
+        res = await ext.extract_column(table='data_types', column=column)
+        print(res)
     
 
 

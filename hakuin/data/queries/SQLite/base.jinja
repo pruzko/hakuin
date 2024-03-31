@@ -1,0 +1,51 @@
+{% set schema = schema | default(ctx.schema | sql_escape) %}
+
+{% if ctx.target == 'schema_names' %}
+    {% set table = table | default('pragma_database_list()') %}
+    {% set column = column | default('name') %}
+{% elif ctx.target == 'table_names' %}
+    {% set table = table | default('pragma_table_list()') %}
+    {% set column = column | default('name') %}
+{% elif ctx.target == 'column_names' %}
+    {% set _table = 'pragma_table_info(%s)' % (ctx.table | sql_str_lit) %}
+    {% set _table = '%s.%s' | format(schema, _table) if schema else _table %}
+    {% set table = table | default(_table) %}
+    {% set column = column | default('name') %}
+{% elif ctx.target == 'column' %}
+    {% if schema %}
+        {% set _table = '%s.%s' | format(schema, ctx.table | sql_escape) %}
+    {% else %}
+        {% set _table = ctx.table | sql_escape  %}
+    {% endif %}
+    {% set table = table | default(_table) %}
+    {% set column = ctx.column | sql_escape %}
+{% endif %}
+
+
+
+{% block select %}
+{% endblock %}
+
+
+{% block from %}
+    FROM    {{ table }}
+{% endblock %}
+
+
+{% block where %}
+{% if ctx.target == 'table_names' %}
+    WHERE   schema={{ (ctx.schema if ctx.schema else 'main') | sql_str_lit }}
+            AND
+            type='table'
+            AND
+            name!='sqlite_schema'
+{% endif %}
+{% endblock %}
+
+
+{% block offset %}
+{% if single_row %}
+    LIMIT   1
+    OFFSET  {{ ctx.row_idx }}
+{% endif %}
+{% endblock %}

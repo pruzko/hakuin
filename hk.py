@@ -76,6 +76,8 @@ class UniversalRequester(Requester):
         body = self.RE_QUERY_TAG.sub(query, self.body) if self.body else None
 
         async with self.http.request(method=self.method, url=url, headers=headers, cookies=cookies, data=body) as resp:
+            assert resp.status in [200, 404], 'TODO DELME'
+
             if self.inference['type'] == 'status':
                 result = resp.status == self.inference['content']
             elif self.inference['type'] == 'header':
@@ -117,37 +119,40 @@ class HK:
 
 
     async def _main(self, args):
-
-        if args.schema:
-            res = await self.ext.extract_schema(strategy=args.schema_strategy)
-        elif args.column:
-            res = await self.ext.extract_column(table=args.table, column=args.column, text_strategy=args.text_strategy)
-        elif args.table:
-            res = await self.extract_table(table=args.table, schema_strategy=args.schema_strategy, text_strategy=args.text_strategy)
-        else:
-            res = await self.extract_tables(schema_strategy=args.schema_strategy, text_strategy=args.text_strategy)
+        if args.extract == 'data':
+            if args.column:
+                res = await self.ext.extract_column(table=args.table, column=args.column, schema=args.schema, text_strategy=args.text_strategy)
+            elif args.table:
+                res = await self.extract_table(table=args.table, schema=args.schema, meta_strategy=args.meta_strategy, text_strategy=args.text_strategy)
+            else:
+                res = await self.extract_tables(schema=args.schema, meta_strategy=args.meta_strategy, text_strategy=args.text_strategy)
+        elif args.extract == 'meta':
+            res = await self.ext.extract_meta(schema=args.schema, strategy=args.meta_strategy)
+        elif args.extract == 'schemas':
+            res = await self.ext.extract_schema_names(strategy=args.meta_strategy)
+        elif args.extract == 'tables':
+            res = await self.ext.extract_table_names(schema=args.schema, strategy=args.meta_strategy)
+        elif args.extract == 'columns':
+            res = await self.ext.extract_column_names(table=args.table, schema=args.schema, strategy=args.meta_strategy)
 
         print(f'Number of requests: {self.ext.requester.n_requests}')
         print(json.dumps(res, cls=BytesEncoder, indent=4))
 
 
-    async def extract_schema(self):
-        return await self.ext.extract_schema(strategy=self.args.schema_strategy)
-
-
-    async def extract_tables(self, schema_strategy, text_strategy):
+    async def extract_tables(self, schema, meta_strategy, text_strategy):
         res = {}
-        for table in await self.ext.extract_table_names(strategy=schema_strategy):
-            res[table] = await self.extract_table(table, schema_strategy, text_strategy)
+        for table in await self.ext.extract_table_names(schema=schema, strategy=meta_strategy):
+            res[table] = await self.extract_table(table, schema, meta_strategy, text_strategy)
         return res
 
 
-    async def extract_table(self, table, schema_strategy, text_strategy):
+    async def extract_table(self, table, schema, meta_strategy, text_strategy):
         res = {}
-        for column in await self.ext.extract_column_names(table=table, strategy=schema_strategy):
+        for column in await self.ext.extract_column_names(table=table, schema=schema, strategy=meta_strategy):
             try:
-                res[column] = await self.ext.extract_column(table=table, column=column, text_strategy=text_strategy)
+                res[column] = await self.ext.extract_column(table=table, column=column, schema=schema, text_strategy=text_strategy)
             except Exception as e:
+                res[column] = None
                 logging.error(f'Failed to extract "{table}.{column}": {e}')
         return res
 
@@ -157,29 +162,46 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A simple wrapper to easily call Hakuin\'s basic functionality.')
     parser.add_argument('url', help='URL pointing to a vulnerable endpoint. The URL can contain the {query} tag, which will be replaced with injected queries.')
     parser.add_argument('-T', '--tasks', default=1, type=int, help='Run several coroutines in parallel.')
-    parser.add_argument('-d', '--dbms', required=True, choices=HK.DBMS_DICT.keys(), help='Assume this DBMS engine.')
+    parser.add_argument('-D', '--dbms', required=True, choices=HK.DBMS_DICT.keys(), help='Assume this DBMS engine.')
     parser.add_argument('-M', '--method', choices=['get', 'post', 'put', 'delete', 'head', 'patch'], default='get', help='HTTP request method.')
     parser.add_argument('-H', '--headers', help='Headers attached to requests. The header names and values can contain the {query} tag.')
     parser.add_argument('-C', '--cookies', help='Cookies attached to requests. The cookie names and values can contain the {query} tag.')
     parser.add_argument('-B', '--body', help='Request body. The body can contain the {query} tag.')
-    parser.add_argument('-i', '--inference', required=True, help=' '.join('''
-        Inference method that determines the results of injected queries. The method must be in the form of "<TYPE>:<CONTENT>", where the <TYPE>
-        can be "status", "header", or "body" and the <CONTENT> can be a status code or a string to look for in HTTP responses. Also, the <TYPE>
-        can be prefixed with "not_" to negate the expression. Examples: "status:200" (check if the response status code is 200), "not_status:404"
-        (the response status code is not 404), "header:found" (the response header name or value contains "found"), "body:found" (the response body
-        contains "found").
-    '''.split()))
-    parser.add_argument('-t', '--table', help='Table to extract.')
-    parser.add_argument('-c', '--column', help='Column to extract.')
-    parser.add_argument('-s', '--schema', action='store_true', help='Extract only schema.')
-    parser.add_argument('--schema_strategy', choices=['binary', 'model'], default='model', help='Use this strategy to extract schema.')
-    parser.add_argument('--text_strategy', choices=['binary', 'unigram', 'fivegram', 'dynamic'], default='dynamic', help='Use this strategy to extract text columns.')
+    parser.add_argument('-i', '--inference', required=True, help=''
+        'Inference method that determines the results of injected queries. The method must be in the form of "<TYPE>:<CONTENT>", where the <TYPE> '
+        'can be "status", "header", or "body" and the <CONTENT> can be a status code or a string to look for in HTTP responses. Also, the <TYPE> '
+        'can be prefixed with "not_" to negate the expression. Examples: "status:200" (check if the response status code is 200), "not_status:404" '
+        '(the response status code is not 404), "header:found" (the response header name or value contains "found"), "body:found" (the response body '
+        'contains "found").'
+    )
+    parser.add_argument('-x', '--extract', choices=['data', 'meta', 'schemas', 'tables', 'columns'], default='data', help='Target to extract - '
+        '"schemas" extracts names of schemas, "tables" extracts names of tables, "columns" extracts names of columns, "meta" extracts both table and '
+        'column names, and "data" extracts data within the selected DB object. If not provided, "data" is used.'
+    )
+    parser.add_argument('-s', '--schema', help='Select this schema. If not provided, the current schema is selected.')
+    parser.add_argument('-t', '--table', help='Select this table. If not provided, all tables are selected.')
+    parser.add_argument('-c', '--column', help='Select this column. If not provided, all columns are selected.')
+
+    parser.add_argument('--meta_strategy', choices=['binary', 'model'], default='model', help=''
+        'Use this strategy to extract metadata (schema, table, and column names). If not provided, "model" is used.'
+    )
+    parser.add_argument('--text_strategy', choices=['dynamic', 'binary', 'unigram', 'fivegram'], default='dynamic', help=''
+        'Use this strategy to extract text columns. If not provided, "dynamic" is used.'
+    )
+
     # parser.add_argument('-o', '--out', help='Output directory.')
     parser.add_argument('--dbg', action='store_true', help='Print debug information to stderr.')
     args = parser.parse_args()
 
-    if args.schema:
-        assert not args.table and not args.column, 'Cannot combine the --schema and --table/--column options.'
+    if args.extract == 'meta':
+        assert not args.table and not args.column, 'You cannot combine --extract=meta with --table or --column.'
+    elif args.extract == 'schemas':
+        assert not args.table and not args.column, 'You cannot combine --extract=schemas with --schema, --table, or --column.'
+    elif args.extract == 'tables':
+        assert not args.table and not args.column, 'You cannot combine --extract=tables with --table or --column.'
+    elif args.extract == 'columns':
+        assert not args.column, 'You cannot combine --extract=columns with --column.'
+        assert args.table, 'You must specify --table when using --extract=columns.'
 
     if args.column:
         assert args.table, 'You must specify --table when using --column.'

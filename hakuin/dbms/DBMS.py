@@ -39,8 +39,12 @@ class DBMS(metaclass=ABCMeta):
     # Template Filters
     @staticmethod
     def sql_escape(s):
+        if s is None:
+            return None
+
         if DBMS._RE_ESCAPE.match(s):
             return s
+
         assert ']' not in s, f'Cannot escape "{s}"'
         return f'[{s}]'
 
@@ -81,10 +85,6 @@ class DBMS(metaclass=ABCMeta):
 
 
     # Queries
-    @abstractmethod
-    def q_column_type_in_str_set(self, ctx, types):
-        raise NotImplementedError()
-
     @abstractmethod
     def q_column_is_int(self, ctx):
         raise NotImplementedError()

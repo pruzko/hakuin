@@ -1,7 +1,20 @@
+{% extends 'base.jinja' %}
+
+
+{% block select %}
 SELECT  {{ 'lower(DATA_TYPE)' | sql_in_str_set(types) }}
+{% endblock %}
+
+
+{% block from %}
 FROM    INFORMATION_SCHEMA.COLUMNS
-WHERE   TABLE_CATALOG=current_database()
+{% endblock %}
+
+
+{% block where %}
+WHERE   TABLE_SCHEMA={{ ctx.schema | sql_str_lit if ctx.schema else 'current_schema()' }}
         AND
         TABLE_NAME={{ ctx.table | sql_str_lit }}
         AND
         COLUMN_NAME={{ ctx.column | sql_str_lit }}
+{% endblock %}

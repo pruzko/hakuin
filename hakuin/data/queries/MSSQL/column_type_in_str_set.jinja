@@ -1,4 +1,20 @@
+{% extends 'base.jinja' %}
+
+
+{% block select %}
 SELECT  CASE WHEN {{ 'lower(DATA_TYPE)' | sql_in_str_set(types) }} THEN 1 ELSE 0 END
+{% endblock %}
+
+
+{% block from %}
 FROM    INFORMATION_SCHEMA.COLUMNS
-WHERE   TABLE_NAME={{ ctx.table | sql_str_lit }} AND
+{% endblock %}
+
+
+{% block where %}
+WHERE   TABLE_SCHEMA={{ ctx.schema | sql_str_lit if ctx.schema else 'schema_name()' }}
+        AND
+        TABLE_NAME={{ ctx.table | sql_str_lit }}
+        AND
         COLUMN_NAME={{ ctx.column | sql_str_lit }}
+{% endblock %}

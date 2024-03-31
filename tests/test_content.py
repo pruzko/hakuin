@@ -27,8 +27,8 @@ async def main():
 
     if len(sys.argv) == 3:
         res = await ext.extract_column_text(sys.argv[1], sys.argv[2])
-        print('Total requests:', requester.n_queries)
-        print('Average RPC:', requester.n_queries / len(''.join(res)))
+        print('Total requests:', requester.n_requests)
+        print('Average RPC:', requester.n_requests / len(''.join(res)))
     else:
         rpc = {}
 
@@ -46,9 +46,9 @@ async def main():
             for column in columns:
                 res = await ext.extract_column_text(table, column)
                 res_len = len(''.join(res))
-                col_rpc = requester.n_queries / len(''.join(res))
-                rpc[table][column] = (requester.n_queries, col_rpc)
-                requester.n_queries = 0
+                col_rpc = requester.n_requests / len(''.join(res))
+                rpc[table][column] = (requester.n_requests, col_rpc)
+                requester.n_requests = 0
 
         print(json.dumps(rpc, indent=4))
 

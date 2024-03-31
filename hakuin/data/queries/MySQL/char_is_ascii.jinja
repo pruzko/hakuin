@@ -1,5 +1,5 @@
-{% set single = true %}
-{% extends "_base_schema.jinja" %}
+{% set single_row = true %}
+{% extends 'base.jinja' %}
 
 {% block select %}
 SELECT  {{ column | sql_char_at(ctx.buffer | length) | sql_is_ascii }}

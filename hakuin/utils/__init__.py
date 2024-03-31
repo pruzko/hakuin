@@ -18,7 +18,6 @@ EOS = '</s>'
 SOS = '<s>'
 
 
-
 def split_at(s, i):
     '''Splits sequence.
 
