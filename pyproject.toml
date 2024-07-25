@@ -32,14 +32,7 @@ classifiers = [
 include = ["models/*.pkl", "hakuin/**"]
 
 
-[tool.hatch.build.targets.sdist.force-include]
-"hk.py" = "hakuin/hk.py"
-"models/model_columns.pkl" = "hakuin/models/model_columns.pkl"
-"models/model_tables.pkl" = "hakuin/models/model_tables.pkl"
-"models/model_schemas.pkl" = "hakuin/models/model_schemas.pkl"
-
-
-[tool.hatch.build.targets.wheel.force-include]
+[tool.hatch.build.force-include]
 "hk.py" = "hakuin/hk.py"
 "models/model_columns.pkl" = "hakuin/models/model_columns.pkl"
 "models/model_tables.pkl" = "hakuin/models/model_tables.pkl"
