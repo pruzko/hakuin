@@ -2,7 +2,7 @@
     <img width="150" src="https://raw.githubusercontent.com/pruzko/hakuin/main/logo.png">
 </p>
 
-Hakuin is a Blind SQL Injection (BSQLI) optimization and automation framework written in Python 3. It abstracts away the inference logic and allows users to easily and efficiently extract databases (DB) from vulnerable web applications. To speed up the process, Hakuin utilizes a variety of optimization methods, including pre-trained and adaptive language models, opportunistic guessing, parallelism and more.
+Hakuin is a Blind SQL Injection (BSQLI) optimization and automation framework and tool written in Python 3. It abstracts away the inference logic and allows users to easily and efficiently extract databases (DB) from vulnerable web applications. To speed up the process, Hakuin utilizes a variety of optimization methods, including pre-trained and adaptive language models, opportunistic guessing, parallelism, and more.
 
 Hakuin has been presented at esteemed academic and industrial conferences:
 - [BlackHat MEA, Riyadh](https://blackhatmea.com/session/hakuin-injecting-brain-blind-sql-injection), 2023
@@ -16,17 +16,26 @@ More information can be found in our [paper](https://github.com/pruzko/hakuin/bl
 To install Hakuin, simply run:
 ```
 pip3 install hakuin
+hk -h
 ```
-Developers should install the package locally and set the `-e` flag for editable mode:
+
+Note that installation is optional and you can use Hakuin directly from the source codes:
 ```
-git clone git@github.com:pruzko/hakuin.git
+git clone https://github.com/pruzko/hakuin
 cd hakuin
-pip3 install -e .
+python3 hk.py -h
 ```
 
+## Command Line Tool
+Hakuin ships with an intuitive tool called `hk` that offers most of Hakuin's features directly from the command line. To find out more, run:
+```
+hk -h
+```
 
-## Examples
-Once you identify a BSQLI vulnerability, you need to tell Hakuin how to inject its queries. To do this, derive a class from the `Requester` and override the `request` method. Also, the method must determine whether the query resolved to `True` or `False`.
+## Custom Scripting
+Sometimes, BSQLI vunerabilities are too tricky to be exploited from the command line and require custom scripting. This is where Hakuin's Python package shines, giving you total control over the extraction process.
+
+To customize exploitation, you need to instruct Hakuin on how to inject its queries. This is done by deriving a class from the `Requester` and overriding the `request` method. Aside from injecting queries, the method must determine whether they resolved to `True` or `False`.
 
 
 ##### Example 1 - Query Parameter Injection with Status-based Inference
@@ -61,10 +70,7 @@ class StatusRequester(Requester):
     ...
 
 async def main():
-    # requester:    Use this Requester
-    # dbms:         Use this DBMS
-    # n_tasks:      Spawns N tasks that extract column rows in parallel 
-    ext = Extractor(requester=StatusRequester(), dbms=SQLite(), n_tasks=1)
+    ext = Extractor(requester=StatusRequester(), dbms=SQLite())
     ...
 
 if __name__ == '__main__':
@@ -73,71 +79,38 @@ if __name__ == '__main__':
 
 Now that eveything is set, you can start extracting DB metadata.
 
-##### Example 1 - Extracting DB Schemas
+##### Example 1 - Extracting DB Schemas/Tables/Columns
 ```python
 # strategy:
 #   'binary':   Use binary search
 #   'model':    Use pre-trained model
-schema_names = await ext.extract_schema_names(strategy='model')
+schema_names = await ext.extract_schema_names(strategy='model')             # extracts schema names
+tables = await ext.extract_table_names(strategy='model')                    # extracts table names
+columns = await ext.extract_column_names(table='users', strategy='model')   # extracts column names
+metadata = await ext.extract_meta(strategy='model')                         # extracts all table and column names
 ```
 
-##### Example 2 - Extracting Tables
-```python
-tables = await ext.extract_table_names(strategy='model')
-```
+Once you know the DB structure, you can extract the actual content.
 
-##### Example 3 - Extracting Columns
-```python
-columns = await ext.extract_column_names(table='users', strategy='model')
-```
-
-##### Example 4 - Extracting Tables and Columns Together
-```python
-metadata = await ext.extract_meta(strategy='model')
-```
-
-Once you know the structure, you can extract the actual content.
-
-##### Example 1 - Extracting Generic Columns
+##### Example 1 - Extracting Column Data
 ```python
 # text_strategy:    Use this strategy if the column is text
-res = await ext.extract_column(table='users', column='address', text_strategy='dynamic')
-```
+res = await ext.extract_column(table='users', column='address', text_strategy='dynamic')    # detects types and extracts columns
 
-##### Example 2 - Extracting Textual Columns
-```python
 # strategy:
 #   'binary':       Use binary search
 #   'fivegram':     Use five-gram model
 #   'unigram':      Use unigram model
 #   'dynamic':      Dynamically identify the best strategy. This setting
 #                   also enables opportunistic guessing.
-res = await ext.extract_column_text(table='users', column='address', strategy='dynamic')
-```
-
-##### Example 3 - Extracting Integer Columns
-```python
-res = await ext.extract_column_int(table='users', column='id')
-```
-
-##### Example 4 - Extracting Float Columns
-```python
-res = await ext.extract_column_float(table='products', column='price')
-```
-
-##### Example 5 - Extracting Blob (Binary Data) Columns
-```python
-res = await ext.extract_column_blob(table='users', column='id')
+res = await ext.extract_column_text(table='users', column='address', strategy='dynamic')    # extracts text columns
+res = await ext.extract_column_int(table='users', column='id')                              # extracts int columns
+res = await ext.extract_column_float(table='products', column='price')                      # extracts float columns
+res = await ext.extract_column_blob(table='users', column='id')                             # extracts blob columns
 ```
 
 More examples can be found in the `tests` directory.
 
-
-## Using Hakuin from the Command Line
-Hakuin comes with a simple wrapper tool, `hk.py`, that allows you to use Hakuin's basic functionality directly from the command line. To find out more, run:
-```
-python3 hk.py -h
-```
 
 
 ## For Researchers

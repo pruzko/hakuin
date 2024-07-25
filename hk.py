@@ -1,15 +1,18 @@
 import argparse
 import asyncio
+import importlib.util
+import inspect
 import json
 import logging
 import re
-import requests
 import sys
+import tqdm
+import urllib.parse
 
 import aiohttp
 
 from hakuin.dbms import SQLite, MySQL, MSSQL, PSQL
-from hakuin import Extractor, Requester
+from hakuin import Extractor, HKRequester
 
 
 
@@ -19,13 +22,14 @@ class BytesEncoder(json.JSONEncoder):
 
 
 
-class UniversalRequester(Requester):
+class UniversalRequester(HKRequester):
     RE_INFERENCE = re.compile(r'^(not_)?(.+):(.*)$')
     RE_QUERY_TAG = re.compile(r'{query}')
 
 
-    def __init__(self, http, args):
-        self.http = http
+    def __init__(self, args):
+        super().__init__()
+        self.http = None
         self.url = args.url
         self.method = args.method
         self.headers = self._process_dict(args.headers)
@@ -33,12 +37,16 @@ class UniversalRequester(Requester):
         self.body = args.body
         self.inference = self._process_inference(args.inference)
         self.dbg = args.dbg
-        self.n_requests = 0
 
 
-    @staticmethod
-    async def _init_http():
-        return aiohttp.ClientSession()
+    async def initialize(self):
+        self.http = aiohttp.ClientSession()
+
+
+    async def cleanup(self):
+        if self.http:
+            await self.http.close()
+            self.http = None
 
 
     def _process_dict(self, dict_str):
@@ -70,13 +78,15 @@ class UniversalRequester(Requester):
     async def request(self, ctx, query):
         self.n_requests += 1
 
-        url = self.RE_QUERY_TAG.sub(requests.utils.quote(query), self.url)
+        url = self.RE_QUERY_TAG.sub(urllib.parse.quote(query), self.url)
         headers = {self.RE_QUERY_TAG.sub(query, k): self.RE_QUERY_TAG.sub(query, v) for k, v in self.headers.items()}
         cookies = {self.RE_QUERY_TAG.sub(query, k): self.RE_QUERY_TAG.sub(query, v) for k, v in self.cookies.items()}
         body = self.RE_QUERY_TAG.sub(query, self.body) if self.body else None
 
         async with self.http.request(method=self.method, url=url, headers=headers, cookies=cookies, data=body) as resp:
-            assert resp.status in [200, 404], 'TODO DELME'
+            if resp.status not in [200, 404]:
+                tqdm.tqdm.write(f'(err) {query}')
+                raise AssertionError(f'Invalid response code: {resp.status}')
 
             if self.inference['type'] == 'status':
                 result = resp.status == self.inference['content']
@@ -90,7 +100,7 @@ class UniversalRequester(Requester):
             result = not result
 
         if self.dbg:
-            print(result, '(err)' if resp.status == 500 else '',  query, file=sys.stderr)
+            tqdm.tqdm.write(f'{self.n_requests} {"(err)" if resp.status == 500 else str(result)[0]} {query}')
 
         return result
 
@@ -109,16 +119,24 @@ class HK:
         self.ext = None
 
 
-    async def main(self, args):
-        async with aiohttp.ClientSession() as http:
-            requester = UniversalRequester(http, args)
-            dbms = self.DBMS_DICT[args.dbms]()
-            self.ext = Extractor(requester, dbms, args.tasks)
+    async def run(self, args):
+        if args.requester:
+            requester = self._load_requester(args)
+        else:
+            requester = UniversalRequester(args)
 
-            await self._main(args)
+        await requester.initialize()
+
+        dbms = self.DBMS_DICT[args.dbms]()
+        self.ext = Extractor(requester, dbms, args.tasks)
+
+        try:
+            await self._run(args)
+        finally:
+            await requester.cleanup()
 
 
-    async def _main(self, args):
+    async def _run(self, args):
         if args.extract == 'data':
             if args.column:
                 res = await self.ext.extract_column(table=args.table, column=args.column, schema=args.schema, text_strategy=args.text_strategy)
@@ -135,7 +153,12 @@ class HK:
         elif args.extract == 'columns':
             res = await self.ext.extract_column_names(table=args.table, schema=args.schema, strategy=args.meta_strategy)
 
-        print(f'Number of requests: {self.ext.requester.n_requests}')
+        res = {
+            'stats': {
+                'n_requests': self.ext.requester.n_requests,
+            },
+            'data': res,
+        }
         print(json.dumps(res, cls=BytesEncoder, indent=4))
 
 
@@ -157,8 +180,27 @@ class HK:
         return res
 
 
+    def _load_requester(self, args):
+        assert ':' in args.requester, f'Invalid requester format (path/to/requester.py:MyHKRequesterClass): "{args.requester}"'
+        req_path, req_cls = args.requester.rsplit(':', -1)
 
-if __name__ == '__main__':
+        spec = importlib.util.spec_from_file_location('_custom_requester', req_path)
+        assert spec, f'Failed to locate "{req_path}"'
+        module = importlib.util.module_from_spec(spec)
+        assert module, f'Failed to locate "{req_path}"'
+        spec.loader.exec_module(module)
+
+        for cls_name, obj in inspect.getmembers(module, inspect.isclass):
+            if cls_name != req_cls:
+                continue
+            if issubclass(obj, HKRequester) and obj is not HKRequester:
+                return obj()
+
+        raise ValueError(f'HKRequester class "{req_cls}" not found in "{req_path}".')
+
+
+
+def main():
     parser = argparse.ArgumentParser(description='A simple wrapper to easily call Hakuin\'s basic functionality.')
     parser.add_argument('url', help='URL pointing to a vulnerable endpoint. The URL can contain the {query} tag, which will be replaced with injected queries.')
     parser.add_argument('-T', '--tasks', default=1, type=int, help='Run several coroutines in parallel.')
@@ -167,7 +209,7 @@ if __name__ == '__main__':
     parser.add_argument('-H', '--headers', help='Headers attached to requests. The header names and values can contain the {query} tag.')
     parser.add_argument('-C', '--cookies', help='Cookies attached to requests. The cookie names and values can contain the {query} tag.')
     parser.add_argument('-B', '--body', help='Request body. The body can contain the {query} tag.')
-    parser.add_argument('-i', '--inference', required=True, help=''
+    parser.add_argument('-i', '--inference', help=''
         'Inference method that determines the results of injected queries. The method must be in the form of "<TYPE>:<CONTENT>", where the <TYPE> '
         'can be "status", "header", or "body" and the <CONTENT> can be a status code or a string to look for in HTTP responses. Also, the <TYPE> '
         'can be prefixed with "not_" to negate the expression. Examples: "status:200" (check if the response status code is 200), "not_status:404" '
@@ -189,6 +231,8 @@ if __name__ == '__main__':
         'Use this strategy to extract text columns. If not provided, "dynamic" is used.'
     )
 
+    parser.add_argument('-R', '--requester', help='Use custom HKRequester class (see Requester.py) instead of the default one. '
+        'Example: path/to/requester.py:MyHKRequesterClass')
     # parser.add_argument('-o', '--out', help='Output directory.')
     parser.add_argument('--dbg', action='store_true', help='Print debug information to stderr.')
     args = parser.parse_args()
@@ -208,5 +252,11 @@ if __name__ == '__main__':
 
     assert args.tasks > 0, 'The --tasks parameter must be positive.'
 
+    assert args.inference or args.requester, 'You must provide -i/--inference or -R/--requester.'
+
     logging.basicConfig(level=logging.INFO)
-    asyncio.get_event_loop().run_until_complete(HK().main(args))
+    asyncio.get_event_loop().run_until_complete(HK().run(args))
+
+
+if __name__ == '__main__':
+    main()

@@ -31,7 +31,7 @@ class PSQL(DBMS):
 
     @staticmethod
     def sql_str_lit(s):
-        if not s.isascii() or not s.isprintable() or "'" in s:
+        if not s.isascii() or not s.isprintable() or any(c in s for c in "?:'"):
             return f"convert_from('\\x{s.encode('utf-8').hex()}', 'UTF8')"
         return f"'{s}'"
 

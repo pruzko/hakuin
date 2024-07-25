@@ -1,5 +1,6 @@
 import asyncio
-import logging
+import tqdm
+import sys
 from abc import ABCMeta, abstractmethod
 from copy import deepcopy
 
@@ -73,7 +74,7 @@ class Collector(metaclass=ABCMeta):
         Returns:
             list: column rows
         '''
-        logging.info(f'Inferring "{ctx.table}.{ctx.column}"')
+        tqdm.tqdm.write(f'Extracting [{ctx.table}].[{ctx.column}]', file=sys.stderr)
 
         if ctx.n_rows is None:
             ctx.n_rows = await NumericBinarySearch(
@@ -88,15 +89,16 @@ class Collector(metaclass=ABCMeta):
         if ctx.rows_have_null is None:
             ctx.rows_have_null = await self.check_rows_have_null(ctx)
 
-        data = [None] * ctx.n_rows
-        await asyncio.gather(
-            *[self.task_collect_row(deepcopy(ctx), data) for _ in range(self.n_tasks)]
-        )
+        with tqdm.tqdm(total=ctx.n_rows, file=sys.stderr, leave=False) as progress:
+            data = [None] * ctx.n_rows
+            await asyncio.gather(
+                *[self._task_collect_row(deepcopy(ctx), data, progress) for _ in range(self.n_tasks)]
+            )
 
         return data
 
 
-    async def task_collect_row(self, ctx, data):
+    async def _task_collect_row(self, ctx, data, progress):
         while True:
             async with self._row_idx_ctr_lock:
                 if self._row_idx_ctr >= ctx.n_rows:
@@ -112,7 +114,8 @@ class Collector(metaclass=ABCMeta):
             async with self._data_lock:
                 data[ctx.row_idx] = res
 
-            logging.info(f'({ctx.row_idx + 1}/{ctx.n_rows}) "{ctx.table}.{ctx.column}": {res}')
+            progress.update(1)
+            progress.write(f'({ctx.row_idx + 1}/{ctx.n_rows}) [{ctx.table}].[{ctx.column}]: {res}', file=sys.stderr)
 
 
     @abstractmethod

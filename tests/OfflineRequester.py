@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from hakuin import Requester
+from hakuin import HKRequester
 
 
 
@@ -10,40 +10,42 @@ DIR_DBS = os.path.abspath(os.path.join(DIR_FILE, 'dbs'))
 
 
 
-class OfflineRequester(Requester):
+class OfflineRequester(HKRequester):
     '''Offline requester for testing purposes.'''
-    def __init__(self, db, verbose=False):
-        '''Constructor.
+    DB_FILE = None
 
-        Params:
-            db (str): name of an .sqlite DB in the "dbs" dir
-            verbose (bool): flag for verbous prints
-        '''
-        db_file = os.path.join(DIR_DBS, f'{db}.sqlite')
-        assert os.path.exists(db_file), f'DB not found: {db_file}'
-        self.db = sqlite3.connect(db_file).cursor()
-        self.verbose = verbose
-        self.n_requests = 0
+    def __init__(self):
+        super().__init__()
+        self.db = None
+        self.cursor = None
+
+
+    async def initialize(self):
+        assert os.path.exists(self.DB_FILE), f'DB not found: {self.DB_FILE}'
+        self.db = sqlite3.connect(self.DB_FILE)
+        self.cursor = self.db.cursor()
+
+
+    async def cleanup(self):
+        if self.cursor:
+            self.cursor.close()
+            self.cursor = None
+
+        if self.db:
+            self.db.close()
+            self.db = None
 
 
     async def request(self, ctx, query):
         self.n_requests += 1
         query = f'SELECT cast(({query}) as bool)'
-
-        res = None
-        try:
-            res = bool(self.db.execute(query).fetchone()[0])
-        except Exception as e:
-            if self.verbose:
-                print(f'"{ctx.buffer}"\t(err)\t{query}')
-            raise e
-
-        if self.verbose:
-            print(f'"{ctx.buffer}"\t{res}\t{query}')
-
-        return res
+        return bool(self.db.execute(query).fetchone()[0])
 
 
 
-    def reset(self):
-        self.n_requests = 0
+class MetaOfflineRequester(OfflineRequester):
+    DB_FILE = f'{DIR_DBS}/test_efficiency_meta.sqlite'
+
+
+class ContentOfflineRequester(OfflineRequester):
+    DB_FILE = f'{DIR_DBS}/test_efficiency_content.sqlite'

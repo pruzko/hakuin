@@ -20,7 +20,7 @@ class SQLite(DBMS):
     # Template Filters
     @staticmethod
     def sql_str_lit(s):
-        if not s.isascii() or not s.isprintable() or "'" in s:
+        if not s.isascii() or not s.isprintable() or any(c in s for c in "?:'"):
             return f"cast(x'{s.encode('utf-8').hex()}' as TEXT)"
         return f"'{s}'"
 
@@ -29,9 +29,9 @@ class SQLite(DBMS):
         assert n in range(BYTE_MAX + 1), f'n must be in [0, {BYTE_MAX}]'
         return f"x'{n:02x}'"
 
-    @staticmethod
-    def sql_in_str_set(s, strings):
-        return f'{s} in ({",".join([SQLite.sql_str_lit(x) for x in strings])})'
+    @classmethod
+    def sql_in_str_set(cls, s, strings):
+        return f'{s} in ({",".join([cls.sql_str_lit(x) for x in strings])})'
 
     @staticmethod
     def sql_is_ascii(s):
@@ -52,7 +52,7 @@ class SQLite(DBMS):
         return self.q_column_type_in_str_set(ctx, types=['integer'])
 
     def q_column_is_float(self, ctx):
-        return self.q_column_type_in_str_set(ctx, types=['real'])
+        return self.q_column_type_in_str_set(ctx, types=['real', 'float'])
 
     def q_column_is_text(self, ctx):
         return self.q_column_type_in_str_set(ctx, types=['text'])

@@ -19,3 +19,21 @@ class Requester(metaclass=ABCMeta):
             bool: query result
         '''
         raise NotImplementedError()
+
+
+
+class HKRequester(Requester):
+    '''Abstract class for requesters that can be loaded by hk.py.'''
+    def __init__(self):
+        '''Constructor.'''
+        self.n_requests = 0
+
+
+    async def initialize(self):
+        '''Async initialization. This method is called by "hk.py"'''
+        pass
+
+
+    async def cleanup(self):
+        '''Async clean-up. This method is called by "hk.py"'''
+        pass

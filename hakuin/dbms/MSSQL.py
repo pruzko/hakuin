@@ -27,9 +27,9 @@ class MSSQL(DBMS):
     # Template Filters
     @staticmethod
     def sql_str_lit(s):
-        if not s.isascii() or "'" in s:
-            hex_str = s.encode('cp1252').hex()
-            return f'convert(varchar(MAX), 0x{hex_str})'
+        if not s.isascii() or not s.isprintable() or any(c in s for c in "?:'"):
+            hex_str = s.encode('utf-16').hex()
+            return f'convert(nvarchar(MAX), 0x{hex_str})'
         return f"'{s}'"
 
     @staticmethod
@@ -42,21 +42,21 @@ class MSSQL(DBMS):
 
     @staticmethod
     def sql_in_str(s, string):
-        return f'charindex({s},{string} COLLATE Latin1_General_BIN)'
+        return f'charindex({s},{string} COLLATE Latin1_General_CS_AS)'
 
-    @staticmethod
-    def sql_in_str_set(s, strings):
-        return f'{s} COLLATE Latin1_General_BIN in ({",".join([MSSQL.sql_str_lit(x) for x in strings])})'
+    @classmethod
+    def sql_in_str_set(cls, s, strings):
+        return f'{s} COLLATE Latin1_General_CS_AS in ({",".join([cls.sql_str_lit(x) for x in strings])})'
 
     @staticmethod
     def sql_is_ascii(s):
         # MSSQL does not have native "isascii" function. As a workaround we try to look for
         # non-ascii characters with "%[^\x00-0x7f]%" patterns.
-        return f'CASE WHEN patindex(\'%[^\'+char(0x00)+\'-\'+char(0x7f)+\']%\' COLLATE Latin1_General_BIN,{s}) = 0 THEN 1 ELSE 0 END'
+        return f"CASE WHEN patindex('%[^'+char(0x00)+'-'+char(0x7f)+']%' COLLATE Latin1_General_BIN,{s}) = 0 THEN 1 ELSE 0 END"
 
     @staticmethod
     def sql_to_varchar(s):
-        return f'cast({s} as varchar(MAX))'
+        return f'convert(nvarchar(MAX), {s})'
 
 
     # Queries
@@ -73,7 +73,7 @@ class MSSQL(DBMS):
         return self.q_column_type_in_str_set(ctx, types=types)
 
     def q_column_is_text(self, ctx):
-        types = ['char', 'nchar' 'varchar', 'nvarchar', 'text', 'ntext']
+        types = ['char', 'nchar', 'varchar', 'nvarchar', 'text', 'ntext']
         return self.q_column_type_in_str_set(ctx, types=types)
 
     def q_column_is_blob(self, ctx):
@@ -115,7 +115,6 @@ class MSSQL(DBMS):
 
     def q_string_in_set(self, ctx, values):
         query = self.jj_mssql.get_template('string_in_set.jinja').render(ctx=ctx, values=values)
-        print(self.normalize(query))
         return self.normalize(query)
 
     def q_int_lt(self, ctx, n):

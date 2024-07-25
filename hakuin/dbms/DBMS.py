@@ -3,7 +3,7 @@ import re
 import jinja2
 from abc import ABCMeta, abstractmethod
 
-from hakuin.utils import DIR_QUERIES, BYTE_MAX
+from hakuin.utils import BYTE_MAX
 
 
 
@@ -31,18 +31,18 @@ class DBMS(metaclass=ABCMeta):
         self.jj.filters['sql_to_unicode'] = self.sql_to_unicode
 
 
-    @staticmethod
-    def normalize(s):
-        return DBMS._RE_NORMALIZE.sub(' ', s).strip()
+    @classmethod
+    def normalize(cls, s):
+        return cls._RE_NORMALIZE.sub(' ', s).strip()
 
 
     # Template Filters
-    @staticmethod
-    def sql_escape(s):
+    @classmethod
+    def sql_escape(cls, s):
         if s is None:
             return None
 
-        if DBMS._RE_ESCAPE.match(s):
+        if cls._RE_ESCAPE.match(s):
             return s
 
         assert ']' not in s, f'Cannot escape "{s}"'
@@ -50,7 +50,7 @@ class DBMS(metaclass=ABCMeta):
 
     @staticmethod
     def sql_str_lit(s):
-        if not s.isascii() or not s.isprintable() or "'" in s:
+        if not s.isascii() or not s.isprintable() or any(c in s for c in "?:'"):
             return f"x'{s.encode('utf-8').hex()}'"
         return f"'{s}'"
 
@@ -75,9 +75,9 @@ class DBMS(metaclass=ABCMeta):
     def sql_in_str(s, string):
         return f'instr({string}, {s})'
 
-    @staticmethod
-    def sql_in_str_set(s, strings):
-        return f'{s} in ({",".join([DBMS.sql_str_lit(x) for x in strings])})'
+    @classmethod
+    def sql_in_str_set(cls, s, strings):
+        return f'{s} in ({",".join([cls.sql_str_lit(x) for x in strings])})'
 
     @staticmethod
     def sql_is_ascii(s):

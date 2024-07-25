@@ -37,7 +37,7 @@ class MySQL(DBMS):
 
     @staticmethod
     def sql_str_lit(s):
-        if not s.isascii() or not s.isprintable() or "'" in s:
+        if not s.isascii() or not s.isprintable() or any(c in s for c in "?:'"):
             return f"x'{s.encode('utf-8').hex()}'"
         return f"'{s}'"
 
@@ -122,7 +122,6 @@ class MySQL(DBMS):
 
     def q_string_in_set(self, ctx, values):
         query = self.jj_mysql.get_template('string_in_set.jinja').render(ctx=ctx, values=values)
-        print(self.normalize(query))
         return self.normalize(query)
 
     def q_int_lt(self, ctx, n):

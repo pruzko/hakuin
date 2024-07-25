@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import os
 import pickle
 
@@ -41,12 +40,8 @@ class Model:
         Params:
             file (str): model file
         '''
-        logging.info(f'Loading model "{file}".')
-
         with open(file, 'rb') as f:
             self.model = pickle.load(f)
-
-        logging.info(f'Model loaded.')
 
 
     async def scores(self, context):

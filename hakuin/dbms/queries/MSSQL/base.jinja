@@ -45,7 +45,7 @@
 
 {% block offset %}
 {% if single_row %}
-    ORDER BY    {{ column | sql_to_varchar }}
+    ORDER BY    (SELECT NULL)
     OFFSET      {{ ctx.row_idx }} ROWS
     FETCH NEXT  1 ROWS ONLY
 {% endif %}
