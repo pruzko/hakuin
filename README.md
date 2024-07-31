@@ -58,13 +58,13 @@ class ContentRequester(Requester):
         return 'found' in await r.text()
 ```
 
-To start extracting data, use the `Extractor` class. It requires a `DBMS` object to contruct queries and a `Requester` object to inject them. Hakuin currently supports `SQLite`, `MySQL`, `PSQL` (PostgreSQL), and `MSSQL` (SQL Server) DBMSs, but will soon include more options. If you wish to support another DBMS, implement the `DBMS` interface defined in `hakuin/dbms/DBMS.py`.
+To start extracting data, use the `Extractor` class. It requires a `DBMS` object to contruct queries and a `Requester` object to inject them. Hakuin currently supports `SQLite`, `MySQL`, `PSQL` (PostgreSQL), `MSSQL` (SQL Server) DBMSs, and `OracleDB` but will soon include more options. If you wish to support another DBMS, implement the `DBMS` interface defined in `hakuin/dbms/DBMS.py`.
 
-##### Example 1 - Extracting SQLite/MySQL/PSQL/MSSQL
+##### Example 1 - Extracting SQLite/MySQL/PSQL/MSSQL/OracleDB
 ```python
 import asyncio
 from hakuin import Extractor, Requester
-from hakuin.dbms import SQLite, MySQL, PSQL, MSSQL
+from hakuin.dbms import SQLite, MySQL, PSQL, MSSQL, OracleDB
 
 class StatusRequester(Requester):
     ...
