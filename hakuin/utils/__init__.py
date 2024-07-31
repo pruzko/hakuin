@@ -15,8 +15,8 @@ BYTE_MAX = 0xff
 
 CHARSET_DIGITS = list(string.digits) + ['-', '.', '</s>']
 
-EOS = '</s>'
 SOS = '<s>'
+EOS = '</s>'
 
 
 def split_at(s, i):

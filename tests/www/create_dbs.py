@@ -14,6 +14,7 @@ DB_URIS = {
     'sqlite': f'sqlite:///{os.path.join(DIR_DBS, "test_db.sqlite")}',
     'mysql': 'mysql+pymysql://hakuin:hakuin@localhost/hakuindb',
     'mssql': 'mssql+pyodbc://hakuin:hakuin@localhost/hakuindb?driver=ODBC+Driver+17+for+SQL+Server',
+    'oracledb': 'oracle+cx_oracle://hakuin:hakuin@localhost/?service_name=freepdb1',
     'psql': 'postgresql+psycopg2://hakuin:hakuin@localhost/hakuindb',
 }
 DBS_ENG = {key: create_engine(uri) for key, uri in DB_URIS.items()}
@@ -30,7 +31,7 @@ class TestDataTypes(Base):
     test_integers = Column(Integer)
     test_floats = Column(Float)
     test_blobs = Column(LargeBinary)
-    test_text = Column(Text)
+    test_texts = Column(Text)
     test_nullable = Column(Integer)
 
 
@@ -39,7 +40,7 @@ class TestUnicode(Base):
     __tablename__ = 'Ħ€ȽȽ©'
 
     id = Column(Integer, primary_key=True)
-    test_text = Column(UnicodeText, name='ŴǑȒȽƉ')
+    test_texts = Column(UnicodeText, name='ŴǑȒȽƉ')
 
 
 
@@ -56,7 +57,7 @@ def create_data_types_table(db):
         test_integers=1,
         test_floats=1.1,
         test_blobs=bytes.fromhex('deadbeef'),
-        test_text='hello',
+        test_texts='hello',
         test_nullable=1,
     ))
     db.add(TestDataTypes(
@@ -64,7 +65,7 @@ def create_data_types_table(db):
         test_integers=100,
         test_floats=100.1,
         test_blobs=bytes.fromhex('c0ffeef00d'),
-        test_text='world',
+        test_texts='world',
         test_nullable=1,
     ))
     for i in range(3, 10):
@@ -73,7 +74,7 @@ def create_data_types_table(db):
             test_integers=-100,
             test_floats=-100.1,
             test_blobs=bytes.fromhex('1337c0de'),
-            test_text='hello world',
+            test_texts='hello world',
             test_nullable=1,
         ))
     db.add(TestDataTypes(
@@ -81,7 +82,7 @@ def create_data_types_table(db):
         test_integers=1,
         test_floats=-1.1,
         test_blobs=bytes.fromhex('deadbeef'),
-        test_text='hello',
+        test_texts='hello',
         test_nullable=None,
     ))
     db.commit()
@@ -91,20 +92,20 @@ def create_unicode_table(db):
     db.query(TestUnicode).delete()
     db.add(TestUnicode(
         id=1,
-        test_text='Ħ€ȽȽ©',
+        test_texts='Ħ€ȽȽ©',
     ))
     db.add(TestUnicode(
         id=2,
-        test_text='ŴǑȒȽƉ',
+        test_texts='ŴǑȒȽƉ',
     ))
     for i in range(3, 10):
         db.add(TestUnicode(
             id=i,
-            test_text='Ħ€ȽȽ© ŴǑȒȽƉ',
+            test_texts='Ħ€ȽȽ© ŴǑȒȽƉ',
         ))
     db.add(TestUnicode(
         id=10,
-        test_text='Ħ€ȽȽ©',
+        test_texts='Ħ€ȽȽ©',
     ))
     db.commit()
 

@@ -8,10 +8,12 @@ class TestContent(HKTest):
     pass
 
 
-for dbms in ['sqlite', 'mssql', 'mysql', 'psql']:
+for dbms in HKTest.CONFIG.get('dbms', ['mssql', 'mysql', 'oracledb', 'psql', 'sqlite']):
+    ip = HKTest.CONFIG[dbms]['ip']
+    port = HKTest.CONFIG[dbms]['port']
     test_content = HKTest.generate_test(
         hk_args={
-            'url': f'http://{HKTest.IP}:{HKTest.PORT}/{dbms}?query=({{query}})',
+            'url': f'http://{ip}:{port}/{dbms}?query=({{query}})',
             '-D': dbms,
             '-i': 'status:200',
         },
@@ -31,14 +33,14 @@ for dbms in ['sqlite', 'mssql', 'mysql', 'psql']:
                     'deadbeef', 'c0ffeef00d', '1337c0de', '1337c0de', '1337c0de', '1337c0de', '1337c0de', '1337c0de', '1337c0de',
                     'deadbeef'
                 ],
-                'test_text': [
+                'test_texts': [
                     'hello', 'world', 'hello world', 'hello world', 'hello world', 'hello world', 'hello world', 'hello world',
                     'hello world', 'hello'
                 ],
                 'test_nullable': [1, 1, 1, 1, 1, 1, 1, 1, 1, None],
             }
         },
-        n_requests=2080,
+        n_requests=2088,
         order_important=True,
     )
     setattr(TestContent, f'test_content_{dbms}', test_content)

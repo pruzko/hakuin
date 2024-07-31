@@ -4,6 +4,6 @@
 
 {% block select %}
 SELECT  CASE WHEN
-            {{ column | sql_to_text | sql_in_str_set(values) }}
+            {{ column }} is NULL
         THEN 1 ELSE 0 END
 {% endblock %}

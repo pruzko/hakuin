@@ -21,7 +21,7 @@ class MSSQL(DBMS):
         super().__init__()
         self.jj_mssql = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(DIR_QUERIES, 'MSSQL')))
         self.jj_mssql.filters = self.jj.filters
-        self.jj_mssql.filters['sql_to_varchar'] = self.sql_to_varchar
+        self.jj_mssql.filters['sql_to_text'] = self.sql_to_text
 
 
     # Template Filters
@@ -55,7 +55,7 @@ class MSSQL(DBMS):
         return f"CASE WHEN patindex('%[^'+char(0x00)+'-'+char(0x7f)+']%' COLLATE Latin1_General_BIN,{s}) = 0 THEN 1 ELSE 0 END"
 
     @staticmethod
-    def sql_to_varchar(s):
+    def sql_to_text(s):
         return f'convert(nvarchar(MAX), {s})'
 
 

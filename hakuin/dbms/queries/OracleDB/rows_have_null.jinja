@@ -1,0 +1,10 @@
+{% extends 'base.jinja' %}
+
+
+{% block select %}
+SELECT  max(
+            CASE WHEN
+                {{ column }} is NULL
+            THEN 1 ELSE 0 END
+        )
+{% endblock %}

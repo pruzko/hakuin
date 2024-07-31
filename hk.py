@@ -3,7 +3,6 @@ import asyncio
 import importlib.util
 import inspect
 import json
-import logging
 import re
 import sys
 import tqdm
@@ -11,7 +10,7 @@ import urllib.parse
 
 import aiohttp
 
-from hakuin.dbms import SQLite, MySQL, MSSQL, PSQL
+from hakuin.dbms import SQLite, MySQL, MSSQL, OracleDB, PSQL
 from hakuin import Extractor, HKRequester
 
 
@@ -111,6 +110,7 @@ class HK:
         'sqlite': SQLite,
         'mssql': MSSQL,
         'mysql': MySQL,
+        'oracledb': OracleDB,
         'psql': PSQL,
     }
 
@@ -176,7 +176,7 @@ class HK:
                 res[column] = await self.ext.extract_column(table=table, column=column, schema=schema, text_strategy=text_strategy)
             except Exception as e:
                 res[column] = None
-                logging.error(f'Failed to extract "{table}.{column}": {e}')
+                tqdm.tqdm.write(f'(err) Failed to extract "{table}.{column}": {e}')
         return res
 
 
@@ -254,7 +254,6 @@ def main():
 
     assert args.inference or args.requester, 'You must provide -i/--inference or -R/--requester.'
 
-    logging.basicConfig(level=logging.INFO)
     asyncio.get_event_loop().run_until_complete(HK().run(args))
 
 

@@ -1,0 +1,20 @@
+{% extends 'base.jinja' %}
+
+
+{% block select %}
+SELECT  CASE WHEN lower(DATA_TYPE)='float' OR lower(DATA_TYPE)='number' AND DATA_SCALE!=0 THEN 1 ELSE 0 END
+{% endblock %}
+
+
+{% block from %}
+FROM    ALL_TAB_COLUMNS
+{% endblock %}
+
+
+{% block where %}
+WHERE   OWNER={{ ctx.schema | sql_str_lit if ctx.schema else 'USER' }}
+        AND
+        TABLE_NAME={{ ctx.table | sql_str_lit }}
+        AND
+        COLUMN_NAME={{ ctx.column | sql_str_lit }}
+{% endblock %}

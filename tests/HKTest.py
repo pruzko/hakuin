@@ -8,8 +8,7 @@ from hakuin.utils import DIR_ROOT
 
 
 class HKTest(unittest.TestCase):
-    IP = '192.168.122.191'
-    PORT = 5000
+    CONFIG = None
 
 
     @staticmethod

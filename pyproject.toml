@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hakuin"
-version = "0.1.9"
+version = "0.1.10"
 description = "Blind SQL Injection optimization and automation framework"
 authors = [{ name = "Jakub Pruzinec", email = "j.pruzinec@gmail.com" }]
 readme = "README.md"

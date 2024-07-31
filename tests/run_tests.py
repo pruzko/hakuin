@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import sys
 import unittest
@@ -19,16 +20,13 @@ def discover_and_run_tests(pattern='test*.py'):
 if __name__ == '__main__':
     sys.path.insert(0, DIR_ROOT)
 
-    parser = argparse.ArgumentParser(description='Run all tests.')
-    parser.add_argument('--ip', default='192.168.122.191', help='Test server IP.')
-    parser.add_argument('--port', type=int, default=5000, help='Test webapp port.')
+    parser = argparse.ArgumentParser(description='Run regression tests.')
     parser.add_argument('--pattern', default='test*.py', help='Pattern to select files in test/test_cases. Example: "test*.py" or "test_efficiency.py".')
     args = parser.parse_args()
 
     from tests import HKTest
-    HKTest.IP = args.ip
-    HKTest.PORT = args.port
-
+    with open(os.path.join(DIR_TESTS, 'config.json')) as f:
+        HKTest.CONFIG = json.load(f)
 
     result = discover_and_run_tests(pattern=args.pattern)
     if result.wasSuccessful():
