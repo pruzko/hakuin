@@ -1,0 +1,8 @@
+{% extends 'column_type_in_str_set.jinja' %}
+
+
+{% block select %}
+SELECT  {{ 'lower(DATA_TYPE)' | sql_in_list(types) }}
+        OR
+        {{ 'blob' | sql_lit | sql_in_str('lower(DATA_TYPE)') }}
+{% endblock %}

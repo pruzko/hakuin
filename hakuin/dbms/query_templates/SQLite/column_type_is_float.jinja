@@ -1,0 +1,19 @@
+{% extends 'base.jinja' %}
+
+{% set table = 'pragma_table_info(%s)' % (ctx.table | sql_lit) %}
+{% set table = '%s.%s' | format(schema, table) if schema else table %}
+
+
+{% block select %}
+SELECT  {{ 'lower(type)' | sql_in_list(['real', 'float']) }}
+{% endblock %}
+
+
+{% block from %}
+FROM    {{ table }}
+{% endblock %}
+
+
+{% block where %}
+WHERE   name={{ ctx.column | sql_lit }}
+{% endblock %}

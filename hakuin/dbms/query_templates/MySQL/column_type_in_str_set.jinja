@@ -1,0 +1,20 @@
+{% extends 'base.jinja' %}
+
+
+{% block select %}
+SELECT  {{ 'lower(DATA_TYPE)' | sql_in_list(types) }}
+{% endblock %}
+
+
+{% block from %}
+FROM    INFORMATION_SCHEMA.COLUMNS
+{% endblock %}
+
+
+{% block where %}
+WHERE   TABLE_SCHEMA={{ ctx.schema | sql_lit if ctx.schema else 'schema()' }}
+        AND
+        TABLE_NAME={{ ctx.table | sql_lit }}
+        AND
+        COLUMN_NAME={{ ctx.column | sql_lit }}
+{% endblock %}

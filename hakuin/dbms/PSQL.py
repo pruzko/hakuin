@@ -2,24 +2,21 @@ import os
 
 import jinja2
 
-from hakuin.utils import EOS, DIR_QUERIES, BYTE_MAX
+from hakuin.utils import DIR_QUERY_TEMPLATES, BYTE_MAX, EOS
 from .DBMS import DBMS
 
 
 
 class PSQL(DBMS):
-    DATA_TYPES = ['TODO']
-
-
     def __init__(self):
         super().__init__()
-        self.jj_psql = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(DIR_QUERIES, 'PSQL')))
+        self.jj_psql = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(DIR_QUERY_TEMPLATES, 'PSQL')))
         self.jj_psql.filters = self.jj.filters
 
 
     # Template Filters
     @staticmethod
-    def sql_escape(s):
+    def sql_ident(s):
         if s is None:
             return None
 
@@ -30,7 +27,18 @@ class PSQL(DBMS):
         return f'"{s}"'
 
     @staticmethod
-    def sql_str_lit(s):
+    def sql_cast(s, type):
+        assert type in self.BASIC_TYPES, f'Type "{type}" not supported, use one of {self.BASIC_TYPES}'
+        type_dict = {
+            'int': 'int',
+            'float': 'float',
+            'text': 'text',
+            'blob': 'bytea',
+        }
+        return f'({s})::{type_dict[type]}'
+
+    @staticmethod
+    def sql_lit(s):
         if not s.isascii() or not s.isprintable() or any(c in s for c in "?:'"):
             return f"convert_from('\\x{s.encode('utf-8').hex()}', 'UTF8')"
         return f"'{s}'"
@@ -82,6 +90,10 @@ class PSQL(DBMS):
         query = self.jj_psql.get_template('row_is_null.jinja').render(ctx=ctx)
         return self.normalize(query)
 
+    def q_rows_are_positive(self, ctx):
+        query = self.jj_psql.get_template('rows_are_positive.jinja').render(ctx=ctx)
+        return self.normalize(query)
+
     def q_rows_are_ascii(self, ctx):
         query = self.jj_psql.get_template('rows_are_ascii.jinja').render(ctx=ctx)
         return self.normalize(query)
@@ -108,12 +120,16 @@ class PSQL(DBMS):
         query = self.jj_psql.get_template('char_lt.jinja').render(ctx=ctx, n=n)
         return self.normalize(query)
 
-    def q_string_in_set(self, ctx, values):
-        query = self.jj_psql.get_template('string_in_set.jinja').render(ctx=ctx, values=values)
+    def q_value_in_list(self, ctx, values):
+        query = self.jj_psql.get_template('value_in_list.jinja').render(ctx=ctx, values=values)
         return self.normalize(query)
 
     def q_int_lt(self, ctx, n):
         query = self.jj_psql.get_template('int_lt.jinja').render(ctx=ctx, n=n)
+        return self.normalize(query)
+
+    def q_int_eq(self, ctx, n):
+        query = self.jj_psql.get_template('int_eq.jinja').render(ctx=ctx, n=n)
         return self.normalize(query)
 
     def q_float_char_in_set(self, ctx, values):

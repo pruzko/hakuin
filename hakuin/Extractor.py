@@ -1,6 +1,11 @@
 import hakuin
-import hakuin.search_algorithms as alg
 import hakuin.collectors as coll
+import hakuin.collectors.char_collectors as char_coll
+import hakuin.collectors.row_collectors as row_coll
+from hakuin.collectors import IntCollectorBuilder, FloatCollectorBuilder, StringCollectorBuilder
+import hakuin.search_algorithms as alg
+from hakuin.dbms import DBMS_DICT
+from hakuin.utils import CHARSET_DIGITS
 
 
 
@@ -11,12 +16,17 @@ class Extractor:
 
         Params:
             requester (Requester): Requester instance used to inject queries
-            dbms (DBMS): DBMS instance used to construct queries
+            dbms (string|DBMS): DBMS name or instance used to construct queries
             n_tasks (int): number of extraction tasks to run in parallel
         '''
         self.requester = requester
-        self.dbms = dbms
         self.n_tasks = n_tasks
+        if type(dbms) is str:
+            assert dbms.lower() in DBMS_DICT, f'DBMS "{dbms}" is not supported, choose one of {list(DBMS_DICT.keys())} instead.'
+            self.dbms = DBMS_DICT[dbms.lower()]()
+        else:
+            assert issubclass(dbms, DBMS), 'The dbms object must be derived from the DBMS class'
+            self.dbms = dbms
 
 
     async def extract_schema_names(self, strategy='model'):
@@ -32,29 +42,21 @@ class Extractor:
         allowed = ['binary', 'model']
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
-        ctx = coll.Context(target='schema_names', rows_have_null=False)
-        ctx.n_rows = await alg.NumericBinarySearch(
+        ctx = coll.TextContext(target='schema_names', rows_have_null=False)
+        ctx.n_rows = await alg.BinarySearch(
             requester=self.requester,
-            query_cb=self.dbms.q_rows_count_lt,
+            dbms=self.dbms,
+            query_cls=self.dbms.QueryRowsCountLt,
             lower=0,
             upper=8,
             find_lower=False,
             find_upper=True,
         ).run(ctx)
 
-        if strategy == 'binary':
-            return await coll.BinaryTextCollector(
-                requester=self.requester,
-                dbms=self.dbms,
-                n_tasks=self.n_tasks,
-            ).run(ctx)
-        else:
-            return await coll.ModelTextCollector(
-                requester=self.requester,
-                dbms=self.dbms,
-                model=hakuin.get_model_schemas(),
-                n_tasks=self.n_tasks,
-            ).run(ctx)
+        builder = StringCollectorBuilder(requester=self.requester, dbms=self.dbms, n_tasks=self.n_tasks)
+        builder.add_fivegram(model=hakuin.get_model_schemas())
+        collector = builder.build(use_meta=True)
+        return await collector.run(ctx)
 
 
     async def extract_table_names(self, schema=None, strategy='model'):
@@ -71,29 +73,21 @@ class Extractor:
         allowed = ['binary', 'model']
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
-        ctx = coll.Context(target='table_names', schema=schema, rows_have_null=False)
-        ctx.n_rows = await alg.NumericBinarySearch(
+        ctx = coll.TextContext(target='table_names', schema=schema, rows_have_null=False)
+        ctx.n_rows = await alg.BinarySearch(
             requester=self.requester,
-            query_cb=self.dbms.q_rows_count_lt,
+            dbms=self.dbms,
+            query_cls=self.dbms.QueryRowsCountLt,
             lower=0,
             upper=8,
             find_lower=False,
             find_upper=True,
         ).run(ctx)
 
-        if strategy == 'binary':
-            return await coll.BinaryTextCollector(
-                requester=self.requester,
-                dbms=self.dbms,
-                n_tasks=self.n_tasks,
-            ).run(ctx)
-        else:
-            return await coll.ModelTextCollector(
-                requester=self.requester,
-                dbms=self.dbms,
-                model=hakuin.get_model_tables(),
-                n_tasks=self.n_tasks,
-            ).run(ctx)
+        builder = StringCollectorBuilder(requester=self.requester, dbms=self.dbms, n_tasks=self.n_tasks)
+        builder.add_fivegram(model=hakuin.get_model_tables())
+        collector = builder.build(use_meta=True)
+        return await collector.run(ctx)
 
 
     async def extract_column_names(self, table, schema=None, strategy='model'):
@@ -111,29 +105,21 @@ class Extractor:
         allowed = ['binary', 'model']
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
-        ctx = coll.Context(target='column_names', table=table, schema=schema, rows_have_null=False)
-        ctx.n_rows = await alg.NumericBinarySearch(
+        ctx = coll.TextContext(target='column_names', schema=schema, table=table, rows_have_null=False)
+        ctx.n_rows = await alg.BinarySearch(
             requester=self.requester,
-            query_cb=self.dbms.q_rows_count_lt,
+            dbms=self.dbms,
+            query_cls=self.dbms.QueryRowsCountLt,
             lower=0,
             upper=8,
             find_lower=False,
             find_upper=True,
         ).run(ctx)
 
-        if strategy == 'binary':
-            return await coll.BinaryTextCollector(
-                requester=self.requester,
-                dbms=self.dbms,
-                n_tasks=self.n_tasks,
-            ).run(ctx)
-        else:
-            return await coll.ModelTextCollector(
-                requester=self.requester,
-                dbms=self.dbms,
-                model=hakuin.get_model_columns(),
-                n_tasks=self.n_tasks,
-            ).run(ctx)
+        builder = StringCollectorBuilder(requester=self.requester, dbms=self.dbms, n_tasks=self.n_tasks)
+        builder.add_fivegram(model=hakuin.get_model_columns())
+        collector = builder.build(use_meta=True)
+        return await collector.run(ctx)
 
 
     async def extract_meta(self, schema=None, strategy='model'):
@@ -156,26 +142,6 @@ class Extractor:
         return meta
 
 
-    async def extract_column_data_type(self, table, column, schema=None):
-        '''Extracts column data type.
-
-        Params:
-            table (str): table name
-            column (str): column name
-            schema (str|None): schema name or None if the target schema is the default schema
-
-        Returns:
-            string: column data type
-        '''
-        ctx = coll.Context(table=table, column=column, schema=schema)
-
-        return await alg.BinarySearch(
-            requester=self.requester,
-            query_cb=self.dbms.q_column_type_in_str_set,
-            values=self.dbms.DATA_TYPES,
-        ).run(ctx)
-
-
     async def extract_column(self, table, column, schema=None, text_strategy='dynamic'):
         '''Extracts column.
 
@@ -193,23 +159,64 @@ class Extractor:
         '''
         ctx = coll.Context(target='column_type', table=table, column=column, schema=schema)
 
-        query = self.dbms.q_column_is_int(ctx)
-        if await self.requester.request(ctx, query):
+        query = self.dbms.QueryColumnTypeIsInt(dbms=self.dbms, ctx=ctx)
+        if await self.requester.run(query):
             return await self.extract_column_int(table=table, column=column, schema=schema)
 
-        query = self.dbms.q_column_is_float(ctx)
-        if await self.requester.request(ctx, query):
-            return await self.extract_column_float(table=table, column=column, schema=schema)
-
-        query = self.dbms.q_column_is_text(ctx)
-        if await self.requester.request(ctx, query):
+        query = self.dbms.QueryColumnTypeIsText(dbms=self.dbms, ctx=ctx)
+        if await self.requester.run(query):
             return await self.extract_column_text(table=table, column=column, schema=schema, strategy=text_strategy)
 
-        query = self.dbms.q_column_is_blob(ctx)
-        if await self.requester.request(ctx, query):
+        query = self.dbms.QueryColumnTypeIsFloat(dbms=self.dbms, ctx=ctx)
+        if await self.requester.run(query):
+            return await self.extract_column_float(table=table, column=column, schema=schema)
+
+        query = self.dbms.QueryColumnTypeIsBlob(dbms=self.dbms, ctx=ctx)
+        if await self.requester.run(query):
             return await self.extract_column_blob(table=table, column=column, schema=schema)
 
         raise NotImplementedError(f'Unsupported column data type of "{ctx.table}.{ctx.column}".')
+
+
+    async def extract_column_int(self, table, column, schema=None):
+        '''Extracts integer column.
+
+        Params:
+            table (str): table name
+            column (str): column name
+            schema (str|None): schema name or None if the target schema is the default schema
+
+        Returns:
+            list: list of integers in the column
+        '''
+        ctx = coll.IntContext(target='column', schema=schema, table=table, column=column)
+
+        builder = IntCollectorBuilder(requester=self.requester, dbms=self.dbms, n_tasks=self.n_tasks)
+        builder.add_guessing()
+        builder.add_auto_inc()
+        collector = builder.build()
+        return await collector.run(ctx)
+
+
+    async def extract_column_float(self, table, column, schema=None):
+        '''Extracts float column.
+
+        Params:
+            table (str): table name
+            column (str): column name
+            schema (str|None): schema name or None if the target schema is the default schema
+
+        Returns:
+            list: list of floats in the column
+        '''
+        ctx = coll.IntContext(target='column', schema=schema, table=table, column=column)
+
+        builder = FloatCollectorBuilder(requester=self.requester, dbms=self.dbms, n_tasks=self.n_tasks)
+        builder.add_guessing()
+        builder.add_unigram()
+        builder.add_fivegram()
+        collector = builder.build()
+        return await collector.run(ctx)
 
 
     async def extract_column_text(self, table, column, schema=None, strategy='dynamic', charset=None):
@@ -232,68 +239,15 @@ class Extractor:
         allowed = ['binary', 'unigram', 'fivegram', 'dynamic']
         assert strategy in allowed, f'Invalid strategy: {strategy} not in {allowed}'
 
-        ctx = coll.Context(target='column', table=table, column=column, schema=schema)
-        if strategy == 'binary':
-            return await coll.BinaryTextCollector(
-                requester=self.requester,
-                dbms=self.dbms,
-                charset=charset,
-                n_tasks=self.n_tasks,
-            ).run(ctx)
-        elif strategy in ['unigram', 'fivegram']:
-            ngram = 1 if strategy == 'unigram' else 5
-            return await coll.AdaptiveTextCollector(
-                requester=self.requester,
-                dbms=self.dbms,
-                model=hakuin.Model(ngram),
-                charset=charset,
-                n_tasks=self.n_tasks,
-            ).run(ctx)
-        else:
-            return await coll.DynamicTextCollector(
-                requester=self.requester,
-                dbms=self.dbms,
-                charset=charset,
-                n_tasks=self.n_tasks,
-            ).run(ctx)
+        ctx = coll.TextContext(target='column', table=table, column=column, schema=schema)
 
-
-    async def extract_column_int(self, table, column, schema=None):
-        '''Extracts integer column.
-
-        Params:
-            table (str): table name
-            column (str): column name
-            schema (str|None): schema name or None if the target schema is the default schema
-
-        Returns:
-            list: list of integers in the column
-        '''
-        ctx = coll.Context(target='column', table=table, column=column, schema=schema)
-        return await coll.IntCollector(
-            requester=self.requester,
-            dbms=self.dbms,
-            n_tasks=self.n_tasks,
-        ).run(ctx)
-
-
-    async def extract_column_float(self, table, column, schema=None):
-        '''Extracts float column.
-
-        Params:
-            table (str): table name
-            column (str): column name
-            schema (str|None): schema name or None if the target schema is the default schema
-
-        Returns:
-            list: list of floats in the column
-        '''
-        ctx = coll.Context(target='column', table=table, column=column, schema=schema)
-        return await coll.FloatCollector(
-            requester=self.requester,
-            dbms=self.dbms,
-            n_tasks=self.n_tasks,
-        ).run(ctx)
+        builder = StringCollectorBuilder(requester=self.requester, dbms=self.dbms, n_tasks=self.n_tasks)
+        builder.add_guessing()
+        builder.add_binary()
+        builder.add_unigram()
+        builder.add_fivegram()
+        collector = builder.build()
+        return await collector.run(ctx)
 
 
     async def extract_column_blob(self, table, column, schema=None):
@@ -307,9 +261,12 @@ class Extractor:
         Returns:
             bytes: list of bytes in the column
         '''
-        ctx = coll.Context(target='column', table=table, column=column, schema=schema)
-        return await coll.BlobCollector(
-            requester=self.requester,
-            dbms=self.dbms,
-            n_tasks=self.n_tasks,
-        ).run(ctx)
+        ctx = coll.BlobContext(target='column', schema=schema, table=table, column=column)
+
+        builder = StringCollectorBuilder(requester=self.requester, dbms=self.dbms, n_tasks=self.n_tasks)
+        builder.add_guessing()
+        builder.add_binary()
+        builder.add_unigram()
+        builder.add_fivegram()
+        collector = builder.build()
+        return await collector.run(ctx)

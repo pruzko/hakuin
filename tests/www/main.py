@@ -15,10 +15,10 @@ app = Flask('Hakuin Test App')
 app.config['SQLALCHEMY_BINDS'] = {
     # comment out DBMS that are not installed
     'sqlite': f'sqlite:///{os.path.join(DIR_DBS, "test_db.sqlite")}',
-    'mysql': 'mysql+pymysql://hakuin:hakuin@localhost/hakuindb',
-    'mssql': 'mssql+pyodbc://hakuin:hakuin@localhost/hakuindb?driver=ODBC+Driver+17+for+SQL+Server',
-    'oracledb': 'oracle+cx_oracle://hakuin:hakuin@localhost/?service_name=freepdb1',
-    'psql': 'postgresql+psycopg2://hakuin:hakuin@localhost/hakuindb',
+    # 'mysql': 'mysql+pymysql://hakuin:hakuin@localhost/hakuindb',
+    # 'mssql': 'mssql+pyodbc://hakuin:hakuin@localhost/hakuindb?driver=ODBC+Driver+17+for+SQL+Server',
+    # 'oracledb': 'oracle+cx_oracle://hakuin:hakuin@localhost/?service_name=freepdb1',
+    # 'psql': 'postgresql+psycopg2://hakuin:hakuin@localhost/hakuindb',
 }
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)

@@ -2,19 +2,15 @@ import os
 
 import jinja2
 
-from hakuin.utils import EOS, DIR_QUERIES
+from hakuin.utils import DIR_QUERY_TEMPLATES, EOS
 from .DBMS import DBMS
 
 
 
 class OracleDB(DBMS):
-    DATA_TYPES = [
-        'char', 'nchar', 'varchar2', 'nvarchar2', 'clob', 'nclob', 'number', 'float',
-        'binary_float', 'binary_double', 'blob', 'bfile'
-    ]
     def __init__(self):
         super().__init__()
-        self.jj_oracledb = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(DIR_QUERIES, 'OracleDB')))
+        self.jj_oracledb = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(DIR_QUERY_TEMPLATES, 'OracleDB')))
         self.jj_oracledb.filters = self.jj.filters
         self.jj_oracledb.filters['sql_to_text'] = self.sql_to_text
         self.jj_oracledb.filters['sql_byte_at'] = self.sql_byte_at
@@ -22,7 +18,7 @@ class OracleDB(DBMS):
 
     # Template Filters
     @staticmethod
-    def sql_escape(s):
+    def sql_ident(s):
         if s is None:
             return None
 
@@ -33,7 +29,21 @@ class OracleDB(DBMS):
         return f'"{s}"'
 
     @staticmethod
-    def sql_str_lit(s):
+    def sql_cast(s, type):
+        # TODO this is problematic
+        # to_char/ cast to varchar2(4000) turns 0.1 to '.1'
+        # cast to clob dosn't work in SLECT. to_clob does
+        assert type in self.BASIC_TYPES, f'Type "{type}" not supported, use one of {self.BASIC_TYPES}'
+        translate = {
+            'int': 'int',
+            'float': 'binary_double',
+            'text': 'varchar2(4000)',
+            'blob': 'clob',
+        }
+        return f'cast({s} as {translate[type]})'
+
+    @staticmethod
+    def sql_lit(s):
         if not s.isascii() or not s.isprintable() or any(c in s for c in "?:'"):
             hex_str = ''.join([f'\\{ord(c):04x}' for c in s])
             return f"unistr('{hex_str}')"
@@ -42,10 +52,6 @@ class OracleDB(DBMS):
     @staticmethod
     def sql_to_unicode(s):
         return f'ascii(unistr({s}))'
-
-    @classmethod
-    def sql_in_str_set(cls, s, strings):
-        return f'{s} in ({",".join([cls.sql_str_lit(x) for x in strings])})'
 
     @staticmethod
     def sql_is_ascii(s):
@@ -88,6 +94,10 @@ class OracleDB(DBMS):
         query = self.jj_oracledb.get_template('row_is_null.jinja').render(ctx=ctx)
         return self.normalize(query)
 
+    def q_rows_are_positive(self, ctx):
+        query = self.jj_oracledb.get_template('rows_are_positive.jinja').render(ctx=ctx)
+        return self.normalize(query)
+
     def q_rows_are_ascii(self, ctx):
         query = self.jj_oracledb.get_template('rows_are_ascii.jinja').render(ctx=ctx)
         return self.normalize(query)
@@ -114,12 +124,16 @@ class OracleDB(DBMS):
         query = self.jj_oracledb.get_template('char_lt.jinja').render(ctx=ctx, n=n)
         return self.normalize(query)
 
-    def q_string_in_set(self, ctx, values):
-        query = self.jj_oracledb.get_template('string_in_set.jinja').render(ctx=ctx, values=values)
+    def q_value_in_list(self, ctx, values):
+        query = self.jj_oracledb.get_template('value_in_list.jinja').render(ctx=ctx, values=values)
         return self.normalize(query)
 
     def q_int_lt(self, ctx, n):
         query = self.jj_oracledb.get_template('int_lt.jinja').render(ctx=ctx, n=n)
+        return self.normalize(query)
+
+    def q_int_eq(self, ctx, n):
+        query = self.jj_oracledb.get_template('int_eq.jinja').render(ctx=ctx, n=n)
         return self.normalize(query)
 
     def q_float_char_in_set(self, ctx, values):

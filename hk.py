@@ -10,8 +10,8 @@ import urllib.parse
 
 import aiohttp
 
-from hakuin.dbms import SQLite, MySQL, MSSQL, OracleDB, PSQL
-from hakuin import Extractor, HKRequester
+from hakuin.dbms import DBMS_DICT
+from hakuin import Extractor, Requester
 
 
 
@@ -21,7 +21,7 @@ class BytesEncoder(json.JSONEncoder):
 
 
 
-class UniversalRequester(HKRequester):
+class UniversalRequester(Requester):
     RE_INFERENCE = re.compile(r'^(not_)?(.+):(.*)$')
     RE_QUERY_TAG = re.compile(r'{query}')
 
@@ -74,9 +74,8 @@ class UniversalRequester(HKRequester):
         return inf
 
 
-    async def request(self, ctx, query):
-        self.n_requests += 1
-
+    async def request(self, query):
+        query = query.render()
         url = self.RE_QUERY_TAG.sub(urllib.parse.quote(query), self.url)
         headers = {self.RE_QUERY_TAG.sub(query, k): self.RE_QUERY_TAG.sub(query, v) for k, v in self.headers.items()}
         cookies = {self.RE_QUERY_TAG.sub(query, k): self.RE_QUERY_TAG.sub(query, v) for k, v in self.cookies.items()}
@@ -99,22 +98,13 @@ class UniversalRequester(HKRequester):
             result = not result
 
         if self.dbg:
-            tqdm.tqdm.write(f'{self.n_requests} {"(err)" if resp.status == 500 else str(result)[0]} {query}')
+            tqdm.tqdm.write(f'{await self.n_requests() + 1} {"(err)" if resp.status == 500 else str(result)[0]} {query}')
 
         return result
 
 
 
 class HK:
-    DBMS_DICT = {
-        'sqlite': SQLite,
-        'mssql': MSSQL,
-        'mysql': MySQL,
-        'oracledb': OracleDB,
-        'psql': PSQL,
-    }
-
-
     def __init__(self):
         self.ext = None
 
@@ -127,8 +117,7 @@ class HK:
 
         await requester.initialize()
 
-        dbms = self.DBMS_DICT[args.dbms]()
-        self.ext = Extractor(requester, dbms, args.tasks)
+        self.ext = Extractor(requester=requester, dbms=args.dbms, n_tasks=args.tasks)
 
         try:
             await self._run(args)
@@ -155,7 +144,7 @@ class HK:
 
         res = {
             'stats': {
-                'n_requests': self.ext.requester.n_requests,
+                'n_requests': await self.ext.requester.n_requests(),
             },
             'data': res,
         }
@@ -181,7 +170,7 @@ class HK:
 
 
     def _load_requester(self, args):
-        assert ':' in args.requester, f'Invalid requester format (path/to/requester.py:MyHKRequesterClass): "{args.requester}"'
+        assert ':' in args.requester, f'Invalid requester format (path/to/requester.py:MyRequesterClass): "{args.requester}"'
         req_path, req_cls = args.requester.rsplit(':', -1)
 
         spec = importlib.util.spec_from_file_location('_custom_requester', req_path)
@@ -193,10 +182,10 @@ class HK:
         for cls_name, obj in inspect.getmembers(module, inspect.isclass):
             if cls_name != req_cls:
                 continue
-            if issubclass(obj, HKRequester) and obj is not HKRequester:
+            if issubclass(obj, Requester) and obj is not Requester:
                 return obj()
 
-        raise ValueError(f'HKRequester class "{req_cls}" not found in "{req_path}".')
+        raise ValueError(f'Requester class "{req_cls}" not found in "{req_path}".')
 
 
 
@@ -204,7 +193,7 @@ def main():
     parser = argparse.ArgumentParser(description='A simple wrapper to easily call Hakuin\'s basic functionality.')
     parser.add_argument('url', help='URL pointing to a vulnerable endpoint. The URL can contain the {query} tag, which will be replaced with injected queries.')
     parser.add_argument('-T', '--tasks', default=1, type=int, help='Run several coroutines in parallel.')
-    parser.add_argument('-D', '--dbms', required=True, choices=HK.DBMS_DICT.keys(), help='Assume this DBMS engine.')
+    parser.add_argument('-D', '--dbms', required=True, choices=DBMS_DICT.keys(), help='Assume this DBMS engine.')
     parser.add_argument('-M', '--method', choices=['get', 'post', 'put', 'delete', 'head', 'patch'], default='get', help='HTTP request method.')
     parser.add_argument('-H', '--headers', help='Headers attached to requests. The header names and values can contain the {query} tag.')
     parser.add_argument('-C', '--cookies', help='Cookies attached to requests. The cookie names and values can contain the {query} tag.')
@@ -231,8 +220,9 @@ def main():
         'Use this strategy to extract text columns. If not provided, "dynamic" is used.'
     )
 
-    parser.add_argument('-R', '--requester', help='Use custom HKRequester class (see Requester.py) instead of the default one. '
-        'Example: path/to/requester.py:MyHKRequesterClass')
+    parser.add_argument('-R', '--requester', help='Use custom Requester class instead of the default one. '
+        'Example: path/to/requester.py:MyRequesterClass'
+    )
     # parser.add_argument('-o', '--out', help='Output directory.')
     parser.add_argument('--dbg', action='store_true', help='Print debug information to stderr.')
     args = parser.parse_args()

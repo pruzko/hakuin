@@ -32,7 +32,7 @@ async def main():
 
         tqdm.tqdm.write(f'Saving {m_type}...', file=sys.stderr)
         with open(os.path.join(DIR_MODELS, f'model_{m_type}.pkl'), 'wb') as f:
-            pickle.dump(m.model, f)
+            pickle.dump(m, f)
 
         tqdm.tqdm.write(f'Done.', file=sys.stderr)
 

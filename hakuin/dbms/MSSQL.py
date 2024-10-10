@@ -2,31 +2,35 @@ import os
 
 import jinja2
 
-from hakuin.utils import EOS, DIR_QUERIES
+from hakuin.utils import DIR_QUERY_TEMPLATES, EOS
 from .DBMS import DBMS
 
 
 
 class MSSQL(DBMS):
-    DATA_TYPES = [
-        'bigint', 'numeric', 'bit', 'smallint', 'decimal', 'smallmoney', 'int', 'tinyint',
-        'money', 'float', 'real', 'date', 'datetimeoffset', 'datetime2', 'smalldatetime',
-        'datetime', 'time', 'char', 'varchar', 'text', 'nchar', 'nvarchar', 'ntext',
-        'binary', 'bin', 'varbinary', 'image', 'cursor', 'rowversion', 'hierarchyid',
-        'uniqueidentifier', 'sql_variant', 'xml', 'table'
-    ]
-
-
     def __init__(self):
         super().__init__()
-        self.jj_mssql = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(DIR_QUERIES, 'MSSQL')))
+        self.jj_mssql = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(DIR_QUERY_TEMPLATES, 'MSSQL')))
         self.jj_mssql.filters = self.jj.filters
         self.jj_mssql.filters['sql_to_text'] = self.sql_to_text
 
 
     # Template Filters
     @staticmethod
-    def sql_str_lit(s):
+    def sql_cast(s, type):
+        allowed_types = ['int', 'float', 'text', 'blob']
+        assert type in allowed_types, f'Type "{type}" not allowed. Use one of {allowed_types}'
+
+        translate = {
+            'int': 'int',
+            'float': 'float',
+            'text': 'nvarchar(max)',
+            'blob': 'varbinary',
+        }
+        return f'cast({s} as {translate[type]})'
+
+    @staticmethod
+    def sql_lit(s):
         if not s.isascii() or not s.isprintable() or any(c in s for c in "?:'"):
             hex_str = s.encode('utf-16').hex()
             return f'convert(nvarchar(MAX), 0x{hex_str})'
@@ -45,8 +49,13 @@ class MSSQL(DBMS):
         return f'charindex({s},{string} COLLATE Latin1_General_CS_AS)'
 
     @classmethod
-    def sql_in_str_set(cls, s, strings):
-        return f'{s} COLLATE Latin1_General_CS_AS in ({",".join([cls.sql_str_lit(x) for x in strings])})'
+    def sql_in_list(cls, s, values):
+        if str not in [type(v) for v in values]:
+            return f'{s} in ({",".join(values)})'
+
+        values = [cls.sql_lit(v) if type(v) is str else str(v) for v in values]
+        return f'{s} COLLATE Latin1_General_CS_AS in ({",".join(values)})'
+
 
     @staticmethod
     def sql_is_ascii(s):
@@ -87,6 +96,10 @@ class MSSQL(DBMS):
         query = self.jj_mssql.get_template('row_is_null.jinja').render(ctx=ctx)
         return self.normalize(query)
 
+    def q_rows_are_positive(self, ctx):
+        query = self.jj_mssql.get_template('rows_are_positive.jinja').render(ctx=ctx)
+        return self.normalize(query)
+
     def q_rows_are_ascii(self, ctx):
         query = self.jj_mssql.get_template('rows_are_ascii.jinja').render(ctx=ctx)
         return self.normalize(query)
@@ -113,12 +126,16 @@ class MSSQL(DBMS):
         query = self.jj_mssql.get_template('char_lt.jinja').render(ctx=ctx, n=n)
         return self.normalize(query)
 
-    def q_string_in_set(self, ctx, values):
-        query = self.jj_mssql.get_template('string_in_set.jinja').render(ctx=ctx, values=values)
+    def q_value_in_list(self, ctx, values):
+        query = self.jj_mssql.get_template('value_in_list.jinja').render(ctx=ctx, values=values)
         return self.normalize(query)
 
     def q_int_lt(self, ctx, n):
         query = self.jj_mssql.get_template('int_lt.jinja').render(ctx=ctx, n=n)
+        return self.normalize(query)
+
+    def q_int_eq(self, ctx, n):
+        query = self.jj_mssql.get_template('int_eq.jinja').render(ctx=ctx, n=n)
         return self.normalize(query)
 
     def q_float_char_in_set(self, ctx, values):

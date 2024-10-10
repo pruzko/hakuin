@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from hakuin import HKRequester
+from hakuin import Requester
 
 
 
@@ -10,7 +10,7 @@ DIR_DBS = os.path.abspath(os.path.join(DIR_FILE, 'dbs'))
 
 
 
-class OfflineRequester(HKRequester):
+class OfflineRequester(Requester):
     '''Offline requester for testing purposes.'''
     DB_FILE = None
 
@@ -36,9 +36,8 @@ class OfflineRequester(HKRequester):
             self.db = None
 
 
-    async def request(self, ctx, query):
-        self.n_requests += 1
-        query = f'SELECT cast(({query}) as bool)'
+    async def request(self, query):
+        query = f'SELECT cast(({query.render()}) as bool)'
         return bool(self.db.execute(query).fetchone()[0])
 
 

@@ -1,110 +1,117 @@
-import os
+from sqlglot import parse_one, exp
 
-import jinja2
-
-from hakuin.utils import EOS, DIR_QUERIES, BYTE_MAX
-from .DBMS import DBMS
+from .DBMS import DBMS, QueryTemplate
 
 
 
 class SQLite(DBMS):
-    DATA_TYPES = ['integer', 'text', 'real', 'numeric', 'blob']
+    DIALECT = 'sqlite'
+
+    AST_ISASCII = parse_one(
+        "not @query glob cast(x'2a5b5e012d7f5d2a' as text)",
+        dialect='sqlite',
+    )
+    '''SQLite does not have native isascii() function. As a workaround, we try to look for
+    non-ascii characters with "*[^\\x01-\\x7f]*" glob patterns. The pattern is hex-encoded
+    because SQLite does not support special characters in string literals.
+    '''
+
+    AST_TABLE_NAMES_FILTER = parse_one(
+        "schema=@schema_name and type='table' and name != 'sqlite_schema'",
+        dialect='sqlite',
+    )
+
+    AST_COLUMN_TYPE_IN_LIST = parse_one(
+        'select lower(type) in (@types) from pragma_table_info(@table_name) where name=@column_name',
+        dialect='sqlite',
+    )
 
 
-    def __init__(self):
-        super().__init__()
-        self.jj_sqlite = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(DIR_QUERIES, 'SQLite')))
-        self.jj_sqlite.filters = self.jj.filters
+    def template_resolve_target(self, template):
+        if template.ctx.target == 'schema_names':
+            return self.template_resolve_target_schema_names(template=template)
+        if template.ctx.target == 'table_names':
+            return self.template_resolve_target_table_names(template=template)
+        if template.ctx.target == 'column_names':
+            return self.template_resolve_target_column_names(template=template)
 
 
-    # Template Filters
-    @staticmethod
-    def sql_str_lit(s):
-        if not s.isascii() or not s.isprintable() or any(c in s for c in "?:'"):
-            return f"cast(x'{s.encode('utf-8').hex()}' as TEXT)"
-        return f"'{s}'"
-
-    @staticmethod
-    def sql_byte_lit(n):
-        assert n in range(BYTE_MAX + 1), f'n must be in [0, {BYTE_MAX}]'
-        return f"x'{n:02x}'"
-
-    @classmethod
-    def sql_in_str_set(cls, s, strings):
-        return f'{s} in ({",".join([cls.sql_str_lit(x) for x in strings])})'
-
-    @staticmethod
-    def sql_is_ascii(s):
-        # SQLite does not have native "isascii" function. As a workaround we try to look for
-        # non-ascii characters with "*[^\x01-0x7f]*" glob patterns. The pattern does not need to
-        # include the null terminator (0x00) because SQLite will never pass it to the GLOB expression.
-        # Also, the pattern is hex-encoded because SQLite does not support special characters in
-        # string literals.
-        return f'{s} not glob cast(x\'2a5b5e012d7f5d2a\' as TEXT)'
+    def template_resolve_target_schema_names(self, template):
+        template.resolve_params(params={
+            'table': exp.func('pragma_database_list'),
+            'column': exp.to_column('name'),
+        })
 
 
-    # Queries
-    def q_column_type_in_str_set(self, ctx, types):
-        query = self.jj_sqlite.get_template('column_type_in_str_set.jinja').render(ctx=ctx, types=types)
-        return self.normalize(query)
+    def template_resolve_target_table_names(self, template):
+        table_names_filter = self.AST_TABLE_NAMES_FILTER.copy()
+        orig_where_cond = template.ast.args.get('where')
+        if orig_where_cond:
+            template.ast.where(table_names_filter and orig_where_cond.this, copy=False)
+        else:
+            template.ast.where(table_names_filter, copy=False)
 
-    def q_column_is_int(self, ctx):
-        return self.q_column_type_in_str_set(ctx, types=['integer'])
+        template.resolve_params(params={
+            'table': exp.func('pragma_table_list'),    
+            'column': exp.to_column('name'),
+            'schema_name': template.ctx.schema or 'main',
+        })
 
-    def q_column_is_float(self, ctx):
-        return self.q_column_type_in_str_set(ctx, types=['real', 'float'])
 
-    def q_column_is_text(self, ctx):
-        return self.q_column_type_in_str_set(ctx, types=['text'])
+    def template_resolve_target_column_names(self, template):
+        template.resolve_params(params={
+            'table': exp.func('pragma_table_info', exp.Literal.string(template.ctx.table)),
+            'column': exp.to_column('name'),
+        })
 
-    def q_column_is_blob(self, ctx):
-        return self.q_column_type_in_str_set(ctx, types=['blob'])
 
-    def q_rows_have_null(self, ctx):
-        query = self.jj_sqlite.get_template('rows_have_null.jinja').render(ctx=ctx)
-        return self.normalize(query)
+    def ast_unicode(self, ctx, func):
+        func.set('this', exp.to_identifier('unicode'))
+        return func
 
-    def q_row_is_null(self, ctx):
-        query = self.jj_sqlite.get_template('row_is_null.jinja').render(ctx=ctx)
-        return self.normalize(query)
 
-    def q_rows_are_ascii(self, ctx):
-        query = self.jj_sqlite.get_template('rows_are_ascii.jinja').render(ctx=ctx)
-        return self.normalize(query)
+    def ast_instr(self, ctx, func):
+        func.set('this', exp.to_identifier('instr'))
+        return func
 
-    def q_row_is_ascii(self, ctx):
-        query = self.jj_sqlite.get_template('row_is_ascii.jinja').render(ctx=ctx)
-        return self.normalize(query)
 
-    def q_char_is_ascii(self, ctx):
-        query = self.jj_sqlite.get_template('char_is_ascii.jinja').render(ctx=ctx)
-        return self.normalize(query)
+    def ast_isascii(self, ctx, func):
+        ast = self.AST_ISASCII.copy()
+        ast.find(exp.Glob).set('this', func.expressions[0])
+        return ast
 
-    def q_rows_count_lt(self, ctx, n):
-        query = self.jj_sqlite.get_template('rows_count_lt.jinja').render(ctx=ctx, n=n)
-        return self.normalize(query)
 
-    def q_char_in_set(self, ctx, values):
-        has_eos = EOS in values
-        values = ''.join([v for v in values if v != EOS])
-        query = self.jj_sqlite.get_template('char_in_set.jinja').render(ctx=ctx, values=values, has_eos=has_eos)
-        return self.normalize(query)
+    def ast_column_type_in_list(self, ctx, types):
+        return QueryTemplate(
+            dbms=self,
+            ctx=ctx,
+            ast=self.AST_COLUMN_TYPE_IN_LIST.copy(),
+        ).resolve(params={
+            'types': types,
+            'table_name': ctx.table,
+            'column_name': ctx.column,
+        })
 
-    def q_char_lt(self, ctx, n):
-        query = self.jj_sqlite.get_template('char_lt.jinja').render(ctx=ctx, n=n)
-        return self.normalize(query)
 
-    def q_string_in_set(self, ctx, values):
-        query = self.jj_sqlite.get_template('string_in_set.jinja').render(ctx=ctx, values=values)
-        return self.normalize(query)
 
-    def q_int_lt(self, ctx, n):
-        query = self.jj_sqlite.get_template('int_lt.jinja').render(ctx=ctx, n=n)
-        return self.normalize(query)
+    class QueryColumnTypeIsInt(DBMS.QueryColumnTypeIsInt):
+        def ast(self):
+            return self.dbms.ast_column_type_in_list(self.ctx, types=['integer'])
 
-    def q_float_char_in_set(self, ctx, values):
-        return self.q_char_in_set(ctx, values)
 
-    def q_byte_lt(self, ctx, n):
-        query = self.jj_sqlite.get_template('byte_lt.jinja').render(ctx=ctx, n=n)
-        return self.normalize(query)
+
+    class QueryColumnTypeIsFloat(DBMS.QueryColumnTypeIsFloat):
+        def ast(self):
+            return self.dbms.ast_column_type_in_list(self.ctx, types=['float', 'real'])
+
+
+
+    class QueryColumnTypeIsText(DBMS.QueryColumnTypeIsText):
+        def ast(self):
+            return self.dbms.ast_column_type_in_list(self.ctx, types=['text'])
+
+
+
+    class QueryColumnTypeIsBlob(DBMS.QueryColumnTypeIsBlob):
+        def ast(self):
+            return self.dbms.ast_column_type_in_list(self.ctx, types=['blob'])

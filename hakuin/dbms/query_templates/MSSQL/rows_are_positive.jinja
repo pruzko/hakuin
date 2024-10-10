@@ -1,0 +1,10 @@
+{% extends 'base.jinja' %}
+
+
+{% block select %}
+SELECT  min(
+            CASE WHEN
+                {{ column }} >= 0
+            THEN 1 ELSE 0 END
+        )
+{% endblock %}

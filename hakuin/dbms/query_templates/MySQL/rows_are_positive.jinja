@@ -1,0 +1,6 @@
+{% extends 'base.jinja' %}
+
+
+{% block select %}
+SELECT  min({{ column }} >= 0)
+{% endblock %}
