@@ -12,8 +12,8 @@ readme = "README.md"
 requires-python = ">=3"
 dependencies = [
     "aiohttp",
-    "jinja2",
     "nltk",
+    "sqlglot",
     "tqdm",
 ]
 scripts = { hk = "hakuin.hk:main" }

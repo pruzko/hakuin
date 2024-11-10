@@ -1,7 +1,0 @@
-{% set single_row = true %}
-{% extends 'base.jinja' %}
-
-
-{% block select %}
-SELECT  {{ column | sql_float_dec_str | sql_reverse | sql_cast('int') }} < {{ n }}
-{% endblock %}

@@ -1,9 +1,0 @@
-{% set single_row = true %}
-{% extends 'base.jinja' %}
-
-
-{% block select %}
-SELECT  CASE WHEN
-            {{ column }} is NULL
-        THEN 1 ELSE 0 END
-{% endblock %}

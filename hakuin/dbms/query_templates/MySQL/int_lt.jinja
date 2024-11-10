@@ -1,7 +1,0 @@
-{% set single_row = true %}
-{% extends 'base.jinja' %}
-
-
-{% block select %}
-SELECT  {{ column | sql_cast('int') }} < {{ n }}
-{% endblock %}

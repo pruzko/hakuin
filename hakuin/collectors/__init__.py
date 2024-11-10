@@ -1,6 +1,5 @@
-from .contexts import *
-from .Stats import Stats
-
-from .Collector import Collector, CollectorBuilder
-from .NumericCollector import NumericCollector, IntCollectorBuilder, FloatCollectorBuilder
-from .StringCollector import StringCollector, StringCollectorBuilder
+from .contexts import Context, NumericContext, IntContext, FloatContext, StringContext, TextContext, BlobContext
+from .stats import Stats
+from .collector import Collector
+from .numeric_collectors import NumericCollector, IntCollector, FloatCollector
+from .string_collectors import StringCollector, TextCollector, BlobCollector

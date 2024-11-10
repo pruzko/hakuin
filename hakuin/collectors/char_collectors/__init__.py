@@ -1,4 +1,4 @@
-from .CharCollector import CharCollector
-from .BinaryCharCollector import BinaryCharCollector
-from .ListBinaryCharCollector import ListBinaryCharCollector
-from .ModelCharCollector import ModelCharCollector
+from .char_collector import CharCollector
+from .binary_char_collectors import BinaryCharCollector, TextBinaryCharCollector, BlobBinaryCharCollector
+from .list_binary_char_collectors import ListBinaryCharCollector, TextListBinaryCharCollector, BlobListBinaryCharCollector
+from .model_char_collectors import ModelCharCollector, TextModelCharCollector, BlobModelCharCollector

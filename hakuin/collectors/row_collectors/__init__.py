@@ -1,7 +1,6 @@
-from .FloatRowCollector import FloatRowCollector
-from .GuessingRowCollector import GuessingRowCollector
-from .IntAutoIncRowCollector import IntAutoIncRowCollector
-from .IntBinaryRowCollector import IntBinaryRowCollector
-from .IntRowCollector import IntRowCollector
-from .MetaRowCollector import MetaRowCollector
-from .StringRowCollector import StringRowCollector
+from .float_row_collector import FloatRowCollector
+from .guessing_row_collector import GuessingRowCollector
+from .int_auto_inc_row_collector import IntAutoIncRowCollector
+from .int_binary_row_collector import IntBinaryRowCollector
+from .int_row_collector import IntRowCollector
+from .string_row_collectors import BlobRowCollector, MetaTextRowCollector, StringRowCollector, TextRowCollector

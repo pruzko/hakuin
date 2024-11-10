@@ -17,8 +17,8 @@ app.config['SQLALCHEMY_BINDS'] = {
     'sqlite': f'sqlite:///{os.path.join(DIR_DBS, "test_db.sqlite")}',
     # 'mysql': 'mysql+pymysql://hakuin:hakuin@localhost/hakuindb',
     # 'mssql': 'mssql+pyodbc://hakuin:hakuin@localhost/hakuindb?driver=ODBC+Driver+17+for+SQL+Server',
-    # 'oracledb': 'oracle+cx_oracle://hakuin:hakuin@localhost/?service_name=freepdb1',
-    # 'psql': 'postgresql+psycopg2://hakuin:hakuin@localhost/hakuindb',
+    # 'oracle': 'oracle+cx_oracle://hakuin:hakuin@localhost/?service_name=freepdb1',
+    # 'postgres': 'postgresql+psycopg2://hakuin:hakuin@localhost/hakuindb',
 }
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -66,24 +66,24 @@ def mssql():
     return 'not found', 404
 
 
-@app.route('/oracledb')
-def oracledb():
+@app.route('/oracle')
+def oracle():
     print(request.args['query'])
     query = f'SELECT CASE WHEN ({request.args["query"]}) THEN 1 ELSE 0 END'
 
-    with db.get_engine(app, bind='oracledb').connect() as conn:
+    with db.get_engine(app, bind='oracle').connect() as conn:
         if conn.execute(text(query)).fetchone()[0]:
             return 'ok'
 
     return 'not found', 404
 
 
-@app.route('/psql')
-def psql():
+@app.route('/postgres')
+def postgres():
     print(request.args['query'])
     query = f'SELECT cast(({request.args["query"]}) as bool)'
 
-    with db.get_engine(app, bind='psql').connect() as conn:
+    with db.get_engine(app, bind='postgres').connect() as conn:
         if conn.execute(text(query)).fetchone()[0]:
             return 'ok'
 

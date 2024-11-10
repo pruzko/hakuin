@@ -1,6 +1,0 @@
-{% extends 'base.jinja' %}
-
-
-{% block select %}
-SELECT  min({{ column | sql_to_text | sql_is_ascii }})
-{% endblock %}

@@ -1,16 +1,16 @@
-from .DBMS import DBMS
-from .MSSQL import MSSQL
-from .MySQL import MySQL
-from .OracleDB import OracleDB
-from .PSQL import PSQL
-from .SQLite import SQLite
+from .dbms import DBMS
+from .mssql import MSSQL
+from .mysql import MySQL
+from .oracle import Oracle
+from .postgres import Postgres
+from .sqlite import SQLite
 
 
 
 DBMS_DICT = {
-    'sqlite': SQLite,
-    'mysql': MySQL,
-    'psql': PSQL,
     'mssql': MSSQL,
-    'oracledb': OracleDB,
+    'mysql': MySQL,
+    'oracle': Oracle,
+    'postgres': Postgres,
+    'sqlite': SQLite,
 }

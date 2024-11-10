@@ -24,6 +24,8 @@ DBS = {key: sessionmaker(bind=eng)() for key, eng, in DBS_ENG.items()}
 
 Base = declarative_base()
 
+NORM_DIST = [int(random.gauss(100, 10)) for _ in range(100)]
+
 
 
 class TestDataTypes(Base):
@@ -122,7 +124,7 @@ def create_unicode_table(db):
 
 def create_int_optimization_tables(db):
     db.query(TestIntOptimizations).delete()
-    for i, v in enumerate([int(random.gauss(100, 10)) for _ in range(100)], 1):
+    for i, v in enumerate(NORM_DIST, 1):
         db.add(TestIntOptimizations(
             id=i,
             norm_dist=v
