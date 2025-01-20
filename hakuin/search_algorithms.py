@@ -82,8 +82,8 @@ class BinarySearch(SearchAlgorithm):
             ctx (Context): collection context
             step (int): initial step
         '''
-        query = self.query_cls(dbms=self.dbms, ctx=ctx, n=self._lower)
-        if not await self.requester.run(query):
+        query = self.query_cls(dbms=self.dbms, n=self._lower)
+        if not await self.requester.run(ctx, query=query):
             return
 
         self._upper = self._lower
@@ -98,10 +98,10 @@ class BinarySearch(SearchAlgorithm):
         Params:
             ctx (Context): collection context
             step (int): initial step
-        query = self.query_cls(dbms=self.dbms, ctx=ctx, n=n)
+        query = self.query_cls(dbms=self.dbms, n=n)
         '''
-        query = self.query_cls(dbms=self.dbms, ctx=ctx, n=self._upper)
-        if await self.requester.run(query):
+        query = self.query_cls(dbms=self.dbms, n=self._upper)
+        if await self.requester.run(ctx, query=query):
             return
 
         self._lower = self._upper
@@ -124,8 +124,8 @@ class BinarySearch(SearchAlgorithm):
             return lower
 
         middle = (lower + upper) // 2
-        query = self.query_cls(dbms=self.dbms, ctx=ctx, n=middle)
-        if await self.requester.run(query):
+        query = self.query_cls(dbms=self.dbms, n=middle)
+        if await self.requester.run(ctx, query=query):
             return await self._search(ctx, lower=lower, upper=middle)
 
         return await self._search(ctx, lower=middle, upper=upper)
@@ -168,8 +168,8 @@ class ListBinarySearch(SearchAlgorithm):
 
         left, right = split_at(values, len(values) // 2)
 
-        query = self.query_cls(dbms=self.dbms, ctx=ctx, values=left)
-        if await self.requester.run(query):
+        query = self.query_cls(dbms=self.dbms, values=left)
+        if await self.requester.run(ctx, query=query):
             return await self._search(ctx, left)
 
         return await self._search(ctx, right)
@@ -221,13 +221,13 @@ class TreeSearch(SearchAlgorithm):
             if in_tree:
                 return tree.value
 
-            query = self.query_cls(dbms=self.dbms, ctx=ctx, values=[tree.value])
-            if await self.requester.run(query):
+            query = self.query_cls(dbms=self.dbms, values=[tree.value])
+            if await self.requester.run(ctx, query=query):
                 return tree.value
             return None
 
-        query = self.query_cls(dbms=self.dbms, ctx=ctx, values=tree.left.values())
-        if await self.requester.run(query):
+        query = self.query_cls(dbms=self.dbms, values=tree.left.values())
+        if await self.requester.run(ctx, query=query):
             return await self._search(ctx, tree=tree.left, in_tree=True)
 
         if tree.right is None:

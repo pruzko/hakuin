@@ -46,6 +46,7 @@ class FloatRowCollector(RowCollector):
         int_part = abs(int_part)
 
         text_ctx = self._to_text_ctx(ctx, start_offset=len(f'{sign}{int_part}.'))
+        text_ctx.cast_to = 'text'
         dec_part = await self.dec_text_row_collector.run(text_ctx)
 
         return float(f'{sign}{int_part}.{dec_part}')
@@ -56,8 +57,8 @@ class FloatRowCollector(RowCollector):
         if ctx.rows_are_positive is True:
             return True
 
-        query = self.query_cls_row_is_positive(dbms=self.dbms, ctx=ctx)
-        return await self.requester.run(query)
+        query = self.query_cls_row_is_positive(dbms=self.dbms)
+        return await self.requester.run(ctx, query=query)
 
 
     async def update(self, ctx, value, row_guessed):

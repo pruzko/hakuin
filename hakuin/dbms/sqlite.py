@@ -1,4 +1,5 @@
 from sqlglot import parse_one, exp
+from sqlglot.dialects import SQLite as SQLiteDialect
 
 from .dbms import DBMS
 
@@ -8,138 +9,82 @@ class SQLite(DBMS):
     DIALECT = 'sqlite'
 
 
-    class QueryResolver(DBMS.QueryResolver):
-        AST_TABLE_NAMES_FILTER = parse_one(
-            sql="schema=@schema_name and type='table' and name != 'sqlite_schema'",
-            dialect='sqlite',
-        )
+    class QueryUtils(DBMS.QueryUtils):
+        @classmethod
+        def target_schema_names(cls, query, ast, ctx):
+            query.table = exp.func('pragma_database_list')
+            query.column = exp.column('name')
+            return ast
 
 
-        def resolve_target_schema_names(self):
-            self.resolve_params(params={
-                'table': exp.func('pragma_database_list'),
-                'column': exp.to_column('name'),
+        @classmethod
+        def target_table_names(cls, query, ast, ctx):
+            query.table = exp.func('pragma_table_list')
+            query.column = exp.column('name')
+
+            where_filter = parse_one(
+                sql="schema=@schema_name and type='table' and name != 'sqlite_schema'",
+                dialect='sqlite',
+            )
+            where_filter = cls.resolve_params(query=query, ast=where_filter, ctx=ctx, params={
+                'schema_name': exp.Literal.string(ctx.schema or 'main'),
             })
+            cls.add_where(ast=ast, condition=where_filter)
+            
+            return ast
 
 
-        def resolve_target_table_names(self):
-            table_names_filter = self.AST_TABLE_NAMES_FILTER.copy()
-            orig_where_cond = self.ast.args.get('where')
-            if orig_where_cond:
-                self.ast.where(table_names_filter and orig_where_cond.this, copy=False)
-            else:
-                self.ast.where(table_names_filter, copy=False)
-
-            self.resolve_params(params={
-                'table': exp.func('pragma_table_list'),    
-                'column': exp.to_column('name'),
-                'schema_name': self.ctx.schema or 'main',
-            })
+        @classmethod
+        def target_column_names(cls, query, ast, ctx):
+            query.table = exp.func('pragma_table_info', exp.Literal.string(ctx.table))
+            query.column = exp.column('name')
+            return ast
 
 
-        def resolve_target_column_names(self):
-            self.resolve_params(params={
-                'table': exp.func('pragma_table_info', exp.Literal.string(self.ctx.table)),
-                'column': exp.to_column('name'),
-            })
+        @classmethod
+        def target_column_type(cls, query, ast, ctx):
+            query.table = exp.func('pragma_table_info', exp.Literal.string(ctx.table))
+            query.column = exp.column('type')
+
+            where_filter = parse_one(
+                sql='name=@column_name',
+                dialect='sqlite',
+            )
+            column_name = exp.Literal.string(ctx.column)
+            where_filter.find(exp.Parameter).replace(column_name)
+            cls.add_where(ast=ast, condition=where_filter)
+            
+            return ast
 
 
 
     class QueryColumnTypeIsInt(DBMS.QueryColumnTypeIsInt):
         AST_TEMPLATE = parse_one(
-            sql='select lower(type) in (@types) from pragma_table_info(@table_name) where name=@column_name',
+            sql="select lower(column) in ('integer') from table",
             dialect='sqlite',
         )
-
-        def ast(self):
-            return super().ast(params={
-                'types': ['integer'],
-                'table_name': self.ctx.table,
-                'column_name': self.ctx.column,
-            })
 
 
 
     class QueryColumnTypeIsFloat(DBMS.QueryColumnTypeIsFloat):
         AST_TEMPLATE = parse_one(
-            sql='select lower(type) in (@types) from pragma_table_info(@table_name) where name=@column_name',
+            sql="select lower(column) in ('float', 'real') from table",
             dialect='sqlite',
         )
-
-        def ast(self):
-            return super().ast(params={
-                'types': ['float', 'real'],
-                'table_name': self.ctx.table,
-                'column_name': self.ctx.column,
-            })
 
 
 
     class QueryColumnTypeIsText(DBMS.QueryColumnTypeIsText):
         AST_TEMPLATE = parse_one(
-            sql='select lower(type) in (@types) from pragma_table_info(@table_name) where name=@column_name',
+            sql="select lower(column) in ('text') from table",
             dialect='sqlite',
         )
-
-        def ast(self):
-            return super().ast(params={
-                'types': ['text'],
-                'table_name': self.ctx.table,
-                'column_name': self.ctx.column,
-            })
 
 
 
     class QueryColumnTypeIsBlob(DBMS.QueryColumnTypeIsBlob):
         AST_TEMPLATE = parse_one(
-            sql='select lower(type) in (@types) from pragma_table_info(@table_name) where name=@column_name',
+            sql="select lower(column) in ('blob') from table",
             dialect='sqlite',
         )
 
-        def ast(self):
-            return super().ast(params={
-                'types': ['blob'],
-                'table_name': self.ctx.table,
-                'column_name': self.ctx.column,
-            })
-
-
-
-    class QueryRowsAreAscii(DBMS.QueryRowsAreAscii):
-        PATTERN = b'*[^\x01-\x7f]*'
-        AST_TEMPLATE = parse_one(
-            sql=f"select min(not @column glob cast(x'{PATTERN.hex()}' as text)) from @table",
-            dialect='sqlite'
-        )
-
-
-
-    class QueryRowIsAscii(DBMS.QueryRowIsAscii):
-        PATTERN = b'*[^\x01-\x7f]*'
-        AST_TEMPLATE = parse_one(
-            sql=f"select not @column glob cast(x'{PATTERN.hex()}' as text) from @table limit 1 offset @row_idx",
-            dialect='sqlite',
-        )
-
-
-
-    class QueryCharIsAscii(DBMS.QueryCharIsAscii):
-        PATTERN = b'*[^\x01-\x7f]*'
-        AST_TEMPLATE = parse_one(
-            sql=f'''
-                select not substr(@column, @char_offset, 1) glob cast(x'{PATTERN.hex()}' as text)
-                from @table limit 1 offset @row_idx
-            ''',
-            dialect='sqlite',
-        )
-
-
-
-    class QueryTextCharLt(DBMS.QueryTextCharLt):
-        AST_TEMPLATE = parse_one(
-            sql='''
-                select length(@column) > @str_length and unicode(substr(@column, @char_offset, 1)) < @n
-                from @table limit 1 offset @row_idx
-            ''',
-            dialect='sqlite',
-        )

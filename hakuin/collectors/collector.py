@@ -39,10 +39,6 @@ class Collector(metaclass=ABCMeta):
         self.query_cls_rows_have_null = query_cls_rows_have_null or self.dbms.QueryRowsHaveNull
         self.query_cls_row_is_null = query_cls_row_is_null or self.dbms.QueryRowIsNull
 
-        self._row_idx_ctr = 0
-        self._row_idx_ctr_lock = asyncio.Lock()
-        self._data_lock = asyncio.Lock()
-
 
     async def run(self, ctx):
         '''Collects the whole column.
@@ -78,23 +74,24 @@ class Collector(metaclass=ABCMeta):
 
         await self.check_rows(ctx)
 
+        data = [None] * ctx.n_rows
+        queue = asyncio.Queue()
+        for row_idx in range(ctx.n_rows):
+            await queue.put(row_idx)
+
         with tqdm.tqdm(total=ctx.n_rows, file=sys.stderr, leave=False) as progress:
-            data = [None] * ctx.n_rows
-            await asyncio.gather(
-                *[self._task_collect_row(ctx, data, progress) for _ in range(self.n_tasks)]
-            )
+            tasks = [self._task_collect_row(ctx, queue, data, progress) for _ in range(self.n_tasks)]
+            await asyncio.gather(*tasks)
 
         return data
 
 
-    async def _task_collect_row(self, ctx, data, progress):
-        while True:
-            row_idx = None
-            async with self._row_idx_ctr_lock:
-                if self._row_idx_ctr >= ctx.n_rows:
-                    return
-                row_idx = self._row_idx_ctr
-                self._row_idx_ctr += 1
+    async def _task_collect_row(self, ctx, queue, data, progress):
+        while not queue.empty():
+            try:
+                row_idx = await queue.get()
+            except asyncio.QueueEmpty:
+                break
 
             row_ctx = deepcopy(ctx)
             row_ctx.row_idx = row_idx
@@ -104,8 +101,7 @@ class Collector(metaclass=ABCMeta):
             else:
                 res = await self.collect_row(row_ctx)
 
-            async with self._data_lock:
-                data[row_ctx.row_idx] = res
+            data[row_ctx.row_idx] = res
 
             progress.write(f'({row_ctx.row_idx + 1}/{row_ctx.n_rows}) [{row_ctx.table}].[{row_ctx.column}]: {res}', file=sys.stderr)
             progress.update(1)
@@ -162,8 +158,8 @@ class Collector(metaclass=ABCMeta):
             bool: rows have NULL flag
         '''
         if ctx.rows_have_null is None:
-            query = self.query_cls_rows_have_null(dbms=self.dbms, ctx=ctx)
-            return await self.requester.run(query)
+            query = self.query_cls_rows_have_null(dbms=self.dbms)
+            return await self.requester.run(ctx, query=query)
 
         return ctx.rows_have_null
 
@@ -180,8 +176,8 @@ class Collector(metaclass=ABCMeta):
         if ctx.rows_have_null is False:
             return False
 
-        query = self.query_cls_row_is_null(dbms=self.dbms, ctx=ctx)
-        return await self.requester.run(query)
+        query = self.query_cls_row_is_null(dbms=self.dbms)
+        return await self.requester.run(ctx, query=query)
 
 
 

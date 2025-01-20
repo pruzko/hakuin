@@ -14,26 +14,28 @@ class Requester(metaclass=ABCMeta):
         self._lock = asyncio.Lock()
 
 
-    async def run(self, query):
+    async def run(self, ctx, query):
         '''Calls request() and increments the request counter.
 
         Params:
             query (Query): query to be injected
+            TODO
 
         Returns:
             bool: query result
         '''
-        res = await self.request(query)
+        res = await self.request(ctx, query=query)
         async with self._lock:
             self._n_requests += 1
         return res
 
 
     @abstractmethod
-    async def request(self, query):
+    async def request(self, ctx, query):
         '''Sends a request with injected query and infers its result.
 
         Params:
+            TODO
             query (Query): query to be injected
 
         Returns:
@@ -75,10 +77,11 @@ class EmulationRequester(Requester):
         self.correct = correct
 
 
-    async def request(self, query):
+    async def request(self, ctx, query):
         '''Emulates inference without sending any requests.
 
         Params:
+            TODO
             query (Query): query to be injected
 
         Returns:

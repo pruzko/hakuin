@@ -131,8 +131,8 @@ class TextCollector(StringCollector):
             bool: rows are ascii flag
         '''
         if ctx.rows_are_ascii is None:
-            query = self.query_cls_rows_are_ascii(dbms=self.dbms, ctx=ctx)
-            return await self.requester.run(query)
+            query = self.query_cls_rows_are_ascii(dbms=self.dbms)
+            return await self.requester.run(ctx, query=query)
 
         return ctx.rows_are_ascii
 

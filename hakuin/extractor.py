@@ -145,14 +145,14 @@ class Extractor:
         ctx = TextContext(target='column_type', schema=schema, table=table, column=column)
 
         queries = [
-            ('int', self.dbms.QueryColumnTypeIsInt(dbms=self.dbms, ctx=ctx)),
-            ('text', self.dbms.QueryColumnTypeIsText(dbms=self.dbms, ctx=ctx)),
-            ('float', self.dbms.QueryColumnTypeIsFloat(dbms=self.dbms, ctx=ctx)),
-            ('blob', self.dbms.QueryColumnTypeIsBlob(dbms=self.dbms, ctx=ctx)),
+            ('int', self.dbms.QueryColumnTypeIsInt(dbms=self.dbms)),
+            ('text', self.dbms.QueryColumnTypeIsText(dbms=self.dbms)),
+            ('float', self.dbms.QueryColumnTypeIsFloat(dbms=self.dbms)),
+            ('blob', self.dbms.QueryColumnTypeIsBlob(dbms=self.dbms)),
         ]
 
         for column_type, query in queries:
-            if await self.requester.run(query):
+            if await self.requester.run(ctx, query=query):
                 return column_type
 
         return None

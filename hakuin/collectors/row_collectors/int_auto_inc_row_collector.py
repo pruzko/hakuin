@@ -33,8 +33,8 @@ class IntAutoIncRowCollector(RowCollector):
             return None
 
         n = await self._get_auto_inc(ctx)
-        query = self.query_cls_value_in_list(dbms=self.dbms, ctx=ctx, values=[n])
-        if await self.requester.run(query):
+        query = self.query_cls_value_in_list(dbms=self.dbms, values=[n])
+        if await self.requester.run(ctx, query=query):
             return n
         return None
 

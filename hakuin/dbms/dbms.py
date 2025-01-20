@@ -3,7 +3,7 @@ from collections.abc import Iterable
 
 from sqlglot import exp, parse_one
 
-from hakuin.collectors import BlobContext, TextContext
+from hakuin.collectors import StringContext
 from hakuin.utils import BYTE_MAX, EOS
 
 
@@ -12,90 +12,119 @@ class DBMS(metaclass=ABCMeta):
     DIALECT = None
 
 
-
-    class QueryResolver(metaclass=ABCMeta):
-        AST_CAST_TO_INT = parse_one(sql='cast(@column as int)', dialect='sqlite')
-        AST_CAST_TO_FLOAT = parse_one(sql='cast(@column as double)', dialect='sqlite')
-        AST_CAST_TO_TEXT = parse_one(sql='cast(@column as text)', dialect='sqlite')
-        AST_CAST_TO_BLOB = parse_one(sql='cast(@column as blob)', dialect='sqlite')
-
-
-        def __init__(self, ast, ctx):
-            self.ast = ast
-            self.ctx = ctx
+    class QueryUtils(metaclass=ABCMeta):
+        @classmethod
+        def resolve_query(cls, query, ast, ctx, params):
+            ast = cls.resolve_target(query=query, ast=ast, ctx=ctx)
+            ast = cls.resolve_casts(query=query, ast=ast, ctx=ctx)
+            return cls.resolve_params(query=query, ast=ast, ctx=ctx, params=params or {})
 
 
-        def resolve(self, params={}):
-            self.resolve_target()
-            self.resolve_type_casts()
-            self.resolve_params(params=params)
-            return self.ast
+        @classmethod
+        def resolve_target(cls, query, ast, ctx):
+            if ctx.target == 'schema_names':
+                return cls.target_schema_names(query=query, ast=ast, ctx=ctx)
+            elif ctx.target == 'table_names':
+                return cls.target_table_names(query=query, ast=ast, ctx=ctx)
+            elif ctx.target == 'column_names':
+                return cls.target_column_names(query=query, ast=ast, ctx=ctx)
+            elif ctx.target == 'column_type':
+                return cls.target_column_type(query=query, ast=ast, ctx=ctx)
+            else:
+                return cls.target_column(query=query, ast=ast, ctx=ctx)
 
 
-        def resolve_target(self):
-            if self.ctx.target == 'schema_names':
-                self.resolve_target_schema_names()
-            elif self.ctx.target == 'table_names':
-                self.resolve_target_table_names()
-            elif self.ctx.target == 'column_names':
-                self.resolve_target_column_names()
+        @classmethod
+        def target_column(cls, query, ast, ctx):
+            query.table = exp.table_(ctx.table, db=ctx.schema)
+            query.column = exp.column(ctx.column)
+            return ast
 
 
+        @classmethod
         @abstractmethod
-        def resolve_target_schema_names(self):
+        def target_schema_names(cls, query, ast, ctx):
+            raise NotImplementedError
+
+        
+        @classmethod
+        @abstractmethod
+        def target_table_names(cls, query, ast, ctx):
+            raise NotImplementedError
+
+        
+        @classmethod
+        @abstractmethod
+        def target_column_names(cls, query, ast, ctx):
             raise NotImplementedError
 
 
+        @classmethod
         @abstractmethod
-        def resolve_target_table_names(self):
+        def target_column_type(cls, query, ast, ctx):
             raise NotImplementedError
 
 
-        @abstractmethod
-        def resolve_target_column_names(self):
-            raise NotImplementedError
+        @classmethod
+        def resolve_casts(cls, query, ast, ctx):
+            if ctx.cast_to == 'int':
+                return cls.cast_to_int(query=query, ast=ast, ctx=ctx)
+            if ctx.cast_to == 'text':
+                return cls.cast_to_text(query=query, ast=ast, ctx=ctx)
+            return ast
 
 
-        def resolve_type_casts(self):
-            if self.ctx.cast_to == 'int':
-                self.resolve_params(params={'column': self.AST_CAST_TO_INT.copy()})
-            elif self.ctx.cast_to == 'float':
-                self.resolve_params(params={'column': self.AST_CAST_TO_FLOAT.copy()})
-            elif self.ctx.cast_to == 'text':
-                self.resolve_params(params={'column': self.AST_CAST_TO_TEXT.copy()})
-            elif self.ctx.cast_to == 'blob':
-                self.resolve_params(params={'column': self.AST_CAST_TO_BLOB.copy()})
+        @classmethod
+        def cast_to_int(cls, query, ast, ctx):
+            query.column = exp.cast(query.column, to='INT')
+            return ast
 
 
-        def resolve_params(self, params={}):
-            params = self._process_params(params)
-            for param in self.ast.find_all(exp.Parameter):
-                if param.name == 'column':
-                    node = param.parent if isinstance(param.parent, exp.Column) else param
-                    column = params.get('column') or exp.column(self.ctx.column, quoted=True)
-                    node.replace(column)
-                elif param.name == 'table':
-                    node = param.parent if isinstance(param.parent, exp.Table) else param
-                    table = params.get('table') or exp.table_(self.ctx.table, quoted=True)
-                    node.replace(table)
-                elif param.name in params:
-                    param.replace(params[param.name])
+        @classmethod
+        def cast_to_text(cls, query, ast, ctx):
+            query.column = exp.cast(query.column, to='TEXT')
+            return ast
 
 
-        def _process_params(self, params):
-            params = {k: v if isinstance(v, exp.Expression) else self._to_literal(v) for k, v in params.items()}
-
-            row_idx = self.ctx.row_idx or 0
-            params['row_idx'] = params.get('row_idx', self._to_literal(row_idx))
-
-            if isinstance(self.ctx, (BlobContext, TextContext)):
-                str_length = self.ctx.start_offset + len(self.ctx.buffer)
-                params['str_length'] = params.get('str_length', self._to_literal(str_length))
-                params['char_offset'] = params.get('char_offset', self._to_literal(str_length + 1))
-            return params
+        @classmethod
+        def resolve_params(cls, query, ast, ctx, params):
+            params = cls.process_params(ctx=ctx, params=params)
+            return cls._resolve_params(query=query, ast=ast, params=params)
 
 
-        def _to_literal(self, value):
+        @classmethod
+        def _resolve_params(cls, query, ast, params):
+            return ast.transform(cls._transform_params, query, params, copy=False)
+
+
+        @classmethod
+        def _transform_params(cls, node, query, params):
+            if isinstance(node, exp.Column) and node.name.lower() == 'column':
+                return query.column
+            if isinstance(node, exp.Table) and node.name.lower() == 'table':
+                return query.table
+            if isinstance(node, exp.Parameter) and node.name in params:
+                return cls._resolve_params(query=query, ast=params[node.name], params=params)
+            return node
+
+
+        @classmethod
+        def process_params(cls, ctx, params):
+            params['row_idx'] = ctx.row_idx or 0
+
+            if isinstance(ctx, StringContext):
+                buffer_length = ctx.start_offset + len(ctx.buffer)
+                params['buffer_length'] = params.get('buffer_length', buffer_length)
+                params['char_offset'] = params.get('char_offset', buffer_length + 1)
+
+            return {
+                k: v if isinstance(v, exp.Expression) else cls.to_literal(v)
+                for k, v in params.items()
+            }
+
+
+        @classmethod
+        def to_literal(cls, value):
             if isinstance(value, (int, float)):
                 return exp.Literal.number(value)
             elif isinstance(value, str):
@@ -103,8 +132,16 @@ class DBMS(metaclass=ABCMeta):
             elif isinstance(value, bytes):
                 return exp.HexString(this=value.hex())
             elif isinstance(value, Iterable):
-                return [self._to_literal(item) for item in value]
+                return exp.Tuple(expressions=[cls.to_literal(item) for item in value])
             raise TypeError(f'Type not supported: {type(value)}')
+
+
+        @staticmethod
+        def add_where(ast, condition):
+            original_where = ast.args.get('where')
+            if original_where:
+                condition = exp.and_(condition, original_where.this)
+            ast.where(condition, copy=False)
 
 
 
@@ -113,44 +150,47 @@ class DBMS(metaclass=ABCMeta):
         AST_TEMPLATE = None
 
 
-        def __init__(self, dbms, ctx):
+        def __init__(self, dbms):
             '''Constructor.
 
             Params:
                 dbms (DBMS): DBMS instance used to render queries
-                ctx (Context): collection context
             '''
             self.dbms = dbms
-            self.ctx = ctx
+            self._table = None
+            self._column = None
 
 
         @abstractmethod
         def emulate(self, correct):
-            '''Retrieves the logical result of the query without constructing it.
+            '''Emulates the query and retrieves the its result.
 
             Params:
                 correct (value): correct value
 
             Returns:
-                bool: logical result
+                bool: query result
             '''
             raise NotImplementedError
 
 
-        def ast(self, ast_template=None, params={}):
-            assert ast_template or self.AST_TEMPLATE, 'AST template not provided.'
-            ast = ast_template or self.AST_TEMPLATE.copy()
-            ast = self.dbms.QueryResolver(ast=ast, ctx=self.ctx).resolve(params=params)
-            return ast
+        def ast_template(self):
+            return self.AST_TEMPLATE.copy()
 
 
-        def render(self):
+        def ast(self, ctx, params=None):
+            ast = self.ast_template()
+            return self.dbms.QueryUtils.resolve_query(query=self, ast=ast, ctx=ctx, params=params)
+
+
+        def render(self, ctx):
             '''Renders the query as a string.
 
             Returns:
                 str: rendered query
+                ctx: todo
             '''
-            return self.ast().sql(dialect=self.dbms.DIALECT)
+            return self.ast(ctx=ctx).sql(dialect=self.dbms.DIALECT)
 
 
 
@@ -180,27 +220,30 @@ class DBMS(metaclass=ABCMeta):
 
     class QueryRowsCountLt(Query):
         AST_TEMPLATE = parse_one(
-            sql='select count(*) < @n from @table',
+            sql='select count(*) < @n from table',
             dialect='sqlite',
         )
 
-        def __init__(self, dbms, ctx, n):
-            super().__init__(dbms, ctx)
+        def __init__(self, dbms, n):
+            super().__init__(dbms)
             self.n = n
+
+
+        def ast(self, ctx):
+            return super().ast(ctx, params={'n': self.n})
+
 
         def emulate(self, correct):
             return correct < self.n
-
-        def ast(self):
-            return super().ast(params={'n': self.n})
 
 
 
     class QueryRowsHaveNull(Query):
         AST_TEMPLATE = parse_one(
-            sql='select count(*) > 0 from @table where @column is null',
+            sql='select logical_or(column is null) from table',
             dialect='sqlite',
         )
+
 
         def emulate(self, correct):
             return None in correct
@@ -209,9 +252,10 @@ class DBMS(metaclass=ABCMeta):
 
     class QueryRowIsNull(Query):
         AST_TEMPLATE = parse_one(
-            sql='select @column is null from @table limit 1 offset @row_idx',
+            sql='select column is null from table limit 1 offset @row_idx',
             dialect='sqlite',
         )
+
 
         def emulate(self, correct):
             return correct is None
@@ -220,9 +264,10 @@ class DBMS(metaclass=ABCMeta):
 
     class QueryRowsArePositive(Query):
         AST_TEMPLATE = parse_one(
-            sql='select min(@column) >= 0 from @table',
+            sql='select min(column) >= 0 from table',
             dialect='sqlite',
         )
+
 
         def emulate(self, correct):
             return all([row >= 0 for row in correct if row is not None])
@@ -231,9 +276,10 @@ class DBMS(metaclass=ABCMeta):
 
     class QueryRowIsPositive(Query):
         AST_TEMPLATE = parse_one(
-            sql='select @column >= 0 from @table limit 1 offset @row_idx',
+            sql='select column >= 0 from table limit 1 offset @row_idx',
             dialect='sqlite',
         )
+
 
         def emulate(self, correct):
             return correct >= 0
@@ -241,18 +287,36 @@ class DBMS(metaclass=ABCMeta):
 
 
     class QueryRowsAreAscii(Query):
+        AST_TEMPLATE = parse_one(
+            sql='select logical_and(is_ascii(column)) from table',
+            dialect='sqlite',
+        )
+
+
         def emulate(self, correct):
             return all([row.isascii() for row in correct if row is not None])
 
 
 
     class QueryRowIsAscii(Query):
+        AST_TEMPLATE = parse_one(
+            sql='select is_ascii(column) from table limit 1 offset @row_idx',
+            dialect='sqlite',
+        )
+
+
         def emulate(self, correct):
             return correct.isascii()
 
 
 
     class QueryCharIsAscii(Query):
+        AST_TEMPLATE = parse_one(
+            sql='select is_ascii(substr(column, @char_offset, 1)) from table limit 1 offset @row_idx',
+            dialect='sqlite',
+        )
+
+
         def emulate(self, correct):
             return correct.isascii()
 
@@ -260,55 +324,60 @@ class DBMS(metaclass=ABCMeta):
 
     class QueryValueInList(Query):
         AST_TEMPLATE = parse_one(
-            sql='select @column in (@values) from @table limit 1 offset @row_idx',
+            sql='select column in @values from table limit 1 offset @row_idx',
             dialect='sqlite',
         )
 
-        def __init__(self, dbms, ctx, values):
-            super().__init__(dbms, ctx)
+
+        def __init__(self, dbms, values):
+            super().__init__(dbms)
             self.values = values
-            for v in self.values:
-                assert isinstance(v, (int, float, str, bytes)), f'Type not supported: {type(v)}.'
+
 
         def emulate(self, correct):
             return correct in self.values
 
-        def ast(self):
-            return super().ast(params={'values': self.values})
+
+        def ast(self, ctx):
+            return super().ast(ctx, params={'values': self.values})
 
 
 
     class QueryIntLt(Query):
         AST_TEMPLATE = parse_one(
-            sql='select @column < @n from @table limit 1 offset @row_idx',
+            sql='select column < @n from table limit 1 offset @row_idx',
             dialect='sqlite',
         )
 
-        def __init__(self, dbms, ctx, n):
-            super().__init__(dbms, ctx)
-            self.n = n
+
+        def __init__(self, dbms, n):
+            super().__init__(dbms)
+            self.n = n 
+
 
         def emulate(self, correct):
             return correct < self.n
 
-        def ast(self):
-            return super().ast(params={'n': self.n})
+
+        def ast(self, ctx):
+            return super().ast(ctx, params={'n': self.n})
 
 
 
     class QueryCharInString(Query):
-        AST_TEMPLATE_EOS = parse_one(
+        AST_TEMPLATE = parse_one(
             sql='''
-                select length(@column) = @str_length or instr(@values_str, substr(@column, @char_offset, 1)) > 0
-                from @table limit 1 offset @row_idx
+                select instr(@values_str, substr(column, @char_offset, 1)) > 0
+                from table limit 1 offset @row_idx
             ''',
             dialect='sqlite',
         )
-        AST_TEMPLATE_NO_EOS = parse_one(
-            sql='''
-                select length(@column) > @str_length and instr(@values_str, substr(@column, @char_offset, 1)) > 0
-                from @table limit 1 offset @row_idx
-            ''',
+        AST_HAS_EOS = parse_one(
+            sql='char_length(column) = @buffer_length',
+            dialect='sqlite',
+        )
+        AST_NO_EOS = parse_one(
+            sql='char_length(column) > @buffer_length',
             dialect='sqlite',
         )
 
@@ -319,60 +388,74 @@ class DBMS(metaclass=ABCMeta):
             return correct in self.values_str
 
 
-        def ast(self):
-            template = self.AST_TEMPLATE_EOS if self.has_eos else self.AST_TEMPLATE_NO_EOS
-            template = template.copy()
+        def ast_template(self):
+            ast = super().ast_template()
+            if self.has_eos:
+                select_exp = exp.or_(self.AST_HAS_EOS.copy(), ast.expressions[0])
+            else:
+                select_exp = exp.and_(self.AST_NO_EOS.copy(), ast.expressions[0])
 
             if not self.values_str:
-                and_or = template.find((exp.And, exp.Or))
-                and_or.replace(and_or.this)
+                select_exp = select_exp.this
 
-            return super().ast(ast_template=template, params={'values_str': self.values_str})
+            ast.set('expressions', [select_exp])
+            return ast
+
+
+        def ast(self, ctx):
+            return super().ast(ctx, params={'values_str': self.values_str})
 
 
 
     class QueryTextCharInString(QueryCharInString):
-        def __init__(self, dbms, ctx, values):
-            super().__init__(dbms, ctx)
-            assert values, f'No values provided.'
-            self.values_str = ''.join([v for v in values if v != EOS])
+        def __init__(self, dbms, values):
+            super().__init__(dbms)
             self.has_eos = EOS in values
+            self.values_str = ''.join([v for v in values if v != EOS])
 
 
 
     class QueryBlobCharInString(QueryCharInString):
-        def __init__(self, dbms, ctx, values):
-            super().__init__(dbms, ctx)
-            assert values, f'No values provided.'
-            self.values_str = b''.join([v for v in values if v != EOS])
+        def __init__(self, dbms, values):
+            super().__init__(dbms)
             self.has_eos = EOS in values
+            self.values_str = b''.join([v for v in values if v != EOS])
 
 
 
     class QueryCharLt(Query):
-        def __init__(self, dbms, ctx, n):
-            super().__init__(dbms, ctx)
+        def __init__(self, dbms, n):
+            super().__init__(dbms)
             self.n = n
 
 
 
     class QueryTextCharLt(QueryCharLt):
+        AST_TEMPLATE = parse_one(
+            sql='''
+                select char_length(column) > @buffer_length and unicode(substr(column, @char_offset, 1)) < @n
+                from table limit 1 offset @row_idx
+            ''',
+            dialect='sqlite',
+        )
+
+
         def emulate(self, correct):
             if correct == EOS:
                 return False
             return ord(correct) < self.n
 
 
-        def ast(self):
-            return super().ast(params={'n': self.n})
+        def ast(self, ctx):
+            return super().ast(ctx, params={'n': self.n})
 
 
 
     class QueryBlobCharLt(QueryCharLt):
         AST_TEMPLATE = parse_one(
             sql='''
-                select length(@column) > @str_length and substr(@column, @char_offset, 1) < @byte
-                from @table limit 1 offset @row_idx
+                select char_length(column) > @buffer_length and substr(column, @char_offset, 1) < @byte
+                from table limit 1 offset @row_idx
             ''',
             dialect='sqlite',
         )
@@ -384,11 +467,15 @@ class DBMS(metaclass=ABCMeta):
             return correct[0] < self.n
 
 
-        def ast(self):
-            ast = self.AST_TEMPLATE.copy()
+        def ast_template(self):
+            ast = super().ast_template()
             if self.n > BYTE_MAX:
                 and_exp = ast.find(exp.And)
+                and_exp = ast.find(exp.And)
                 and_exp.replace(and_exp.this)
-                return super().ast(ast_template=ast)
+            return ast
 
-            return super().ast(ast_template=ast, params={'byte': bytes([self.n])})
+
+        def ast(self, ctx):
+            byte = bytes([min(self.n, BYTE_MAX)])
+            return super().ast(ctx, params={'byte': byte})

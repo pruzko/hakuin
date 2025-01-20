@@ -100,8 +100,8 @@ class TextBinaryCharCollector(BinaryCharCollector):
         if ctx.row_is_ascii is True:
             return True
 
-        query = self.query_cls_char_is_ascii(dbms=self.dbms, ctx=ctx)
-        return await requester.run(query)
+        query = self.query_cls_char_is_ascii(dbms=self.dbms)
+        return await requester.run(ctx, query=query)
 
 
 
