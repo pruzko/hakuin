@@ -121,11 +121,11 @@ class Collector(metaclass=ABCMeta):
         row_guessed = False
         fallback_cost = await self.row_collector.stats.success_cost()
 
-        if self.guessing_row_collector:
+        if fallback_cost and self.guessing_row_collector:
             tree = await self.guessing_row_collector.make_tree(fallback_cost=fallback_cost)
-            guessing_cost = await self.guessing_row_collector.stats.total_cost(fallback_cost=fallback_cost)
+            guessing_cost = await self.guessing_row_collector.stats.expected_cost(fallback_cost=fallback_cost)
 
-            if tree and guessing_cost < fallback_cost:
+            if tree and guessing_cost and guessing_cost < fallback_cost:
                 res = await self.guessing_row_collector.run(ctx, tree=tree)
                 row_guessed = res is not None
 

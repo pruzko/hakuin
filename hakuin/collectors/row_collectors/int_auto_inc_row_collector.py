@@ -29,13 +29,16 @@ class IntAutoIncRowCollector(RowCollector):
         Returns:
             int: collected row
         '''
-        if self._last is None:
+        last = await self._get_last()
+        if not last:
             return None
 
-        n = await self._get_auto_inc(ctx)
+        n = await self._get_next(ctx, last)
+
         query = self.query_cls_value_in_list(dbms=self.dbms, values=[n])
         if await self.requester.run(ctx, query=query):
             return n
+
         return None
 
 
@@ -47,21 +50,35 @@ class IntAutoIncRowCollector(RowCollector):
             value (int): collected row
             row_guessed (bool): row was successfully guessed flag
         '''
-        if self._last:
-            is_success = value == await self._get_auto_inc(ctx)
-            await self.stats.update(is_success=is_success, cost=1)
+        last = await self._get_last()
+        if last:
+            is_success = value == await self._get_next(ctx, last)
+            await self.stats.update(is_success=is_success, cost=1.0)
 
         async with self._last_lock:
             self._last = ctx.row_idx, value
 
 
-    async def _get_auto_inc(self, ctx):
-        '''Computes the auto-incremented value.
+    async def _get_last(self):
+        '''Thread-sage getter for the last row index and value.
+
+        Returns:
+            int, int: last row index and value
+        '''
+        async with self._last_lock:
+            return self._last
+
+
+    async def _get_next(self, ctx, last):
+        '''Computes the next auto-incremented value.
 
         Params:
             ctx (Context): collection context
+            last (int, int): last row index and value
+
+        Returns:
+            int: next value
         '''
-        async with self._last_lock:
-            last_row_idx, last_value = self._last
-            offset = ctx.row_idx - last_row_idx
-            return last_value + offset
+        last_row_idx, last_value = last
+        offset = ctx.row_idx - last_row_idx
+        return last_value + offset

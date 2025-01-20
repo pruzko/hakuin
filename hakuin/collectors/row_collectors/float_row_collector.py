@@ -76,7 +76,9 @@ class FloatRowCollector(RowCollector):
         sign_cost = 1.0 if int_part == 0 else 0.0
         int_cost = await self.int_binary_row_collector.stats.success_cost()
         dec_cost = await self.dec_text_row_collector.stats.success_cost()
-        await self.stats.update(is_success=True, cost=sign_cost + int_cost + dec_cost)
+
+        if int_cost and dec_cost:
+            await self.stats.update(is_success=True, cost=sign_cost + int_cost + dec_cost)
 
         await self.int_binary_row_collector.update(ctx, value=int_part, row_guessed=row_guessed)
 

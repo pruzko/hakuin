@@ -29,9 +29,10 @@ class IntRowCollector(RowCollector):
         res = None
         bin_cost = await self.int_binary_row_collector.stats.success_cost()
 
-        if self.int_auto_inc_row_collector:
-            auto_inc_cost = await self.int_auto_inc_row_collector.stats.total_cost(fallback_cost=bin_cost)
-            if auto_inc_cost < bin_cost:
+        if bin_cost and self.int_auto_inc_row_collector:
+            auto_inc_cost = await self.int_auto_inc_row_collector.stats.expected_cost(fallback_cost=bin_cost)
+
+            if auto_inc_cost and auto_inc_cost < bin_cost:
                 res = await self.int_auto_inc_row_collector.run(ctx)
                 if res is not None:
                     return res
@@ -48,11 +49,17 @@ class IntRowCollector(RowCollector):
             row_guessed (bool): row was successfully guessed flag
         '''
         bin_cost = await self.int_binary_row_collector.stats.success_cost()
-        auto_inc_cost = bin_cost
+
+        if bin_cost:
+            if self.int_auto_inc_row_collector:
+                auto_inc_cost = await self.int_auto_inc_row_collector.stats.expected_cost(fallback_cost=bin_cost)
+            else:
+                auto_inc_cost = None
+
+            cost = min(bin_cost, auto_inc_cost) if auto_inc_cost else bin_cost
+            await self.stats.update(is_success=True, cost=cost)
 
         if self.int_auto_inc_row_collector:
-            auto_inc_cost = await self.int_auto_inc_row_collector.stats.total_cost(fallback_cost=bin_cost)
-            await self.int_auto_inc_row_collector.update(ctx, value=value, row_guessed=row_guessed)
-        await self.int_binary_row_collector.update(ctx, value=value, row_guessed=row_guessed)
+            await self.int_auto_inc_row_collector.update(ctx, value=value, row_guessed=row_guessed)                
 
-        await self.stats.update(is_success=True, cost=min(bin_cost, auto_inc_cost))
+        await self.int_binary_row_collector.update(ctx, value=value, row_guessed=row_guessed)

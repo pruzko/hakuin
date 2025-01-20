@@ -104,8 +104,7 @@ class IntBinaryRowCollector(RowCollector):
             'norm_dist': await self._bounds_stats['norm_dist'].success_cost(),
         }
 
-        best_bounds = min(costs, key=costs.get)
-        # best_bounds = 'min_max'
+        best_bounds = min(costs, key=lambda x: costs.get(x) or float('inf'))
         if best_bounds == 'const':
             return await self._get_const_bounds()
         elif best_bounds == 'min_max':

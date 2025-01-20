@@ -68,13 +68,13 @@ class StringRowCollector(RowCollector):
 
         costs = [(bin_cost, self.binary_char_collector)]
         if self.unigram_char_collector:
-            cost = await self.unigram_char_collector.stats.total_cost(fallback_cost=bin_cost)
+            cost = await self.unigram_char_collector.stats.expected_cost(fallback_cost=bin_cost)
             costs.append((cost, self.unigram_char_collector))
         if self.fivegram_char_collector:
-            cost = await self.fivegram_char_collector.stats.total_cost(fallback_cost=bin_cost)
+            cost = await self.fivegram_char_collector.stats.expected_cost(fallback_cost=bin_cost)
             costs.append((cost, self.fivegram_char_collector))
 
-        return min(costs, key=lambda x: x[0])[1]
+        return min(costs, key=lambda x: x[0] or float('inf'))[1]
 
 
     async def update(self, ctx, value, row_guessed):
@@ -87,7 +87,7 @@ class StringRowCollector(RowCollector):
         '''
         char_collector = await self.get_best_char_collector(ctx)
         bin_cost = await self.binary_char_collector.stats.success_cost()
-        char_cost = await char_collector.stats.total_cost(fallback_cost=bin_cost)
+        char_cost = await char_collector.stats.expected_cost(fallback_cost=bin_cost)
         row_cost = char_cost * (len(value) + 1)
         await self.stats.update(is_success=True, cost=row_cost)
 
