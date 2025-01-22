@@ -17,7 +17,10 @@ from hakuin import Extractor, Requester
 
 class BytesEncoder(json.JSONEncoder):
     def default(self, o):
-        return o.hex() if isinstance(o, bytes) else super().default(o)
+        if isinstance(o, bytes):
+            hex_str = o.hex()
+            return f'0x{hex_str}' if hex_str else ''
+        return super().default(o)
 
 
 
@@ -128,19 +131,19 @@ class HK:
     async def _run(self, args):
         if args.extract == 'data':
             if args.column:
-                res = await self.ext.extract_column(table=args.table, column=args.column, schema=args.schema, text_strategy=args.text_strategy)
+                res = await self.extract_column(args)
             elif args.table:
-                res = await self.extract_table(table=args.table, schema=args.schema, meta_strategy=args.meta_strategy, text_strategy=args.text_strategy)
+                res = await self.extract_table(args)
             else:
-                res = await self.extract_tables(schema=args.schema, meta_strategy=args.meta_strategy, text_strategy=args.text_strategy)
+                res = await self.extract_tables(args)
         elif args.extract == 'meta':
-            res = await self.ext.extract_meta(schema=args.schema, strategy=args.meta_strategy)
+            res = await self.ext.extract_meta(schema=args.schema, use_models=not args.no_models)
         elif args.extract == 'schemas':
-            res = await self.ext.extract_schema_names(strategy=args.meta_strategy)
+            res = await self.ext.extract_schema_names(use_models=not args.no_models)
         elif args.extract == 'tables':
-            res = await self.ext.extract_table_names(schema=args.schema, strategy=args.meta_strategy)
+            res = await self.ext.extract_table_names(schema=args.schema, use_models=not args.no_models)
         elif args.extract == 'columns':
-            res = await self.ext.extract_column_names(table=args.table, schema=args.schema, strategy=args.meta_strategy)
+            res = await self.ext.extract_column_names(table=args.table, schema=args.schema, use_models=not args.no_models)
 
         res = {
             'stats': {
@@ -151,18 +154,46 @@ class HK:
         print(json.dumps(res, cls=BytesEncoder, indent=4))
 
 
-    async def extract_tables(self, schema, meta_strategy, text_strategy):
+    async def extract_column(self, args):
+        return await self.ext.extract_column(
+            table=args.table,
+            column=args.column,
+            schema=args.schema,
+            use_models=not args.no_models,
+            use_auto_inc=not args.no_auto_inc,
+            use_guessing=not args.no_guessing,
+        )
+
+
+    async def extract_tables(self, args):
         res = {}
-        for table in await self.ext.extract_table_names(schema=schema, strategy=meta_strategy):
-            res[table] = await self.extract_table(table, schema, meta_strategy, text_strategy)
+        tables = await self.ext.extract_table_names(
+            schema=args.schema,
+            use_models=not args.no_models,
+        )
+
+        for table in tables:
+            res[table] = await self.extract_table(args, table=table)
         return res
 
 
-    async def extract_table(self, table, schema, meta_strategy, text_strategy):
+    async def extract_table(self, args, table=None):
         res = {}
-        for column in await self.ext.extract_column_names(table=table, schema=schema, strategy=meta_strategy):
+        table = table or args.table
+        columns = await self.ext.extract_column_names(
+            table=table,
+            schema=args.schema,
+            use_models=not args.no_models,
+        )
+
+        for column in columns:
             try:
-                res[column] = await self.ext.extract_column(table=table, column=column, schema=schema, text_strategy=text_strategy)
+                res[column] = await self.ext.extract_column(
+                    table=table,
+                    column=column,
+                    use_models=not args.no_models,
+                    use_guessing=not args.no_guessing,
+                )
             except Exception as e:
                 res[column] = None
                 tqdm.tqdm.write(f'(err) Failed to extract "{table}.{column}": {e}')
@@ -213,12 +244,9 @@ def main():
     parser.add_argument('-t', '--table', help='Select this table. If not provided, all tables are selected.')
     parser.add_argument('-c', '--column', help='Select this column. If not provided, all columns are selected.')
 
-    parser.add_argument('--meta_strategy', choices=['binary', 'model'], default='model', help=''
-        'Use this strategy to extract metadata (schema, table, and column names). If not provided, "model" is used.'
-    )
-    parser.add_argument('--text_strategy', choices=['dynamic', 'binary', 'unigram', 'fivegram'], default='dynamic', help=''
-        'Use this strategy to extract text columns. If not provided, "dynamic" is used.'
-    )
+    parser.add_argument('--no_models', action='store_true', help='Turn off language models.')
+    parser.add_argument('--no_guessing', action='store_true', help='Turn off value guessing.')
+    parser.add_argument('--no_auto_inc', action='store_true', help='Turn off auto increment guessing.')
 
     parser.add_argument('-R', '--requester', help='Use custom Requester class instead of the default one. '
         'Example: path/to/requester.py:MyRequesterClass'
