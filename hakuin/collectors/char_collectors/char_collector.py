@@ -36,7 +36,7 @@ class CharCollector(metaclass=ABCMeta):
 
         Params:
             ctx (Context): collection context
-            correct (str): correct character
+            correct (str|bytes): correct character
 
         Returns:
             (int, str|bytes): request count and the result
