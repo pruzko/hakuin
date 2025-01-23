@@ -100,7 +100,11 @@ class Oracle(DBMS):
 
     class QueryColumnTypeIsFloat(DBMS.QueryColumnTypeIsFloat):
         AST_TEMPLATE = parse_one(
-            sql="select lower(column) in ('float', 'number') and nvl(data_scale, 1) != 0 from table",
+            sql='''
+                select lower(column) in ('float', 'number') and
+                    nvl(data_scale, 1) != 0
+                from table
+            ''',
             dialect='oracle',
         )
 
@@ -108,7 +112,11 @@ class Oracle(DBMS):
 
     class QueryColumnTypeIsText(DBMS.QueryColumnTypeIsText):
         AST_TEMPLATE = parse_one(
-            sql="select lower(data_type) in ('char', 'nchar', 'varchar2', 'nvarchar2', 'clob', 'nclob') from table",
+            sql='''
+                select lower(data_type) in
+                    ('char', 'nchar', 'varchar2', 'nvarchar2', 'clob', 'nclob')
+                from table
+            ''',
             dialect='oracle',
         )
 
@@ -124,7 +132,8 @@ class Oracle(DBMS):
     class QueryBlobCharLt(DBMS.QueryBlobCharLt):
         AST_TEMPLATE = parse_one(
             sql='''
-                select char_length(column) > @buffer_length and dbms_lob.substr(column, 1, @char_offset) < @byte
+                select char_length(column) > @buffer_length and
+                    dbms_lob.substr(column, 1, @char_offset) < @byte
                 from table limit 1 offset @row_idx
             ''',
             dialect='sqlite',
