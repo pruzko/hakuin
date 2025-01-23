@@ -1,8 +1,6 @@
 import asyncio
 from abc import ABCMeta, abstractmethod
 
-from hakuin.utils import split_at
-
 
 
 class SearchAlgorithm(metaclass=ABCMeta):
@@ -26,9 +24,12 @@ class SearchAlgorithm(metaclass=ABCMeta):
         raise NotImplementedError()
 
 
+
 class BinarySearch(SearchAlgorithm):
     '''Exponential and binary search for numeric values.'''
-    def __init__(self, requester, dbms, query_cls, lower=0, upper=16, find_lower=False, find_upper=False):
+    def __init__(
+        self, requester, dbms, query_cls, lower=0, upper=16, find_lower=False, find_upper=False
+    ):
         '''Constructor.
 
         Params:
@@ -37,8 +38,10 @@ class BinarySearch(SearchAlgorithm):
             query_cls (Type[Query]): Query class
             lower (int): lower bound of search range (included)
             upper (int): upper bound of search range (excluded)
-            find_lower (bool): exponentially expands the lower bound until the correct value is within
-            find_upper (bool): exponentially expands the upper bound until the correct value is within
+            find_lower (bool): exponentially expands the lower bound
+                until the correct value is within
+            find_upper (bool): exponentially expands the upper bound
+                until the correct value is within
         '''
         assert lower != upper, f'Lower and uppper bounds cannot be the same: {lower}'
 
@@ -67,6 +70,7 @@ class BinarySearch(SearchAlgorithm):
         self._f_lower = self.find_lower
         self._f_upper = self.find_upper
         step = self._upper - self._lower
+
         if self._f_lower:
             await self._find_lower(ctx, step=step)
         if self._f_upper:
@@ -124,6 +128,7 @@ class BinarySearch(SearchAlgorithm):
             return lower
 
         middle = (lower + upper) // 2
+
         query = self.query_cls(dbms=self.dbms, n=middle)
         if await self.requester.run(query=query, ctx=ctx):
             return await self._search(ctx, lower=lower, upper=middle)
@@ -166,7 +171,8 @@ class ListBinarySearch(SearchAlgorithm):
         if len(values) == 1:
             return values[0]
 
-        left, right = split_at(values, len(values) // 2)
+        middle = len(values) // 2
+        left, right = values[:middle], values[middle:]
 
         query = self.query_cls(dbms=self.dbms, values=left)
         if await self.requester.run(query=query, ctx=ctx):

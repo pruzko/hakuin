@@ -20,20 +20,6 @@ EOS = '</s>'
 CHARSET_DIGITS = list(string.digits) + [EOS]
 
 
-
-def split_at(s, i):
-    '''Splits sequence.
-
-    Params:
-        s (list|str|bytes): sequence
-        i (int): index to split at
-
-    Returns:
-        (list|str, list|str): split sequences
-    '''
-    return s[:i], s[i:]
-
-
 def tokenize(s, add_sos=True, add_eos=True):
     '''Converts string to list of tokens.
 
