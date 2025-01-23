@@ -27,8 +27,7 @@ class SQLite(DBMS):
             # TODO clean after sqlglot
             'schema_name': self.literal_text(ctx.schema or 'main'),
         })
-        # TODO clean after sqlglot
-        self.prepend_where(ast=ast, condition=where_filter)
+        ast.where(where_filter, copy=False)
 
         return ast
 
@@ -47,8 +46,7 @@ class SQLite(DBMS):
         where_filter = query.resolve_params(ast=where_filter, ctx=ctx, params={
             'column_name': self.literal_text(ctx.column),
         })
-        # TODO clean after sqlglot
-        self.prepend_where(ast=ast, condition=where_filter)
+        ast.where(where_filter, copy=False)
 
         return ast
 

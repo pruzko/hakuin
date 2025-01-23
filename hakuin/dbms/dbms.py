@@ -61,14 +61,6 @@ class DBMS:
         return exp.HexString(this=value.hex())
 
 
-    def prepend_where(self, ast, condition):
-        # TODO delete this after sqlglot
-        original_where = ast.args.get('where')
-        if original_where:
-            condition = condition.and_(original_where.this)
-        ast.where(condition, append=False, copy=False)
-
-
 
     class Query:
         '''Base class for queries.'''

@@ -27,8 +27,7 @@ class Oracle(DBMS):
         where_filter = query.resolve_params(ast=where_filter, ctx=ctx, params={
             'schema_name': self.get_schema_name(ctx),
         })
-        # TODO clean after sqlglot
-        self.prepend_where(ast=ast, condition=where_filter)
+        ast.where(where_filter, copy=False)
 
         return ast
 
@@ -46,8 +45,7 @@ class Oracle(DBMS):
             # TODO remove upper() after case sensitivity is fixed
             'table_name': self.literal_text(ctx.table.upper()),
         })
-        # TODO clean after sqlglot
-        self.prepend_where(ast=ast, condition=where_filter)
+        ast.where(where_filter, copy=False)
 
         return ast            
 
@@ -66,8 +64,7 @@ class Oracle(DBMS):
             'table_name': self.literal_text(ctx.table.upper()),
             'column_name': self.literal_text(ctx.column.upper()),
         })
-        # TODO clean after sqlglot
-        self.prepend_where(ast=ast, condition=where_filter)
+        ast.where(where_filter, copy=False)
 
         return ast
 
