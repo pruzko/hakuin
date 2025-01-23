@@ -8,83 +8,91 @@ class Postgres(DBMS):
     DIALECT = 'postgres'
 
 
-    class QueryUtils(DBMS.QueryUtils):
-        @classmethod
-        def target_schema_names(cls, query, ast, ctx):
-            query.table = exp.to_table('schemata', db='information_schema')
-            query.column = exp.to_column('schema_name')
-            return ast
+    def target_schema_names(self, query, ast, ctx):
+        query.table = exp.to_table('schemata', db='information_schema')
+        query.column = exp.to_column('schema_name')
+        return ast
 
 
-        @classmethod
-        def target_table_names(cls, query, ast, ctx):
-            query.table = exp.to_table('tables', db='information_schema')
-            query.column = exp.to_column('table_name')
+    def target_table_names(self, query, ast, ctx):
+        query.table = exp.to_table('tables', db='information_schema')
+        query.column = exp.to_column('table_name')
 
-            where_filter = parse_one(
-                sql="table_schema=@schema_name and table_type='BASE TABLE'",
-                dialect='postgres',
-            )
-            where_filter = cls.resolve_params(query=query, ast=where_filter, ctx=ctx, params={
-                'schema_name': exp.Literal.string(ctx.schema) if ctx.schema else exp.func('current_schema'),
-            })
-            cls.add_where(ast=ast, condition=where_filter)
-            
-            return ast
+        where_filter = parse_one(
+            sql="table_schema=@schema_name and table_type='BASE TABLE'",
+            dialect='postgres',
+        )
+        where_filter = query.resolve_params(ast=where_filter, ctx=ctx, params={
+            'schema_name': self.get_schema_name(ctx),
+        })
+        # TODO clean after sqlglot
+        self.prepend_where(ast=ast, condition=where_filter)
 
-
-        @classmethod
-        def target_column_names(cls, query, ast, ctx):
-            query.table = exp.to_table('columns', db='information_schema')
-            query.column = exp.to_column('column_name')
-
-            where_filter = parse_one(
-                sql='table_schema=@schema_name and table_name=@table_name',
-                dialect='postgres',
-            )
-            where_filter = cls.resolve_params(query=query, ast=where_filter, ctx=ctx, params={
-                'schema_name': exp.Literal.string(ctx.schema) if ctx.schema else exp.func('current_schema'),
-                'table_name': exp.Literal.string(ctx.table),
-            })
-            cls.add_where(ast=ast, condition=where_filter)
-
-            return ast            
+        return ast
 
 
-        @classmethod
-        def target_column_type(cls, query, ast, ctx):
-            query.table = exp.to_table('columns', db='information_schema')
-            query.column = exp.to_column('data_type')
+    def target_column_names(self, query, ast, ctx):
+        query.table = exp.to_table('columns', db='information_schema')
+        query.column = exp.to_column('column_name')
 
-            where_filter = parse_one(
-                sql='table_schema=@schema_name and table_name=@table_name and column_name=@column_name',
-                dialect='postgres',
-            )
-            where_filter = cls.resolve_params(query=query, ast=where_filter, ctx=ctx, params={
-                'schema_name': exp.Literal.string(ctx.schema) if ctx.schema else exp.func('current_schema'),
-                'table_name': exp.Literal.string(ctx.table),
-                'column_name': exp.Literal.string(ctx.column),
-            })
-            cls.add_where(ast=ast, condition=where_filter)
+        where_filter = parse_one(
+            sql='table_schema=@schema_name and table_name=@table_name',
+            dialect='postgres',
+        )
+        where_filter = query.resolve_params(ast=where_filter, ctx=ctx, params={
+            'schema_name': self.get_schema_name(ctx),
+            'table_name': self.literal_text(ctx.table),
+        })
+        # TODO clean after sqlglot
+        self.prepend_where(ast=ast, condition=where_filter)
 
-            return ast
+        return ast
 
 
-        @classmethod
-        def to_literal(cls, value):
-            if isinstance(value, bytes):
-                return exp.Decode(
-                    this=exp.Literal.string(value.hex()),
-                    charset=exp.Literal.string('hex'),
-                )
-            return super().to_literal(value)
+    def target_column_type(self, query, ast, ctx):
+        query.table = exp.to_table('columns', db='information_schema')
+        query.column = exp.to_column('data_type')
+
+        where_filter = parse_one(
+            sql='''
+                table_schema=@schema_name and table_name=@table_name and
+                column_name=@column_name
+            ''',
+            dialect='postgres',
+        )
+        where_filter = query.resolve_params(ast=where_filter, ctx=ctx, params={
+            'schema_name': self.get_schema_name(ctx),
+            'table_name': self.literal_text(ctx.table),
+            'column_name': self.literal_text(ctx.column),
+        })
+        # TODO clean after sqlglot
+        self.prepend_where(ast=ast, condition=where_filter)
+
+        return ast
+
+
+    def literal_blob(self, value):
+        return exp.Decode(
+            this=self.literal_text(value.hex()),
+            charset=self.literal_text('hex'),
+        )
+
+
+    def get_schema_name(self, ctx):
+        # TODO this should be in DBMS after sqlglot
+        if ctx.schema:
+            return self.literal_text(ctx.schema)
+        return exp.func('current_schema')
+
+
 
 
 
     class QueryColumnTypeIsInt(DBMS.QueryColumnTypeIsInt):
         AST_TEMPLATE = parse_one(
             sql='''
-                select lower(column) in ('integer', 'int', 'smallint', 'bigint', 'serial', 'smallserial', 'bigserial')
+                select lower(column) in
+                    ('integer', 'int', 'smallint', 'bigint', 'serial', 'smallserial', 'bigserial')
                 from table
             ''',
             dialect='postgres',
@@ -106,7 +114,8 @@ class Postgres(DBMS):
     class QueryColumnTypeIsText(DBMS.QueryColumnTypeIsText):
         AST_TEMPLATE = parse_one(
             sql='''
-                select lower(column) in ('character varying', 'varchar', 'character', 'char', 'bpchar', 'text')
+                select lower(column) in
+                    ('character varying', 'varchar', 'character', 'char', 'bpchar', 'text')
                 from table
             ''',
             dialect='postgres',
@@ -148,11 +157,9 @@ class Postgres(DBMS):
         )
 
 
-
+    # TODO delete this after sqlglot
     class QueryBlobCharInString(DBMS.QueryBlobCharInString):
         def ast_template(self):
-            # sqlglot incorrectly parses position into StringPosition, which does not work for blobs
-            # so we replace it with anonymous call to position(needle in haystack)
             ast = super().ast_template()
 
             original_position = ast.find(exp.StrPosition)

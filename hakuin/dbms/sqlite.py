@@ -9,52 +9,48 @@ class SQLite(DBMS):
     DIALECT = 'sqlite'
 
 
-    class QueryUtils(DBMS.QueryUtils):
-        @classmethod
-        def target_schema_names(cls, query, ast, ctx):
-            query.table = exp.func('pragma_database_list')
-            query.column = exp.column('name')
-            return ast
+    def target_schema_names(self, query, ast, ctx):
+        query.table = exp.func('pragma_database_list')
+        query.column = exp.column('name')
+        return ast
 
 
-        @classmethod
-        def target_table_names(cls, query, ast, ctx):
-            query.table = exp.func('pragma_table_list')
-            query.column = exp.column('name')
+    def target_table_names(self, query, ast, ctx):
+        query.table = exp.func('pragma_table_list')
+        query.column = exp.column('name')
 
-            where_filter = parse_one(
-                sql="schema=@schema_name and type='table' and name != 'sqlite_schema'",
-                dialect='sqlite',
-            )
-            where_filter = cls.resolve_params(query=query, ast=where_filter, ctx=ctx, params={
-                'schema_name': exp.Literal.string(ctx.schema or 'main'),
-            })
-            cls.add_where(ast=ast, condition=where_filter)
-            
-            return ast
+        where_filter = parse_one(
+            sql="schema=@schema_name and type='table' and name != 'sqlite_schema'",
+            dialect='sqlite',
+        )
+        where_filter = query.resolve_params(ast=where_filter, ctx=ctx, params={
+            # TODO clean after sqlglot
+            'schema_name': self.literal_text(ctx.schema or 'main'),
+        })
+        # TODO clean after sqlglot
+        self.prepend_where(ast=ast, condition=where_filter)
 
-
-        @classmethod
-        def target_column_names(cls, query, ast, ctx):
-            query.table = exp.func('pragma_table_info', exp.Literal.string(ctx.table))
-            query.column = exp.column('name')
-            return ast
+        return ast
 
 
-        @classmethod
-        def target_column_type(cls, query, ast, ctx):
-            query.table = exp.func('pragma_table_info', exp.Literal.string(ctx.table))
-            query.column = exp.column('type')
+    def target_column_names(self, query, ast, ctx):
+        query.table = exp.func('pragma_table_info', self.literal_text(ctx.table))
+        query.column = exp.column('name')
+        return ast
 
-            where_filter = parse_one(
-                sql='name=@column_name',
-                dialect='sqlite',
-            )
-            column_name = exp.Literal.string(ctx.column)
-            where_filter.find(exp.Parameter).replace(column_name)
-            cls.add_where(ast=ast, condition=where_filter)
-            
-            return ast
+
+    def target_column_type(self, query, ast, ctx):
+        query.table = exp.func('pragma_table_info', self.literal_text(ctx.table))
+        query.column = exp.column('type')
+
+        where_filter = parse_one(sql='name=@column_name', dialect='sqlite')
+        where_filter = query.resolve_params(ast=where_filter, ctx=ctx, params={
+            'column_name': self.literal_text(ctx.column),
+        })
+        # TODO clean after sqlglot
+        self.prepend_where(ast=ast, condition=where_filter)
+
+        return ast
 
 
 

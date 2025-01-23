@@ -1,15 +1,3 @@
-# DELETE after PR accepted
-from sqlglot import exp
-from sqlglot.dialects import Oracle as OracleDialect
-from sqlglot.dialects.dialect import rename_func
-
-OracleDialect.Generator.TRANSFORMS.update({
-    exp.LogicalOr: rename_func("MAX"),
-    exp.LogicalAnd: rename_func("MIN"),
-})
-
-
-
 from .dbms import DBMS
 from .mssql import MSSQL
 from .mysql import MySQL
