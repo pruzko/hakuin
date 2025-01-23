@@ -11,7 +11,7 @@ from hakuin.utils import DIR_MODELS, SOS, EOS, tokenize
 
 
 class Model:
-    '''Abstract class for models.'''
+    '''N-gram language model.'''
     def __init__(self, order):
         '''Constructor.
 

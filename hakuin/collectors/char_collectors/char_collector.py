@@ -6,7 +6,7 @@ from hakuin.requesters import EmulationRequester
 
 
 class CharCollector(metaclass=ABCMeta):
-    '''Abstract class for char collectors.'''
+    '''Char collector base class.'''
     def __init__(self, requester, dbms):
         '''Constructor.
 

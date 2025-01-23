@@ -5,38 +5,36 @@ from abc import ABCMeta, abstractmethod
 
 
 class Requester(metaclass=ABCMeta):
-    '''Abstract class for requesters. Requesters craft requests with
-    injected queries, send them, and infer the query's results.
-    '''
+    '''Requester base class. Requesters inject queries and extract their results.'''
     def __init__(self):
         '''Constructor.'''
         self._n_requests = 0
         self._lock = asyncio.Lock()
 
 
-    async def run(self, ctx, query):
-        '''Calls request() and increments the request counter.
+    async def run(self, query, ctx):
+        '''Runs the requester and increments the request counter.
 
         Params:
+            ctx (Context): collection context
             query (Query): query to be injected
-            TODO
 
         Returns:
             bool: query result
         '''
-        res = await self.request(ctx, query=query)
+        res = await self.request(query=query, ctx=ctx)
         async with self._lock:
             self._n_requests += 1
         return res
 
 
     @abstractmethod
-    async def request(self, ctx, query):
-        '''Sends a request with injected query and infers its result.
+    async def request(self, query, ctx):
+        '''Injects the query and extracts its result.
 
         Params:
-            TODO
             query (Query): query to be injected
+            ctx (Context): collection context
 
         Returns:
             bool: query result
@@ -45,7 +43,7 @@ class Requester(metaclass=ABCMeta):
 
 
     async def n_requests(self):
-        '''Retrieves the request counter.
+        '''Coroutine-safe getter for the request counter.
 
         Returns:
             int: request counter
@@ -55,18 +53,18 @@ class Requester(metaclass=ABCMeta):
 
 
     async def initialize(self):
-        '''Async initialization. This method is called by "hk.py"'''
+        '''Initialization hook invoked by "hk.py".'''
         pass
 
 
     async def cleanup(self):
-        '''Async clean-up. This method is called by "hk.py"'''
+        '''Clean-up hook invoked by "hk.py".'''
         pass
 
 
 
 class EmulationRequester(Requester):
-    '''Requester for emulation.'''
+    '''Requester stub for emulation.'''
     def __init__(self, correct):
         '''Constructor.
 
@@ -77,12 +75,12 @@ class EmulationRequester(Requester):
         self.correct = correct
 
 
-    async def request(self, ctx, query):
-        '''Emulates inference without sending any requests.
+    async def request(self, query, ctx):
+        '''Emulates the query without sending requests.
 
         Params:
-            TODO
             query (Query): query to be injected
+            ctx (Context): collection context
 
         Returns:
             bool: query result

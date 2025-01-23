@@ -49,7 +49,7 @@ class NumericCollector(Collector):
         '''
         if ctx.rows_are_positive is None:
             query = self.query_cls_rows_are_positive(dbms=self.dbms)
-            return await self.requester.run(ctx, query=query)
+            return await self.requester.run(query=query, ctx=ctx)
 
         return ctx.rows_are_positive
 

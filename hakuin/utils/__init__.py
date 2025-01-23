@@ -6,9 +6,9 @@ from enum import Enum
 
 DIR_FILE = os.path.dirname(os.path.realpath(__file__))
 DIR_ROOT = os.path.abspath(os.path.join(DIR_FILE, '..'))
-DIR_QUERY_TEMPLATES = os.path.join(DIR_ROOT, 'dbms', 'query_templates') # TODO DELME
 DIR_MODELS = os.path.join(DIR_ROOT, 'models')
-DIR_MODELS = DIR_MODELS if os.path.isdir(DIR_MODELS) else os.path.abspath(os.path.join(DIR_ROOT, '..', 'models'))
+if not os.path.isdir(DIR_MODELS):
+    DIR_MODELS = os.path.abspath(os.path.join(DIR_ROOT, '..', 'models'))
 
 ASCII_MAX = 0x7f
 UNICODE_MAX = 0x10ffff

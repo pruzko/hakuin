@@ -36,7 +36,7 @@ class IntAutoIncRowCollector(RowCollector):
         n = await self._get_next(ctx, last)
 
         query = self.query_cls_value_in_list(dbms=self.dbms, values=[n])
-        if await self.requester.run(ctx, query=query):
+        if await self.requester.run(query=query, ctx=ctx):
             return n
 
         return None
@@ -60,7 +60,7 @@ class IntAutoIncRowCollector(RowCollector):
 
 
     async def _get_last(self):
-        '''Thread-sage getter for the last row index and value.
+        '''Coroutine-safe getter for the last row index and value.
 
         Returns:
             int, int: last row index and value

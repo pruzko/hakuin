@@ -11,8 +11,8 @@ from .row_collectors import GuessingRowCollector
 
 
 class Collector(metaclass=ABCMeta):
-    '''Abstract class for column collectors. Column collectors repeatidly run
-    row collectors to extract rows.
+    '''Column collector base class. Column collectors repeatidly run row collectors
+    to extract rows.
     '''
     def __init__(
             self, requester, dbms, row_collector, guessing_row_collector=None, n_tasks=1,
@@ -159,7 +159,7 @@ class Collector(metaclass=ABCMeta):
         '''
         if ctx.rows_have_null is None:
             query = self.query_cls_rows_have_null(dbms=self.dbms)
-            return await self.requester.run(ctx, query=query)
+            return await self.requester.run(query=query, ctx=ctx)
 
         return ctx.rows_have_null
 
@@ -177,7 +177,7 @@ class Collector(metaclass=ABCMeta):
             return False
 
         query = self.query_cls_row_is_null(dbms=self.dbms)
-        return await self.requester.run(ctx, query=query)
+        return await self.requester.run(query=query, ctx=ctx)
 
 
 

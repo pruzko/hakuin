@@ -58,7 +58,7 @@ class FloatRowCollector(RowCollector):
             return True
 
         query = self.query_cls_row_is_positive(dbms=self.dbms)
-        return await self.requester.run(ctx, query=query)
+        return await self.requester.run(query=query, ctx=ctx)
 
 
     async def update(self, ctx, value, row_guessed):

@@ -5,6 +5,7 @@ from hakuin.collectors import Stats
 
 
 class RowCollector(metaclass=ABCMeta):
+    '''Row collector base class.'''
     def __init__(self, requester, dbms):
         '''Constructor.
 

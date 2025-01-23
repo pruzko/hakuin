@@ -169,7 +169,7 @@ class Extractor:
         }
 
         for column_type, query_cls in type_queries.items():
-            if await self.requester.run(ctx, query=query_cls(dbms=self.dbms)):
+            if await self.requester.run(query=query_cls(dbms=self.dbms), ctx=ctx):
                 return column_type
 
         return None

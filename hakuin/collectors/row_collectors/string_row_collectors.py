@@ -151,7 +151,7 @@ class TextRowCollector(StringRowCollector):
 
         if ctx.row_is_ascii is None:
             query = self.query_cls_row_is_ascii(dbms=self.dbms)
-            return await self.requester.run(ctx, query=query)
+            return await self.requester.run(query=query, ctx=ctx)
 
         return ctx.row_is_ascii
 

@@ -77,7 +77,7 @@ class UniversalRequester(Requester):
         return inf
 
 
-    async def request(self, ctx, query):
+    async def request(self, query, ctx):
         query = query.render(ctx)
         url = self.RE_QUERY_TAG.sub(urllib.parse.quote(query), self.url)
         headers = {self.RE_QUERY_TAG.sub(query, k): self.RE_QUERY_TAG.sub(query, v) for k, v in self.headers.items()}
