@@ -3,7 +3,6 @@ from hakuin.utils import CHARSET_DIGITS
 
 from .collector import Collector
 from .string_collectors import TextCollector
-from .char_collectors import TextListBinaryCharCollector, TextModelCharCollector
 from .row_collectors import IntAutoIncRowCollector, IntBinaryRowCollector, IntRowCollector, FloatRowCollector, TextRowCollector
 
 
@@ -128,8 +127,8 @@ class FloatCollector(NumericCollector):
             )
 
 
-        def add_list_binary_char_collector(self, charset=None, query_cls_char_in_string=None):
-            self.text_builder.add_list_binary_char_collector(
+        def add_list_char_collector(self, charset=None, query_cls_char_in_string=None):
+            self.text_builder.add_list_char_collector(
                 charset=charset or CHARSET_DIGITS,
                 query_cls_char_in_string=query_cls_char_in_string,
             )

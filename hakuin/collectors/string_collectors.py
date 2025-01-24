@@ -3,8 +3,8 @@ from abc import abstractmethod
 from hakuin import Model
 
 from .collector import Collector
-from .char_collectors import BlobBinaryCharCollector, BlobListBinaryCharCollector, BlobModelCharCollector
-from .char_collectors import TextBinaryCharCollector, TextListBinaryCharCollector, TextModelCharCollector
+from .char_collectors import BlobBinaryCharCollector, BlobListCharCollector, BlobModelCharCollector
+from .char_collectors import TextBinaryCharCollector, TextListCharCollector, TextModelCharCollector
 from .row_collectors import MetaTextRowCollector, BlobRowCollector, TextRowCollector
 
 
@@ -15,13 +15,13 @@ class StringCollector(Collector):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             self.binary_char_collector = None
-            self.list_binary_char_collector = None
+            self.list_char_collector = None
             self.unigram_char_collector = None
             self.fivegram_char_collector = None
             self.cls_collector = None
             self.cls_row_collector = None
             self.cls_binary_char_collector = None
-            self.cls_list_binary_char_collector = None
+            self.cls_list_char_collector = None
             self.cls_model_char_collector = None
 
 
@@ -33,8 +33,8 @@ class StringCollector(Collector):
             )
 
 
-        def add_list_binary_char_collector(self, charset, query_cls_char_in_string=None):
-            self.list_binary_char_collector = self.cls_list_binary_char_collector(
+        def add_list_char_collector(self, charset, query_cls_char_in_string=None):
+            self.list_char_collector = self.cls_list_char_collector(
                 requester=self.requester,
                 dbms=self.dbms,
                 charset=charset,
@@ -63,13 +63,13 @@ class StringCollector(Collector):
 
 
         def build_row_collector(self, **kwargs):
-            if not self.binary_char_collector and not self.list_binary_char_collector:
+            if not self.binary_char_collector and not self.list_char_collector:
                 self.add_binary_char_collector()
 
             self.row_collector = self.cls_row_collector(
                 requester=self.requester,
                 dbms=self.dbms,
-                binary_char_collector=self.binary_char_collector or self.list_binary_char_collector,
+                binary_char_collector=self.binary_char_collector or self.list_char_collector,
                 unigram_char_collector=self.unigram_char_collector,
                 fivegram_char_collector=self.fivegram_char_collector,
                 **kwargs,
@@ -144,7 +144,7 @@ class TextCollector(StringCollector):
             self.cls_collector = TextCollector
             self.cls_row_collector = TextRowCollector
             self.cls_binary_char_collector = TextBinaryCharCollector
-            self.cls_list_binary_char_collector = TextListBinaryCharCollector
+            self.cls_list_char_collector = TextListCharCollector
             self.cls_model_char_collector = TextModelCharCollector
 
 
@@ -159,13 +159,13 @@ class TextCollector(StringCollector):
 
     class MetaBuilder(Builder):
         def build_row_collector(self, query_cls_row_is_ascii=None):
-            if not self.binary_char_collector and not self.list_binary_char_collector:
+            if not self.binary_char_collector and not self.list_char_collector:
                 self.add_binary_char_collector()
 
             self.row_collector = MetaTextRowCollector(
                 requester=self.requester,
                 dbms=self.dbms,
-                binary_char_collector=self.binary_char_collector or self.list_binary_char_collector,
+                binary_char_collector=self.binary_char_collector or self.list_char_collector,
                 fivegram_char_collector=self.fivegram_char_collector,
                 query_cls_row_is_ascii=query_cls_row_is_ascii,
             )
@@ -185,5 +185,5 @@ class BlobCollector(StringCollector):
             self.cls_collector = BlobCollector
             self.cls_row_collector = BlobRowCollector
             self.cls_binary_char_collector = BlobBinaryCharCollector
-            self.cls_list_binary_char_collector = BlobListBinaryCharCollector
+            self.cls_list_char_collector = BlobListCharCollector
             self.cls_model_char_collector = BlobModelCharCollector

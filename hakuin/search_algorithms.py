@@ -137,7 +137,7 @@ class BinarySearch(SearchAlgorithm):
 
 
 
-class ListBinarySearch(SearchAlgorithm):
+class ListSearch(SearchAlgorithm):
     '''Binary search for lists of values.'''
     def __init__(self, requester, dbms, query_cls, values):
         '''Constructor.

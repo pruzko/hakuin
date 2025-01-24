@@ -152,21 +152,3 @@ class Postgres(DBMS):
             ''',
             dialect='postgres',
         )
-
-
-    # TODO delete this after sqlglot
-    class QueryBlobCharInString(DBMS.QueryBlobCharInString):
-        def ast_template(self):
-            ast = super().ast_template()
-
-            original_position = ast.find(exp.StrPosition)
-            if not original_position:
-                return ast
-
-            position_in = exp.In(
-                this=original_position.args['substr'],
-                field=original_position.this,
-            )
-            position = exp.func('POSITION', position_in)
-            original_position.replace(position)
-            return ast

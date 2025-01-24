@@ -285,7 +285,7 @@ class Extractor:
             dbms=self.dbms,
             n_tasks=self.n_tasks,
         )
-        builder.add_list_binary_char_collector()
+        builder.add_list_char_collector()
         if use_models:
             builder.add_unigram_char_collector()
             builder.add_fivegram_char_collector()

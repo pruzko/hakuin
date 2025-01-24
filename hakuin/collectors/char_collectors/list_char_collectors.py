@@ -1,11 +1,11 @@
-from hakuin.search_algorithms import ListBinarySearch
+from hakuin.search_algorithms import ListSearch
 from hakuin.utils import EOS
 
 from .char_collector import CharCollector
 
 
 
-class ListBinaryCharCollector(CharCollector):
+class ListCharCollector(CharCollector):
     def __init__(self, requester, dbms, charset, query_cls_char_in_string):
         '''Constructor.
 
@@ -33,7 +33,7 @@ class ListBinaryCharCollector(CharCollector):
         Returns:
             str: collected char
         '''
-        return await ListBinarySearch(
+        return await ListSearch(
             requester=requester,
             dbms=self.dbms,
             query_cls=self.query_cls_char_in_string,
@@ -42,7 +42,7 @@ class ListBinaryCharCollector(CharCollector):
 
 
 
-class TextListBinaryCharCollector(ListBinaryCharCollector):
+class TextListCharCollector(ListCharCollector):
     def __init__(self, requester, dbms, charset, query_cls_char_in_string=None):
         '''Constructor.
 
@@ -61,7 +61,7 @@ class TextListBinaryCharCollector(ListBinaryCharCollector):
 
 
 
-class BlobListBinaryCharCollector(ListBinaryCharCollector):
+class BlobListCharCollector(ListCharCollector):
     def __init__(self, requester, dbms, charset, query_cls_char_in_string=None):
         '''Constructor.
 
