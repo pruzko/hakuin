@@ -1,6 +1,10 @@
 import os
 import string
-from enum import Enum
+import sys
+
+from tqdm import tqdm
+
+from .info_messages import _INFO_MESSAGES
 
 
 
@@ -18,6 +22,19 @@ SOS = '<s>'
 EOS = '</s>'
 
 CHARSET_DIGITS = list(string.digits) + [EOS]
+
+
+def info(msg, *args, progress=None):
+    '''Prints debug information.
+
+    Params:
+        msg (str): message name
+        *args: format string arguments
+        progress (tqdm.tqdm | None): progress object
+    '''
+    progress = progress or tqdm
+    progress.write(_INFO_MESSAGES[msg].format(*args), file=sys.stderr)    
+    
 
 
 def tokenize(s, add_sos=True, add_eos=True):

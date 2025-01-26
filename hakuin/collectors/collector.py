@@ -4,6 +4,7 @@ import tqdm
 from abc import ABCMeta, abstractmethod
 
 from hakuin.search_algorithms import BinarySearch
+from hakuin.utils import info
 
 from .row_collectors import GuessingRowCollector
 
@@ -48,14 +49,8 @@ class Collector(metaclass=ABCMeta):
         Returns:
             list: column rows
         '''
-        if ctx.target == 'schema_names':
-            tqdm.tqdm.write('Extracting Schema Names', file=sys.stderr)
-        elif ctx.target == 'table_names':
-            tqdm.tqdm.write('Extracting Table Names', file=sys.stderr)
-        elif ctx.target == 'column_names':
-            tqdm.tqdm.write(f'Extracting Column Names ({ctx.table})', file=sys.stderr)
-        elif ctx.target == 'column':
-            tqdm.tqdm.write(f'Extracting [{ctx.table}].[{ctx.column}]', file=sys.stderr)
+        if ctx.target in ['schema_names', 'table_names', 'column_names', 'column']:
+            info(f'extracting_{ctx.target}', ctx.table, ctx.column)
 
         if ctx.n_rows is None:
             ctx.n_rows = await BinarySearch(
@@ -102,7 +97,7 @@ class Collector(metaclass=ABCMeta):
 
             data[row_ctx.row_idx] = res
 
-            progress.write(f'({row_ctx.row_idx + 1}/{row_ctx.n_rows}) [{row_ctx.table}].[{row_ctx.column}]: {res}', file=sys.stderr)
+            info('row_extracted', row_idx + 1, ctx.n_rows, res, progress=progress)
             progress.update(1)
 
 
