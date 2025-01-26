@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass
 
 
@@ -14,6 +15,10 @@ class Context:
     n_rows: int = None
     row_idx: int = None
     rows_have_null: bool = None
+
+
+    def clone(self):
+        return deepcopy(self)
 
 
 @dataclass

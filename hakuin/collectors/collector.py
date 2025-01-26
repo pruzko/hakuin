@@ -2,7 +2,6 @@ import asyncio
 import sys
 import tqdm
 from abc import ABCMeta, abstractmethod
-from copy import deepcopy
 
 from hakuin.search_algorithms import BinarySearch
 
@@ -93,7 +92,7 @@ class Collector(metaclass=ABCMeta):
             except asyncio.QueueEmpty:
                 break
 
-            row_ctx = deepcopy(ctx)
+            row_ctx = ctx.clone()
             row_ctx.row_idx = row_idx
 
             if await self.check_row_is_null(row_ctx):

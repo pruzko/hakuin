@@ -10,6 +10,13 @@ from hakuin.utils import DIR_MODELS, SOS, EOS, tokenize
 
 
 
+_MODELS = {
+    'columns': None,
+    'tables': None,
+    'schemas': None,
+}
+
+
 class Model:
     '''N-gram language model.'''
     def __init__(self, order):
@@ -136,28 +143,19 @@ class Model:
 
 
 
-_m_schemas = None
-def get_model_schemas():
-    global _m_schemas
-    if _m_schemas is None:
-        with open(os.path.join(DIR_MODELS, 'model_schemas.pkl'), 'rb') as f:
-            _m_schemas = pickle.load(f)
-    return _m_schemas
+def get_model(name):
+    '''Retrieves a pretrained model.
 
+    Params:
+        name (str): name of the model
 
-_m_tables = None
-def get_model_tables():
-    global _m_tables
-    if _m_tables is None:
-        with open(os.path.join(DIR_MODELS, 'model_tables.pkl'), 'rb') as f:
-            _m_tables = pickle.load(f)
-    return _m_tables
+    Returns:
+        Model: model
+    '''
+    assert name in _MODELS, f'Model "{name}" not supported.'
 
+    if _MODELS[name] is None:
+        with open(os.path.join(DIR_MODELS, f'model_{name}.pkl'), 'rb') as f:
+            _MODELS[name] = pickle.load(f)    
 
-_m_columns = None
-def get_model_columns():
-    global _m_columns
-    if _m_columns is None:
-        with open(os.path.join(DIR_MODELS, 'model_columns.pkl'), 'rb') as f:
-            _m_columns = pickle.load(f)
-    return _m_columns
+    return _MODELS[name]

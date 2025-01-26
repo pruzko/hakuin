@@ -1,4 +1,3 @@
-from copy import deepcopy
 from dataclasses import asdict
 
 from hakuin.collectors import TextContext
@@ -34,7 +33,7 @@ class FloatRowCollector(RowCollector):
         Returns:
             float: collected row
         '''
-        int_ctx = deepcopy(ctx)
+        int_ctx = ctx.clone()
         int_ctx.cast_to = 'int'
         int_part = await self.int_binary_row_collector.run(int_ctx)
 

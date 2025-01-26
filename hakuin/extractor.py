@@ -1,4 +1,4 @@
-from hakuin import get_model_schemas, get_model_tables, get_model_columns
+from hakuin import get_model
 from hakuin.collectors import BlobCollector, FloatCollector, IntCollector, TextCollector
 from hakuin.collectors import IntContext, FloatContext, TextContext, BlobContext
 from hakuin.dbms import DBMS_DICT
@@ -53,7 +53,7 @@ class Extractor:
             n_tasks=self.n_tasks,
         )
         if use_models:
-            builder.add_fivegram_char_collector(model=get_model_schemas())
+            builder.add_fivegram_char_collector(model=get_model('schemas'))
 
         collector = builder.build()
         return await collector.run(ctx)
@@ -86,7 +86,7 @@ class Extractor:
             n_tasks=self.n_tasks,
         )
         if use_models:
-            builder.add_fivegram_char_collector(model=get_model_tables())
+            builder.add_fivegram_char_collector(model=get_model('tables'))
 
         collector = builder.build()
         return await collector.run(ctx)
@@ -120,7 +120,7 @@ class Extractor:
             n_tasks=self.n_tasks,
         )
         if use_models:
-            builder.add_fivegram_char_collector(model=get_model_columns())
+            builder.add_fivegram_char_collector(model=get_model('columns'))
 
         collector = builder.build()
         return await collector.run(ctx)
