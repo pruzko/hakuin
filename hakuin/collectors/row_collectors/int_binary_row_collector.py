@@ -38,7 +38,7 @@ class IntBinaryRowCollector(RowCollector):
         Returns:
             int: collected row
         '''
-        lower, upper = await self.get_best_bounds(ctx=ctx)
+        lower, upper = await self.get_best_bounds(ctx)
         return await self._run(requester=self.requester, ctx=ctx, lower=lower, upper=upper)
 
 
@@ -52,7 +52,7 @@ class IntBinaryRowCollector(RowCollector):
             correct: correct value
 
         Returns:
-            (int, int): number of requests and the result
+            (int, int): request count and the result if available
         '''
         requester = EmulationRequester(correct=correct)
         res = await self._run(requester=requester, ctx=ctx, lower=lower, upper=upper)

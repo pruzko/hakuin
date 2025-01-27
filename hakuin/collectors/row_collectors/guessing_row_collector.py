@@ -10,26 +10,26 @@ from .row_collector import RowCollector
 
 
 class GuessCounter:
-    '''Counter for frequently occuring values.'''
+    '''Counter for frequently occuring values.
+
+    Attributes:
+        ITEM_PROB_TH (float): probability threshold necessary for guesses to be included
+    '''
     ITEM_PROB_TH = 0.01
 
 
     def __init__(self):
-        '''Constructor.
-
-        Class Attributes:
-            ITEM_PROB_TH (float): probability threshold necessary for guesses to be included
-        '''
+        '''Constructor.'''
         self._counter = Counter()
         self._total = 0
         self._lock = asyncio.Lock()
 
 
     async def guesses(self):
-        '''Retrieves potential guesses.
+        '''Retrieves potential guesses and their corresponding probabilities.
 
         Returns:
-            list[value, float]: ordered list of guesses and corresponding probabilities
+            list[value, float]: ordered list of guesses and probabilities
         '''
         guesses = []
         async with self._lock:
@@ -46,7 +46,7 @@ class GuessCounter:
 
 
     async def update(self, value):
-        '''Updates the model with a new value.
+        '''Updates the counter with a new value.
 
         Params:
             value (value): new value
@@ -58,31 +58,48 @@ class GuessCounter:
 
 
 class GuessingRowCollector(RowCollector):
-    '''TODO'''
+    '''Guessing row collector.
+
+    Attributes:
+        TOTAL_PROB_TH (float): probability threshold necessary for guessing to take place
+    '''
     TOTAL_PROB_TH = 0.5
 
 
-    def __init__(self, requester, dbms, query_cls_value_in_list=None):
+    def __init__(self, requester, dbms):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
             dbms (DBMS): database engine
-
-        Class Attributes:
-            TOTAL_PROB_TH (float): probability threshold necessary for guessing to take place
         '''
         super().__init__(requester=requester, dbms=dbms)
         self.counter = GuessCounter()
 
 
     async def run(self, ctx, tree):
-        '''TODO'''
+        '''Collects a single row.
+
+        Params:
+            ctx (Context): collection context
+
+        Returns:
+            value|None: collected row or None on fail
+        '''
         return await self._run(requester=self.requester, ctx=ctx, tree=tree)
 
 
-    async def _emulate(self, ctx, correct, tree):
-        '''TODO'''
+    async def _emulate(self, ctx, tree, correct):
+        '''Emulates collection of a single row.
+
+        Params:
+            ctx (Context): collection context
+            tree (HuffmanNode): guessing tree
+            correct: correct value
+
+        Returns:
+            (int, value|None): request count and the result if available
+        '''
         requester = EmulationRequester(correct=correct)
         res = await self._run(requester=requester, ctx=ctx, tree=tree)
         n_requests = await requester.n_requests()
@@ -123,10 +140,10 @@ class GuessingRowCollector(RowCollector):
         best_cost = float('inf')
         best_tree = None
 
-        for guess, score in await self.counter.guesses():
-            guesses[guess] = score
+        for guess, guess_prob in await self.counter.guesses():
+            guesses[guess] = guess_prob
             tree = make_tree(guesses)
-            prob += score
+            prob += guess_prob
             cost = prob * tree.success_cost() + ((1 - prob) * (tree.fail_cost() + fallback_cost))
 
             if cost > best_cost:
@@ -149,7 +166,7 @@ class GuessingRowCollector(RowCollector):
             tree (HuffmanNode|None): guessing tree or None if not available
         '''
         if tree:
-            cost, res = await self._emulate(ctx, correct=value, tree=tree)
+            cost, res = await self._emulate(ctx, tree=tree, correct=value)
             await self.stats.update(is_success=res is not None, cost=cost)
 
         await self.counter.update(value)

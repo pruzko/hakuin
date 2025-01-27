@@ -39,7 +39,7 @@ class CharCollector(metaclass=ABCMeta):
             correct (str|bytes): correct character
 
         Returns:
-            (int, str|bytes): request count and the result
+            (int, str|bytes|None): request count and the result if available
         '''
         requester = EmulationRequester(correct=correct)
         res = await self._run(requester=requester, ctx=ctx)

@@ -103,7 +103,7 @@ class DBMS:
             Returns:
                 str: rendered query
             '''
-            return self.ast(ctx=ctx).sql(dialect=self.dbms.DIALECT)
+            return self.ast(ctx).sql(dialect=self.dbms.DIALECT)
 
 
         def emulate(self, correct):
