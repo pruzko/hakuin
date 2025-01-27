@@ -29,7 +29,6 @@ class StringCollector(Collector):
             self.binary_char_collector = self.cls_binary_char_collector(
                 requester=self.requester,
                 dbms=self.dbms,
-                query_cls_char_lt=query_cls_char_lt,
             )
 
 
@@ -38,7 +37,6 @@ class StringCollector(Collector):
                 requester=self.requester,
                 dbms=self.dbms,
                 charset=charset,
-                query_cls_char_in_string=query_cls_char_in_string,
             )
 
 
@@ -48,7 +46,6 @@ class StringCollector(Collector):
                 dbms=self.dbms,
                 model=model or Model(1),
                 adaptive=adaptive,
-                query_cls_char_in_string=query_cls_char_in_string,
             )
 
 
@@ -58,7 +55,6 @@ class StringCollector(Collector):
                 dbms=self.dbms,
                 model=model or Model(5),
                 adaptive=adaptive,
-                query_cls_char_in_string=query_cls_char_in_string,
             )
 
 

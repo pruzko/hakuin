@@ -6,21 +6,20 @@ from .char_collector import CharCollector
 
 
 class ListCharCollector(CharCollector):
-    def __init__(self, requester, dbms, charset, query_cls_char_in_string):
+    '''Base class for list char collectors.'''
+    QUERY_CLS_LOOKUP = None
+
+
+    def __init__(self, requester, dbms, charset):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
             dbms (DBMS): database engine
             charset (list): list of possible characters
-            query_cls_char_in_string (DBMS.Query): query class
         '''
         super().__init__(requester=requester, dbms=dbms)
         self.charset = charset
-        self.query_cls_char_in_string = query_cls_char_in_string
-
-        if EOS not in self.charset:
-            self.charset.append(EOS)
 
 
     async def _run(self, requester, ctx):
@@ -36,44 +35,17 @@ class ListCharCollector(CharCollector):
         return await ListSearch(
             requester=requester,
             dbms=self.dbms,
-            query_cls=self.query_cls_char_in_string,
+            query_cls=self.dbms.query_cls(self.QUERY_CLS_LOOKUP),
             values=self.charset,
         ).run(ctx)
 
 
-
 class TextListCharCollector(ListCharCollector):
-    def __init__(self, requester, dbms, charset, query_cls_char_in_string=None):
-        '''Constructor.
-
-        Params:
-            requester (Requester): Requester instance
-            dbms (DBMS): database engine
-            charset (list): list of possible characters
-            query_cls_char_in_string (DBMS.Query): query class (default QueryCharInString)
-        '''
-        super().__init__(
-            requester=requester,
-            dbms=dbms,
-            charset=charset,
-            query_cls_char_in_string=query_cls_char_in_string or dbms.QueryTextCharInString
-        )
+    '''Text list char collector.'''
+    QUERY_CLS_LOOKUP = 'text_char_in_string'
 
 
 
 class BlobListCharCollector(ListCharCollector):
-    def __init__(self, requester, dbms, charset, query_cls_char_in_string=None):
-        '''Constructor.
-
-        Params:
-            requester (Requester): Requester instance
-            dbms (DBMS): database engine
-            charset (list): list of possible characters
-            query_cls_char_in_string (DBMS.Query): query class (default QueryCharInString)
-        '''
-        super().__init__(
-            requester=requester,
-            dbms=dbms,
-            charset=charset,
-            query_cls_char_in_string=query_cls_char_in_string or dbms.QueryBlobCharInString
-        )
+    '''Blob list char collector.'''
+    QUERY_CLS_LOOKUP = 'blob_char_in_string'

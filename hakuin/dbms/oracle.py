@@ -79,7 +79,6 @@ class Oracle(DBMS):
 
 
     def get_schema_name(self, ctx):
-        # TODO this should be in DBMS after sqlglot
         if ctx.schema:
             # TODO remove upper() after case sensitivity is fixed
             return self.literal_text(ctx.schema.upper())

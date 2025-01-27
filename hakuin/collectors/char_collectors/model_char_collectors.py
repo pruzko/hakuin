@@ -7,7 +7,11 @@ from .char_collector import CharCollector
 
 
 class ModelCharCollector(CharCollector):
-    def __init__(self, requester, dbms, model, adaptive, query_cls_char_in_string):
+    '''Base class for model char collectors.'''
+    QUERY_CLS_LOOKUP = None
+
+
+    def __init__(self, requester, dbms, model, adaptive=True):
         '''Constructor.
 
         Params:
@@ -15,12 +19,10 @@ class ModelCharCollector(CharCollector):
             dbms (DBMS): database engine
             model (Model): language model
             adaptive (bool): adaptively train model on collected characters
-            query_cls_char_in_string (DBMS.Query): query class (default QueryCharInString)
         '''
         super().__init__(requester=requester, dbms=dbms)
         self.model = model
         self.adaptive = adaptive
-        self.query_cls_char_in_string = query_cls_char_in_string
 
 
     async def _run(self, requester, ctx):
@@ -39,7 +41,7 @@ class ModelCharCollector(CharCollector):
         return await TreeSearch(
             requester=requester,
             dbms=self.dbms,
-            query_cls=self.query_cls_char_in_string,
+            query_cls=self.dbms.query_cls(self.QUERY_CLS_LOOKUP),
             tree=make_tree(scores),
         ).run(ctx)
 
@@ -58,41 +60,11 @@ class ModelCharCollector(CharCollector):
 
 
 class TextModelCharCollector(ModelCharCollector):
-    def __init__(self, requester, dbms, model, adaptive=True, query_cls_char_in_string=None):
-        '''Constructor.
-
-        Params:
-            requester (Requester): Requester instance
-            dbms (DBMS): database engine
-            model (Model): language model
-            adaptive (bool): adaptively train model on collected characters
-            query_cls_char_in_string (DBMS.Query): query class (default QueryCharInString)
-        '''
-        super().__init__(
-            requester=requester,
-            dbms=dbms,
-            model=model,
-            adaptive=adaptive,
-            query_cls_char_in_string=query_cls_char_in_string or dbms.QueryTextCharInString
-        )
+    '''Text model char collector.'''
+    QUERY_CLS_LOOKUP = 'text_char_in_string'
 
 
 
 class BlobModelCharCollector(ModelCharCollector):
-    def __init__(self, requester, dbms, model, adaptive=True, query_cls_char_in_string=None):
-        '''Constructor.
-
-        Params:
-            requester (Requester): Requester instance
-            dbms (DBMS): database engine
-            model (Model): language model
-            adaptive (bool): adaptively train model on collected characters
-            query_cls_char_in_string (DBMS.Query): query class (default QueryCharInString)
-        '''
-        super().__init__(
-            requester=requester,
-            dbms=dbms,
-            model=model,
-            adaptive=adaptive,
-            query_cls_char_in_string=query_cls_char_in_string or dbms.QueryBlobCharInString
-        )
+    '''Blob model char collector.'''
+    QUERY_CLS_LOOKUP = 'blob_char_in_string'

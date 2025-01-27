@@ -1,12 +1,28 @@
 from sqlglot import exp, parse_one
 
 from hakuin.collectors import StringContext
-from hakuin.utils import BYTE_MAX, EOS
+from hakuin.utils import BYTE_MAX, EOS, snake_to_pascal_case
 
 
 
 class DBMS:
     DIALECT = None
+
+
+    def query_cls(self, name):
+        '''Retrieves the target query class.
+
+        Params:
+            name (str): snake_case query name (e.g., 'row_is_null' for QueryRowIsNull)
+
+        Returns:
+            Type[Query]: query class
+        '''
+        name = f'Query{snake_to_pascal_case(name)}'
+        if hasattr(self, name):
+            return getattr(self, name)
+
+        return None
 
 
     def wrap_ast(self, ast):
