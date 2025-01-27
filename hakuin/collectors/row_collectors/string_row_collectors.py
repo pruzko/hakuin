@@ -115,15 +115,7 @@ class StringRowCollector(RowCollector):
 
 
 class TextRowCollector(StringRowCollector):
-    def __init__(self, query_cls_row_is_ascii=None, **kwargs):
-        '''TODO
-
-            query_cls_row_is_ascii (DBMS.Query): query class (default QueryRowIsAscii)
-        '''
-        super().__init__(**kwargs)
-        self.query_cls_row_is_ascii = query_cls_row_is_ascii or self.dbms.QueryRowIsAscii
-
-
+    '''TODO'''
     async def run(self, ctx):
         '''Collects a single row.
 
@@ -150,7 +142,7 @@ class TextRowCollector(StringRowCollector):
             return True
 
         if ctx.row_is_ascii is None:
-            query = self.query_cls_row_is_ascii(dbms=self.dbms)
+            query = self.dbms.QueryRowIsAscii(dbms=self.dbms)
             return await self.requester.run(query=query, ctx=ctx)
 
         return ctx.row_is_ascii
@@ -158,7 +150,7 @@ class TextRowCollector(StringRowCollector):
 
 
 class MetaTextRowCollector(TextRowCollector):
-    def __init__(self, requester, dbms, binary_char_collector, fivegram_char_collector=None, query_cls_row_is_ascii=None):
+    def __init__(self, requester, dbms, binary_char_collector, fivegram_char_collector=None):
         '''Constructor.
 
         Params:
@@ -166,14 +158,12 @@ class MetaTextRowCollector(TextRowCollector):
             dbms (DBMS): database engine
             binary_char_collector (BinaryCharCollector|ListBinaryCharCollector): binary char collector
             fivegram_char_collector (ModelCharCollector|None): fivegram char collector
-            query_cls_row_is_ascii (DBMS.Query): query class (default QueryRowIsAscii)
         '''
         super().__init__(
             requester=requester,
             dbms=dbms,
             binary_char_collector=binary_char_collector,
             fivegram_char_collector=fivegram_char_collector,
-            query_cls_row_is_ascii=query_cls_row_is_ascii,
         )
 
 

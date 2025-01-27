@@ -12,17 +12,14 @@ from .row_collector import RowCollector
 
 
 class IntBinaryRowCollector(RowCollector):
-    def __init__(self, requester, dbms, query_cls_int_lt=None):
+    def __init__(self, requester, dbms):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
             dbms (DBMS): database engine
-            query_cls_int_lt (DBMS.Query): query class (default QueryIntLt)
         '''
         super().__init__(requester=requester, dbms=dbms)
-        self.query_cls_int_lt = query_cls_int_lt or self.dbms.QueryIntLt
-
         self._hist = deque(maxlen=100)
         self._hist_lock = asyncio.Lock()
         self._bounds_stats = {
@@ -81,7 +78,7 @@ class IntBinaryRowCollector(RowCollector):
         return await BinarySearch(
             requester=requester,
             dbms=self.dbms,
-            query_cls=self.query_cls_int_lt,
+            query_cls=self.dbms.QueryIntLt,
             lower=lower,
             upper=upper,
             find_lower=find_lower,

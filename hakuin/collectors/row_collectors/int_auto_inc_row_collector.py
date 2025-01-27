@@ -5,17 +5,14 @@ from .row_collector import RowCollector
 
 
 class IntAutoIncRowCollector(RowCollector):
-    def __init__(self, requester, dbms, query_cls_value_in_list=None):
+    def __init__(self, requester, dbms):
         '''Constructor.
 
         Params:
             requester (Requester): Requester instance
             dbms (DBMS): database engine
-            query_cls_value_in_list (DBMS.Query): query class (default QueryValueInList)
         '''
         super().__init__(requester=requester, dbms=dbms)
-        self.query_cls_value_in_list = query_cls_value_in_list or self.dbms.QueryValueInList
-
         self._last = None
         self._last_lock = asyncio.Lock()
 
@@ -35,7 +32,7 @@ class IntAutoIncRowCollector(RowCollector):
 
         n = await self._get_next(ctx, last)
 
-        query = self.query_cls_value_in_list(dbms=self.dbms, values=[n])
+        query = self.dbms.QueryValueInList(dbms=self.dbms, values=[n])
         if await self.requester.run(query=query, ctx=ctx):
             return n
 

@@ -7,7 +7,7 @@ from .row_collector import RowCollector
 
 
 class FloatRowCollector(RowCollector):
-    def __init__(self, requester, dbms, int_binary_row_collector, dec_text_row_collector, query_cls_row_is_positive=None):
+    def __init__(self, requester, dbms, int_binary_row_collector, dec_text_row_collector):
         '''Constructor.
 
         Params:
@@ -15,11 +15,8 @@ class FloatRowCollector(RowCollector):
             dbms (DBMS): database engine
             int_binary_row_collector (IntBinaryRowCollector): int binary row collector for the integer part
             dec_text_row_collector (StringCollector): text row collector for the decimal part
-            query_cls_row_is_positive (DBMS.Query): query class (default QueryRowIsPositive)
         '''
         super().__init__(requester=requester, dbms=dbms)
-        self.query_cls_row_is_positive = query_cls_row_is_positive or self.dbms.QueryRowIsPositive
-
         self.int_binary_row_collector = int_binary_row_collector
         self.dec_text_row_collector = dec_text_row_collector
 
@@ -56,7 +53,7 @@ class FloatRowCollector(RowCollector):
         if ctx.rows_are_positive is True:
             return True
 
-        query = self.query_cls_row_is_positive(dbms=self.dbms)
+        query = self.dbms.QueryRowIsPositive(dbms=self.dbms)
         return await self.requester.run(query=query, ctx=ctx)
 
 

@@ -25,14 +25,14 @@ class StringCollector(Collector):
             self.cls_model_char_collector = None
 
 
-        def add_binary_char_collector(self, query_cls_char_lt=None):
+        def add_binary_char_collector(self):
             self.binary_char_collector = self.cls_binary_char_collector(
                 requester=self.requester,
                 dbms=self.dbms,
             )
 
 
-        def add_list_char_collector(self, charset, query_cls_char_in_string=None):
+        def add_list_char_collector(self, charset):
             self.list_char_collector = self.cls_list_char_collector(
                 requester=self.requester,
                 dbms=self.dbms,
@@ -40,7 +40,7 @@ class StringCollector(Collector):
             )
 
 
-        def add_unigram_char_collector(self, model=None, adaptive=True, query_cls_char_in_string=None):
+        def add_unigram_char_collector(self, model=None, adaptive=True):
             self.unigram_char_collector = self.cls_model_char_collector(
                 requester=self.requester,
                 dbms=self.dbms,
@@ -49,7 +49,7 @@ class StringCollector(Collector):
             )
 
 
-        def add_fivegram_char_collector(self, model=None, adaptive=True, query_cls_char_in_string=None):
+        def add_fivegram_char_collector(self, model=None, adaptive=True):
             self.fivegram_char_collector = self.cls_model_char_collector(
                 requester=self.requester,
                 dbms=self.dbms,
@@ -89,24 +89,6 @@ class StringCollector(Collector):
 
 
 class TextCollector(StringCollector):
-    def __init__(self, query_cls_rows_are_ascii=None, **kwargs):
-        '''Constructor.
-
-        Params:
-            requester (Requester): Requester instance
-            dbms (DBMS): database engine
-            row_collector (RowCollector): fallback row collector
-            guessing_row_collector (GuessingRowCollector): guessing row collector
-            n_tasks (int): number of extraction tasks to run in parallel
-            query_cls_rows_count_lt (DBMS.Query): query class (default QueryRowsCountLt)
-            query_cls_rows_have_null (DBMS.Query): query class (default QueryRowsHaveNull)
-            query_cls_row_is_null (DBMS.Query): query class (default QueryRowIsNull)
-            query_cls_rows_are_ascii (DBMS.Query): query class (default QueryRowsAreAscii)
-        '''
-        super().__init__(**kwargs)
-        self.query_cls_rows_are_ascii = query_cls_rows_are_ascii or self.dbms.QueryRowsAreAscii
-
-
     async def check_rows(self, ctx):
         '''Checks rows for various properties and sets the appropriate ctx settings.
 
@@ -127,7 +109,7 @@ class TextCollector(StringCollector):
             bool: rows are ascii flag
         '''
         if ctx.rows_are_ascii is None:
-            query = self.query_cls_rows_are_ascii(dbms=self.dbms)
+            query = self.dbms.QueryRowsAreAscii(dbms=self.dbms)
             return await self.requester.run(query=query, ctx=ctx)
 
         return ctx.rows_are_ascii
@@ -144,17 +126,17 @@ class TextCollector(StringCollector):
             self.cls_model_char_collector = TextModelCharCollector
 
 
-        def build_row_collector(self, query_cls_row_is_ascii=None):
-            return super().build_row_collector(query_cls_row_is_ascii=query_cls_row_is_ascii)
+        # def build_row_collector(self, query_cls_row_is_ascii=None):
+        #     return super().build_row_collector(query_cls_row_is_ascii=query_cls_row_is_ascii)
 
 
-        def build(self, query_cls_rows_are_ascii=None):
-            return super().build(query_cls_rows_are_ascii=query_cls_rows_are_ascii)
+        # def build(self, query_cls_rows_are_ascii=None):
+        #     return super().build(query_cls_rows_are_ascii=query_cls_rows_are_ascii)
 
 
 
     class MetaBuilder(Builder):
-        def build_row_collector(self, query_cls_row_is_ascii=None):
+        def build_row_collector(self):
             if not self.binary_char_collector and not self.list_char_collector:
                 self.add_binary_char_collector()
 
@@ -163,14 +145,14 @@ class TextCollector(StringCollector):
                 dbms=self.dbms,
                 binary_char_collector=self.binary_char_collector or self.list_char_collector,
                 fivegram_char_collector=self.fivegram_char_collector,
-                query_cls_row_is_ascii=query_cls_row_is_ascii,
             )
             return self.row_collector
 
 
-        def build(self, query_cls_rows_are_ascii=None):
+        def build(self):
             self.guessing_row_collector = None
-            return super().build(query_cls_rows_are_ascii=query_cls_rows_are_ascii)
+            return super().build()
+            # return super().build(query_cls_rows_are_ascii=query_cls_rows_are_ascii)
 
 
 

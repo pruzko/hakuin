@@ -68,14 +68,11 @@ class GuessingRowCollector(RowCollector):
         Params:
             requester (Requester): Requester instance
             dbms (DBMS): database engine
-            query_cls_value_in_list (DBMS.Query): query class (default QueryValueInList)
 
         Class Attributes:
             TOTAL_PROB_TH (float): probability threshold necessary for guessing to take place
         '''
         super().__init__(requester=requester, dbms=dbms)
-        self.query_cls_value_in_list = query_cls_value_in_list or self.dbms.QueryValueInList
-
         self.counter = GuessCounter()
 
 
@@ -106,7 +103,7 @@ class GuessingRowCollector(RowCollector):
         return await TreeSearch(
             requester=requester,
             dbms=self.dbms,
-            query_cls=self.query_cls_value_in_list,
+            query_cls=self.dbms.QueryValueInList,
             tree=tree,
         ).run(ctx)
 

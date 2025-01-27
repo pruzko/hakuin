@@ -14,10 +14,7 @@ class Collector(metaclass=ABCMeta):
     '''Column collector base class. Column collectors repeatidly run row collectors
     to extract rows.
     '''
-    def __init__(
-            self, requester, dbms, row_collector, guessing_row_collector=None, n_tasks=1,
-            query_cls_rows_count_lt=None, query_cls_rows_have_null=None, query_cls_row_is_null=None,
-        ):
+    def __init__(self, requester, dbms, row_collector, guessing_row_collector=None, n_tasks=1):
         '''Constructor.
 
         Params:
@@ -26,18 +23,12 @@ class Collector(metaclass=ABCMeta):
             row_collector (RowCollector): fallback row collector
             guessing_row_collector (GuessingRowCollector): guessing row collector
             n_tasks (int): number of extraction tasks to run in parallel
-            query_cls_rows_count_lt (DBMS.Query): query class (default QueryRowsCountLt)
-            query_cls_rows_have_null (DBMS.Query): query class (default QueryRowsHaveNull)
-            query_cls_row_is_null (DBMS.Query): query class (default QueryRowIsNull)
         '''
         self.requester = requester
         self.dbms = dbms
         self.row_collector = row_collector
         self.guessing_row_collector = guessing_row_collector
         self.n_tasks = n_tasks
-        self.query_cls_rows_count_lt = query_cls_rows_count_lt or self.dbms.QueryRowsCountLt
-        self.query_cls_rows_have_null = query_cls_rows_have_null or self.dbms.QueryRowsHaveNull
-        self.query_cls_row_is_null = query_cls_row_is_null or self.dbms.QueryRowIsNull
 
 
     async def run(self, ctx):
@@ -56,7 +47,7 @@ class Collector(metaclass=ABCMeta):
             ctx.n_rows = await BinarySearch(
                 requester=self.requester,
                 dbms=self.dbms,
-                query_cls=self.query_cls_rows_count_lt,
+                query_cls=self.dbms.QueryRowsCountLt,
                 lower=0,
                 upper=128,
                 find_lower=False,
@@ -152,7 +143,7 @@ class Collector(metaclass=ABCMeta):
             bool: rows have NULL flag
         '''
         if ctx.rows_have_null is None:
-            query = self.query_cls_rows_have_null(dbms=self.dbms)
+            query = self.dbms.QueryRowsHaveNull(dbms=self.dbms)
             return await self.requester.run(query=query, ctx=ctx)
 
         return ctx.rows_have_null
@@ -170,7 +161,7 @@ class Collector(metaclass=ABCMeta):
         if ctx.rows_have_null is False:
             return False
 
-        query = self.query_cls_row_is_null(dbms=self.dbms)
+        query = self.dbms.QueryRowIsNull(dbms=self.dbms)
         return await self.requester.run(query=query, ctx=ctx)
 
 
@@ -184,11 +175,10 @@ class Collector(metaclass=ABCMeta):
             self.guessing_row_collector = None
 
 
-        def add_guessing_row_collector(self, query_cls_value_in_list=None):
+        def add_guessing_row_collector(self):
             self.guessing_row_collector = GuessingRowCollector(
                 requester=self.requester,
                 dbms=self.dbms,
-                query_cls_value_in_list=query_cls_value_in_list,
             )
 
 
