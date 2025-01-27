@@ -26,11 +26,11 @@ class IntAutoIncRowCollector(RowCollector):
         Returns:
             int: collected row
         '''
-        last = await self._get_last()
+        last = await self.get_last()
         if not last:
             return None
 
-        n = await self._get_next(ctx, last)
+        n = await self.get_next(ctx, last)
 
         query = self.dbms.QueryValueInList(dbms=self.dbms, values=[n])
         if await self.requester.run(query=query, ctx=ctx):
@@ -47,16 +47,16 @@ class IntAutoIncRowCollector(RowCollector):
             value (int): collected row
             row_guessed (bool): row was successfully guessed flag
         '''
-        last = await self._get_last()
+        last = await self.get_last()
         if last:
-            is_success = value == await self._get_next(ctx, last)
+            is_success = await self.get_next(ctx, last) == value
             await self.stats.update(is_success=is_success, cost=1.0)
 
         async with self._last_lock:
             self._last = ctx.row_idx, value
 
 
-    async def _get_last(self):
+    async def get_last(self):
         '''Coroutine-safe getter for the last row index and value.
 
         Returns:
@@ -66,7 +66,7 @@ class IntAutoIncRowCollector(RowCollector):
             return self._last
 
 
-    async def _get_next(self, ctx, last):
+    async def get_next(self, ctx, last):
         '''Computes the next auto-incremented value.
 
         Params:

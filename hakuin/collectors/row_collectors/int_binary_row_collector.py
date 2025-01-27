@@ -11,6 +11,101 @@ from .row_collector import RowCollector
 
 
 
+class IntBounds:
+    '''Class for computing integer search bounds.'''
+    def __init__(self):
+        '''Constructor.'''
+        self.stats = {
+            'const': Stats(),
+            'min_max': Stats(),
+            'norm_dist': Stats(),
+        }
+        self._hist = deque(maxlen=100)
+        self._lock = asyncio.Lock()
+
+
+    async def get_const(self):
+        '''Retrieves cost bounds.
+
+        Returns:
+            (int, int): bounds
+        '''
+        return 0, 128
+
+
+    async def get_min_max(self):
+        '''Retrieves min-max bounds.
+
+        Returns:
+            (int, int): bounds
+        '''
+        async with self._lock:
+            if len(self._hist) < 2:
+                return await self.get_const()
+
+            lower = min(self._hist)
+            upper = max(self._hist)
+            mean = (upper + lower) // 2
+            diff = (upper - lower) / 2
+            step = math.ceil(math.log2(diff)) if diff else 0
+            step = max(step, 0)
+            margin = 2 ** step
+            return mean - margin, mean + margin
+
+
+    async def get_norm_dist(self):
+        '''Retrieves normal distribution bounds.
+
+        Returns:
+            (int, int): bounds
+        '''
+        async with self._lock:
+            if len(self._hist) < 2:
+                return await self.get_const()
+
+            mean = int(round(statistics.mean(self._hist)))
+            stdev = statistics.stdev(self._hist)
+            step = math.ceil(math.log2(stdev / 4)) if stdev else 0
+            step = max(step, 0)
+            margin = 2 ** step
+            return mean - margin, mean + margin
+
+
+    async def get_best(self):
+        '''Retrieves the best bounds for binary search.
+
+        Returns:
+            (int, int): bounds
+        '''
+        costs = {bounds: await stats.success_cost() for bounds, stats in self.stats.items()}
+        best_bounds = min(costs, key=lambda x: costs.get(x) or float('inf'))
+        return await self.get_by_name(best_bounds)
+
+
+    async def get_by_name(self, name):
+        '''Retrieves target bounds.
+
+        Params:
+            name (str): bounds name
+
+        return:
+            (int, int): bounds
+        '''
+        assert name in self.stats, f'Unknown bounds "{name}".'
+        return await getattr(self, f'get_{name}')()
+
+
+    async def update_hist(self, value):
+        '''Updates the history with a new value.
+
+        Params:
+            value (int): new value
+        '''
+        async with self._lock:
+            self._hist.append(value)
+
+
+
 class IntBinaryRowCollector(RowCollector):
     def __init__(self, requester, dbms):
         '''Constructor.
@@ -20,13 +115,7 @@ class IntBinaryRowCollector(RowCollector):
             dbms (DBMS): database engine
         '''
         super().__init__(requester=requester, dbms=dbms)
-        self._hist = deque(maxlen=100)
-        self._hist_lock = asyncio.Lock()
-        self._bounds_stats = {
-            'const': Stats(),
-            'min_max': Stats(),
-            'norm_dist': Stats(),
-        }
+        self.bounds = IntBounds()
 
 
     async def run(self, ctx):
@@ -38,7 +127,7 @@ class IntBinaryRowCollector(RowCollector):
         Returns:
             int: collected row
         '''
-        lower, upper = await self.get_best_bounds(ctx)
+        lower, upper = await self.bounds.get_best()
         return await self._run(requester=self.requester, ctx=ctx, lower=lower, upper=upper)
 
 
@@ -86,77 +175,6 @@ class IntBinaryRowCollector(RowCollector):
         ).run(ctx)
 
 
-    async def get_best_bounds(self, ctx):
-        '''Gets the best bounds for binary search.
-
-        Params:
-            ctx (NumericContext): collection context
-
-        Returns:
-            (int, int): bounds
-        '''
-        costs = {
-            'const': await self._bounds_stats['const'].success_cost(),
-            'min_max': await self._bounds_stats['min_max'].success_cost(),
-            'norm_dist': await self._bounds_stats['norm_dist'].success_cost(),
-        }
-
-        best_bounds = min(costs, key=lambda x: costs.get(x) or float('inf'))
-        if best_bounds == 'const':
-            return await self._get_const_bounds()
-        elif best_bounds == 'min_max':
-            return await self._get_min_max_bounds()
-        else:
-            return await self._get_norm_dist_bounds()
-
-
-    async def _get_const_bounds(self):
-        '''Gets cost bounds.
-
-        Returns:
-            (int, int): bounds
-        '''
-        return 0, 128
-
-
-    async def _get_min_max_bounds(self):
-        '''Gets min-max bounds.
-
-        Returns:
-            (int, int): bounds
-        '''
-        async with self._hist_lock:
-            if len(self._hist) < 2:
-                return await self._get_const_bounds()
-
-            lower = min(self._hist)
-            upper = max(self._hist)
-            mean = (upper + lower) // 2
-            diff = (upper - lower) / 2
-            step = math.ceil(math.log2(diff)) if diff else 0
-            step = max(step, 0)
-            margin = 2 ** step
-            return mean - margin, mean + margin
-
-
-    async def _get_norm_dist_bounds(self):
-        '''Gets normal distribution bounds.
-
-        Returns:
-            (int, int): bounds
-        '''
-        async with self._hist_lock:
-            if len(self._hist) < 2:
-                return await self._get_const_bounds()
-
-            mean = int(round(statistics.mean(self._hist)))
-            stdev = statistics.stdev(self._hist)
-            step = math.ceil(math.log2(stdev / 4)) if stdev else 0
-            step = max(step, 0)
-            margin = 2 ** step
-            return mean - margin, mean + margin
-
-
     async def update(self, ctx, value, row_guessed):
         '''Updates the row collector with a newly collected row.
 
@@ -165,19 +183,13 @@ class IntBinaryRowCollector(RowCollector):
             value (int): collected row
             row_guessed (bool): row was successfully guessed flag
         '''
-        lower, upper = await self.get_best_bounds(ctx)
+        lower, upper = await self.bounds.get_best()
         cost, _ = await self._emulate(ctx, lower=lower, upper=upper, correct=value)
         await self.stats.update(is_success=True, cost=cost)
 
-        bounds = {
-            'const': await self._get_const_bounds(),
-            'min_max': await self._get_min_max_bounds(),
-            'norm_dist': await self._get_norm_dist_bounds(),
-        }
-
-        for key, (lower, upper) in bounds.items():
+        for bounds, stats in self.bounds.stats.items():
+            lower, upper = await self.bounds.get_by_name(bounds)
             cost, _ = await self._emulate(ctx, lower=lower, upper=upper, correct=value)
-            await self._bounds_stats[key].update(is_success=True, cost=cost)
+            await stats.update(is_success=True, cost=cost)
 
-        async with self._hist_lock:
-            self._hist.append(value)
+        await self.bounds.update_hist(value)
