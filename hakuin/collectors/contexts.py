@@ -18,7 +18,13 @@ class Context:
 
 
     def clone(self):
+        '''Returns a copy of self.
+
+        Returns:
+            Context: copy
+        '''
         return deepcopy(self)
+
 
 
 @dataclass

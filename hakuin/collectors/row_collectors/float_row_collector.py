@@ -13,7 +13,8 @@ class FloatRowCollector(RowCollector):
         Params:
             requester (Requester): Requester instance
             dbms (DBMS): database engine
-            int_binary_row_collector (IntBinaryRowCollector): int binary row collector for the integer part
+            int_binary_row_collector (IntBinaryRowCollector): int binary row collector
+                for the integer part
             dec_text_row_collector (StringCollector): text row collector for the decimal part
         '''
         super().__init__(requester=requester, dbms=dbms)
@@ -30,22 +31,21 @@ class FloatRowCollector(RowCollector):
         Returns:
             float: collected row
         '''
-        int_ctx = ctx.clone()
-        int_ctx.cast_to = 'int'
-        int_part = await self.int_binary_row_collector.run(int_ctx)
+        int_part = await self.int_binary_row_collector.run(ctx=self._make_int_ctx(ctx))
 
         if int_part == 0:
-            sign = '' if ctx.rows_are_positive or await self.check_row_is_positive(ctx) else '-'
+            # int(-0.123) and int(0.123) are both 0, so we need to check positivity
+            is_positive = ctx.rows_are_positive or await self.check_row_is_positive(ctx)
         else:
-            sign = '' if int_part >= 0 else '-'
+            is_positive = int_part > 0
 
-        int_part = abs(int_part)
+        sign = '' if is_positive else '-'
+        buffer = f'{sign}{abs(int_part)}.'
 
-        text_ctx = self._to_text_ctx(ctx, start_offset=len(f'{sign}{int_part}.'))
-        text_ctx.cast_to = 'text'
-        dec_part = await self.dec_text_row_collector.run(text_ctx)
+        text_ctx = self._make_text_ctx(ctx, start_offset=len(buffer))
+        buffer += await self.dec_text_row_collector.run(text_ctx)
 
-        return float(f'{sign}{int_part}.{dec_part}')
+        return float(buffer)
 
 
     async def check_row_is_positive(self, ctx):
@@ -65,7 +65,6 @@ class FloatRowCollector(RowCollector):
             value (int): collected row
             row_guessed (bool): row was successfully guessed flag
         '''
-        sign = '' if value >= 0 else '-'
         int_part, dec_part = str(value).split('.')
         int_part = int(int_part)
 
@@ -78,25 +77,26 @@ class FloatRowCollector(RowCollector):
 
         await self.int_binary_row_collector.update(ctx, value=int_part, row_guessed=row_guessed)
 
-        ctx = self._to_text_ctx(ctx, start_offset=len(f'{sign}{abs(int_part)}.'))
+        sign = '' if value >= 0.0 else '-'
+        buffer = f'{sign}{abs(int_part)}.'
+
+        ctx = self._make_text_ctx(ctx, start_offset=len(buffer))
         await self.dec_text_row_collector.update(ctx, value=dec_part, row_guessed=row_guessed)
 
 
     @staticmethod
-    def _to_text_ctx(ctx, start_offset):
-        '''Helper function to convert NumericContext to TextContext for collection of float decimal parts.
+    def _make_int_ctx(ctx):
+        ctx = ctx.clone()
+        ctx.cast_to = 'int'
+        return ctx
 
-        Params:
-            ctx (NumericContext): context to convert
-            start_offset (int): start collecting chars at this offset
 
-        Returns:
-            TextContext: converted context
-        '''
+    @staticmethod
+    def _make_text_ctx(ctx, start_offset):
         kwargs = asdict(ctx)
         kwargs.pop('rows_are_positive')
-        kwargs['cast_to'] = 'text'
         kwargs['start_offset'] = start_offset
         kwargs['rows_are_ascii'] = True
         kwargs['row_is_ascii'] = True
+        kwargs['cast_to'] = 'text'
         return TextContext(**kwargs)

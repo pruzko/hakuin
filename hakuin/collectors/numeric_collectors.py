@@ -9,31 +9,10 @@ from .row_collectors import IntAutoIncRowCollector, IntBinaryRowCollector, IntRo
 
 class NumericCollector(Collector):
     '''Numeric column collector. Column collectors repeatidly run row collectors to extract rows.'''
-    async def check_rows(self, ctx):
-        '''Checks rows for various properties and sets the appropriate ctx settings.
-
-        Params:
-            ctx (Context): collection context
-        '''
-        await super().check_rows(ctx)
-        ctx.rows_are_positive = await self.check_rows_are_positive(ctx)
-
-
-    async def check_rows_are_positive(self, ctx):
-        '''Checks if rows are positive.
-
-        Params:
-            ctx (NumericContext): collection context
-
-        Returns:
-            bool: rows are positive flag
-        '''
-        if ctx.rows_are_positive is None:
-            query = self.dbms.QueryRowsArePositive(dbms=self.dbms)
-            return await self.requester.run(query=query, ctx=ctx)
-
-        return ctx.rows_are_positive
-
+    COLUMN_CHECKS = [
+        *Collector.COLUMN_CHECKS,
+        lambda self, ctx: self.basic_check(ctx, flag='rows_are_positive'),
+    ]
 
 
     class Builder(Collector.Builder):

@@ -89,30 +89,10 @@ class StringCollector(Collector):
 
 
 class TextCollector(StringCollector):
-    async def check_rows(self, ctx):
-        '''Checks rows for various properties and sets the appropriate ctx settings.
-
-        Params:
-            ctx (Context): collection context
-        '''
-        await super().check_rows(ctx)
-        ctx.rows_are_ascii = await self.check_rows_are_ascii(ctx)
-
-
-    async def check_rows_are_ascii(self, ctx):
-        '''Checks if rows are ascii.
-
-        Params:
-            ctx (StringContext): collection context
-
-        Returns:
-            bool: rows are ascii flag
-        '''
-        if ctx.rows_are_ascii is None:
-            query = self.dbms.QueryRowsAreAscii(dbms=self.dbms)
-            return await self.requester.run(query=query, ctx=ctx)
-
-        return ctx.rows_are_ascii
+    COLUMN_CHECKS = [
+        *Collector.COLUMN_CHECKS,
+        lambda self, ctx: self.basic_check(ctx, flag='rows_are_ascii'),
+    ]
 
 
 
@@ -124,14 +104,6 @@ class TextCollector(StringCollector):
             self.cls_binary_char_collector = TextBinaryCharCollector
             self.cls_list_char_collector = TextListCharCollector
             self.cls_model_char_collector = TextModelCharCollector
-
-
-        # def build_row_collector(self, query_cls_row_is_ascii=None):
-        #     return super().build_row_collector(query_cls_row_is_ascii=query_cls_row_is_ascii)
-
-
-        # def build(self, query_cls_rows_are_ascii=None):
-        #     return super().build(query_cls_rows_are_ascii=query_cls_rows_are_ascii)
 
 
 

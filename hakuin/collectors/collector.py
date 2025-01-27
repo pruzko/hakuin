@@ -14,6 +14,11 @@ class Collector(metaclass=ABCMeta):
     '''Column collector base class. Column collectors repeatidly run row collectors
     to extract rows.
     '''
+    COLUMN_CHECKS = [
+        lambda self, ctx: self.basic_check(ctx, flag='rows_have_null'),
+    ]
+
+
     def __init__(self, requester, dbms, row_collector, guessing_row_collector=None, n_tasks=1):
         '''Constructor.
 
@@ -57,7 +62,8 @@ class Collector(metaclass=ABCMeta):
         if ctx.n_rows == 0:
             return []
 
-        await self.check_rows(ctx)
+        for check in self.COLUMN_CHECKS:
+            await check(self, ctx)
 
         data = [None] * ctx.n_rows
         queue = asyncio.Queue()
@@ -124,29 +130,14 @@ class Collector(metaclass=ABCMeta):
         return res
 
 
-    async def check_rows(self, ctx):
-        '''Checks rows for various properties and sets the appropriate ctx settings.
+    async def basic_check(self, ctx, flag):
+        res = getattr(ctx, flag)
+        if res is None:
+            query = self.dbms.query_cls(flag)(dbms=self.dbms)
+            res = await self.requester.run(query=query, ctx=ctx)
 
-        Params:
-            ctx (Context): collection context
-        '''
-        ctx.rows_have_null = await self.check_rows_have_null(ctx)
-
-
-    async def check_rows_have_null(self, ctx):
-        '''Checks if rows have NULL.
-
-        Params:
-            ctx (Context): collection context
-
-        Returns:
-            bool: rows have NULL flag
-        '''
-        if ctx.rows_have_null is None:
-            query = self.dbms.QueryRowsHaveNull(dbms=self.dbms)
-            return await self.requester.run(query=query, ctx=ctx)
-
-        return ctx.rows_have_null
+        setattr(ctx, flag, res)
+        return res
 
 
     async def check_row_is_null(self, ctx):
