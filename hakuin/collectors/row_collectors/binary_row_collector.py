@@ -11,8 +11,8 @@ from .row_collector import RowCollector
 
 
 
-class IntBounds:
-    '''Class for computing integer search bounds.'''
+class _Bounds:
+    '''Helper class for computing search bounds.'''
     def __init__(self):
         '''Constructor.'''
         self.stats = {
@@ -106,16 +106,17 @@ class IntBounds:
 
 
 
-class IntBinaryRowCollector(RowCollector):
+class BinaryRowCollector(RowCollector):
+    '''Binary row collector for integers.'''
     def __init__(self, requester, dbms):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
         '''
         super().__init__(requester=requester, dbms=dbms)
-        self.bounds = IntBounds()
+        self.bounds = _Bounds()
 
 
     async def run(self, ctx):

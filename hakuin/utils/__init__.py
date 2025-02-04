@@ -2,6 +2,7 @@ import os
 import re
 import string
 import sys
+from enum import Enum
 
 from tqdm import tqdm
 
@@ -23,11 +24,14 @@ ASCII_MAX = 0x7f
 UNICODE_MAX = 0x10ffff
 BYTE_MAX = 0xff
 
-SOS = '<s>'
-EOS = '</s>'
 
-CHARSET_DIGITS = list(string.digits) + [EOS]
+class Symbol(Enum):
+    '''Special character symbols.'''
+    SOS = '<s>'
+    EOS = '</s>'
 
+
+CHARSET_DIGITS = list(string.digits) + [Symbol.EOS]
 
 
 
@@ -38,7 +42,7 @@ def info(msg, *args, progress=None):
     Params:
         msg (str): message name
         *args: format string arguments
-        progress (tqdm.tqdm | None): progress object
+        progress (tqdm.tqdm|None): progress object
     '''
     progress = progress or tqdm
     progress.write(_INFO_MESSAGES[msg].format(*args), file=sys.stderr)    
@@ -68,18 +72,13 @@ def snake_to_pascal_case(s):
     return ''.join(w.capitalize() for w in s.split('_'))
 
 
-def tokenize(s, add_sos=True, add_eos=True):
-    '''Converts string to list of tokens.
+def to_chars(s):
+    '''Converts a string into a list of characters.
 
     Params:
-        s (str|bytes): string to tokenize
-        add_sos (bool): True if SOS should be included
-        add_eos (bool): True if EOS should be included
+        s (str|bytes): string
 
     Returns:
-        list: tokens
+        list: characters
     '''
-    tokens = [SOS] if add_sos else []
-    tokens += [bytes([b]) for b in s] if type(s) is bytes else list(s)
-    tokens += [EOS] if add_eos else []
-    return tokens
+    return [bytes([b]) for b in s] if type(s) is bytes else list(s)

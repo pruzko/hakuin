@@ -4,9 +4,10 @@ import os
 import pickle
 
 from nltk.lm import MLE
+from nltk.lm.vocabulary import _dispatched_lookup, _string_lookup
 from nltk.util import ngrams
 
-from hakuin.utils import DIR_MODELS, SOS, EOS, tokenize
+from hakuin.utils import DIR_MODELS, Symbol, to_chars
 
 
 
@@ -15,6 +16,19 @@ _MODELS = {
     'tables': None,
     'schemas': None,
 }
+
+
+# NLTK models rely on vocabularies that do not support bytes and Symbols so we need to add
+# them manually.
+@_dispatched_lookup.register(bytes)
+def _(word, vocab):
+    return _string_lookup(word, vocab)
+
+
+@_dispatched_lookup.register(Symbol)
+def _(word, vocab):
+    return _string_lookup(word, vocab)
+
 
 
 class Model:
@@ -26,120 +40,128 @@ class Model:
             order (int): model order
         '''
         self.model = MLE(order)
-        self._type = None
         self._lock = asyncio.Lock()
 
 
-    async def scores(self, context):
+    async def predict(self, buffer):
         '''Calculates likelihood distribution of next character.
 
         Params:
-            context (list): model context
+            buffer (str|bytes): preceding characters
 
         Returns:
             dict: likelihood distribution
         '''
-        context = context[-(self.model.order - 1):] if self.model.order > 1 else []
-        context = [self._serialize(v) for v in context]
+        async def _predict(context):
+            async with self._lock:
+                context = self.model.vocab.lookup(context)
+                counts = self.model.context_counts(context or None)
+            return {c: counts.freq(c) for c in counts}
 
-        while context:
-            scores = await self._scores(context)
-            if scores:
-                return scores
+
+        if self.model.order == 1:
+            return await _predict(context=[])
+
+        context = list(self.tokenize(buffer, add_eos=False))
+        context = context[-(self.model.order - 1):]
+
+        probs = None
+        while context and not probs:
+            probs = await _predict(context=context)
             context.pop(0)
 
-        return await self._scores([])
-
-
-    async def _scores(self, context):
-        async with self._lock:
-            context = self.model.vocab.lookup(context) if context else None
-            counts = self.model.context_counts(context)
-
-        return {self._deserialize(c): counts.freq(c) for c in counts}
-
-
-    async def fit(self, value):
-        '''TODO'''
-        await self.fit_data(data=[value])
+        return probs or await _predict([])
 
 
     async def fit_data(self, data):
-        '''TODO'''
-        train, vocab = self._everygrams(data)
+        '''Trains the model on the whole training set.
+
+        Params:
+            data (list): taining set
+        '''
+        train, vocab = self.padded_everygram_pipeline(data, order=self.model.order)
         await self._fit(train=train, vocab=vocab)
 
 
     async def fit_char(self, char, buffer):
-        '''TODO'''
-        tokens = tokenize(buffer, add_eos=False) + [char]
+        '''Trains the model with a single character.
+
+        Params:
+            char (str|bytes|Symbol): character to train
+            buffer (str|bytes): preceding characters
+        '''
+        tokens = self.tokenize(buffer, add_eos=False)
+        tokens.append(char)
         tokens = tokens[-self.model.order:]
-        tokens = [self._serialize(t) for t in tokens]
-        egrams = (tokens[i:] for i in range(len(tokens)))
-        await self._fit(train=[egrams], vocab=tokens)
+        everygrams = self.everygrams(tokens=tokens, order=self.model.order)
+        await self._fit(train=[everygrams], vocab=tokens)
 
 
     async def _fit(self, train, vocab):
+        '''Trains the model.
+
+        Params:
+            train (generator): training ngrams
+            vocab (itertools.chain): vocabulary
+        '''
         async with self._lock:
             self.model.vocab.update(vocab)
             self.model.counts.update(self.model.vocab.lookup(t) for t in train)
 
 
-    def _everygrams(self, data):
-        '''Creates character-based train set and vocabulary.
+    @staticmethod
+    def tokenize(s, add_sos=True, add_eos=True):
+        '''Converts string to a list of tokens.
 
         Params:
-            data (list): train set strings
+            s (str|bytes): string to tokenize
+            add_sos (bool): True if SOS should be included
+            add_eos (bool): True if EOS should be included
 
         Returns:
-            (generator, itertools.chain): train set and vocabulary
+            list: tokens
         '''
-        def _ngrams(s, order):
-            tokens = [self._serialize(t) for t in tokenize(s)]
-            return ngrams(tokens, n=order, pad_left=False, pad_right=False)
+        tokens = to_chars(s)
+        if add_sos:
+            tokens.insert(0, Symbol.SOS)
+        if add_eos:
+            tokens.append(Symbol.EOS)
+        return tokens
 
-        def _egrams(s):
-            return (ngram for i in range(1, self.model.order + 1) for ngram in _ngrams(s, i))
 
-        train = (_egrams(s) for s in data)
-        vocab = itertools.chain.from_iterable(map(tokenize, data))
-        vocab = (self._serialize(t) for t in vocab)
+    @staticmethod
+    def everygrams(tokens, order):
+        '''NLTK's everygrams is bugged (it generates multiple SOS/EOS unigrams for each sample),
+            so we need to have our own implementation.
+
+        Params:
+            tokens (list): tokens to generate everygrams from
+            order (int): highest order of ngrams
+
+        Returns:
+            generator: everygrams
+        '''
+        for n in range(1, order + 1):
+            for ngram in ngrams(tokens, n=n):
+                if not all(token == Symbol.SOS for token in ngram):
+                    yield ngram
+
+
+    @staticmethod
+    def padded_everygram_pipeline(data, order):
+        '''NLTK's padded_everygram_pipeline relies on the bugged everygrams function, so we need
+            to have our own implementation.
+
+        Params:
+            data (list): training set
+            order (int): highest order of ngrams
+
+        Returns:
+            generator, itertools.chain: training ngrams and vocabulary
+        '''
+        train = (Model.everygrams(tokens=Model.tokenize(d), order=order) for d in data)
+        vocab = itertools.chain.from_iterable(map(Model.tokenize, data))
         return train, vocab
-
-
-    def _serialize(self, value):
-        '''NLTK models support only strings. As a workaround, we serialize items as strings and preserve
-        their original data type for deserialization.
-
-        Params:
-            value (value): value to be serialzied
-
-        Returns:
-            str: serialzied value
-        '''
-        if value in [SOS, EOS]:
-            return value
-
-        assert type(value) in [str, bytes], f'Type cannot be serialized: {type(value)}'
-        if self._type is None:
-            self._type = type(value)
-
-        return bytes.hex(value) if self._type is bytes else value
-
-
-    def _deserialize(self, value):
-        '''See _serialize.
-
-        Params:
-            value (str): value to be deserialzied
-
-        Returns:
-            value: deserialzied value
-        '''
-        if value in [SOS, EOS]:
-            return value
-
-        return bytes.fromhex(value) if self._type is bytes else value
 
 
 

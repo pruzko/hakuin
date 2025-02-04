@@ -70,7 +70,7 @@ class GuessingRowCollector(RowCollector):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
         '''
         super().__init__(requester=requester, dbms=dbms)

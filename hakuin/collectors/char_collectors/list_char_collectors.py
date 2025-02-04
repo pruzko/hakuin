@@ -1,5 +1,5 @@
 from hakuin.search_algorithms import ListSearch
-from hakuin.utils import EOS
+from hakuin.utils import Symbol
 
 from .char_collector import CharCollector
 
@@ -14,7 +14,7 @@ class ListCharCollector(CharCollector):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
             charset (list): list of possible characters
         '''

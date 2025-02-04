@@ -1,5 +1,5 @@
 from hakuin.search_algorithms import BinarySearch
-from hakuin.utils import BYTE_MAX, ASCII_MAX, UNICODE_MAX, EOS
+from hakuin.utils import BYTE_MAX, ASCII_MAX, UNICODE_MAX, Symbol
 
 from .char_collector import CharCollector
 
@@ -26,7 +26,7 @@ class TextBinaryCharCollector(CharCollector):
                 find_lower=False,
                 find_upper=False,
             ).run(ctx)
-            return chr(res) if res <= ASCII_MAX else EOS
+            return chr(res) if res <= ASCII_MAX else Symbol.EOS
 
         res = await BinarySearch(
             requester=requester,
@@ -37,7 +37,7 @@ class TextBinaryCharCollector(CharCollector):
             find_lower=False,
             find_upper=False,
         ).run(ctx)
-        return chr(res) if res <= UNICODE_MAX else EOS
+        return chr(res) if res <= UNICODE_MAX else Symbol.EOS
 
 
     async def check_char_is_ascii(self, requester, ctx):
@@ -77,4 +77,4 @@ class BlobBinaryCharCollector(CharCollector):
             find_lower=False,
             find_upper=False,
         ).run(ctx)
-        return res.to_bytes(1, byteorder='big') if res <= BYTE_MAX else EOS
+        return res.to_bytes(1, byteorder='big') if res <= BYTE_MAX else Symbol.EOS

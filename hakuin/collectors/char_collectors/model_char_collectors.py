@@ -1,5 +1,4 @@
 from hakuin.search_algorithms import TreeSearch
-from hakuin.utils import tokenize
 from hakuin.utils.huffman import make_tree
 
 from .char_collector import CharCollector
@@ -15,7 +14,7 @@ class ModelCharCollector(CharCollector):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
             model (Model): language model
             adaptive (bool): adaptively train model on collected characters
@@ -35,14 +34,13 @@ class ModelCharCollector(CharCollector):
         Returns:
             str|None: collected char or None on fail
         '''
-        model_ctx = tokenize(ctx.buffer, add_eos=False)
-        scores = await self.model.scores(context=model_ctx)
+        probs = await self.model.predict(buffer=ctx.buffer)
 
         return await TreeSearch(
             requester=requester,
             dbms=self.dbms,
             query_cls=self.dbms.query_cls(self.QUERY_CLS_LOOKUP),
-            tree=make_tree(scores),
+            tree=make_tree(probs),
         ).run(ctx)
 
 

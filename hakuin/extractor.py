@@ -12,8 +12,8 @@ class Extractor:
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance used to inject queries
-            dbms (string|DBMS): DBMS name or instance used to construct queries
+            requester (Requester): requester
+            dbms (string|DBMS): database engine
             n_tasks (int): number of extraction tasks to run in parallel
         '''
         self.requester = requester

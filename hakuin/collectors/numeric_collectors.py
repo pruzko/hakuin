@@ -3,7 +3,7 @@ from hakuin.utils import CHARSET_DIGITS
 
 from .collector import Collector
 from .string_collectors import TextCollector
-from .row_collectors import IntAutoIncRowCollector, IntBinaryRowCollector, IntRowCollector, FloatRowCollector, TextRowCollector
+from .row_collectors import AutoIncRowCollector, BinaryRowCollector, IntRowCollector, FloatRowCollector, TextRowCollector
 
 
 
@@ -24,33 +24,33 @@ class IntCollector(NumericCollector):
     class Builder(NumericCollector.Builder):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            self.int_binary_row_collector = None
-            self.int_auto_inc_row_collector = None
+            self.binary_row_collector = None
+            self.auto_inc_row_collector = None
 
 
         def add_binary_row_collector(self):
-            self.int_binary_row_collector = IntBinaryRowCollector(
+            self.binary_row_collector = BinaryRowCollector(
                 requester=self.requester,
                 dbms=self.dbms,
             )
 
 
         def add_auto_inc_row_collector(self):
-            self.int_auto_inc_row_collector = IntAutoIncRowCollector(
+            self.auto_inc_row_collector = AutoIncRowCollector(
                 requester=self.requester,
                 dbms=self.dbms,
             )
 
 
         def build_row_collector(self):
-            if not self.int_binary_row_collector:
+            if not self.binary_row_collector:
                 self.add_binary_row_collector()
 
             self.row_collector = IntRowCollector(
                 requester=self.requester,
                 dbms=self.dbms,
-                int_binary_row_collector=self.int_binary_row_collector,
-                int_auto_inc_row_collector=self.int_auto_inc_row_collector,
+                binary_row_collector=self.binary_row_collector,
+                auto_inc_row_collector=self.auto_inc_row_collector,
             )
 
 
@@ -72,13 +72,13 @@ class FloatCollector(NumericCollector):
     class Builder(NumericCollector.Builder):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            self.int_binary_row_collector = None
+            self.binary_row_collector = None
             self.dec_text_row_collector = None
             self.text_builder = TextCollector.Builder(**kwargs)
 
 
         def add_binary_row_collector(self):
-            self.int_binary_row_collector = IntBinaryRowCollector(
+            self.binary_row_collector = BinaryRowCollector(
                 requester=self.requester,
                 dbms=self.dbms,
             )
@@ -110,7 +110,7 @@ class FloatCollector(NumericCollector):
 
 
         def build_row_collector(self):
-            if not self.int_binary_row_collector:
+            if not self.binary_row_collector:
                 self.add_binary_row_collector()
 
             if not self.dec_text_row_collector:
@@ -119,7 +119,7 @@ class FloatCollector(NumericCollector):
             self.row_collector = FloatRowCollector(
                 requester=self.requester,
                 dbms=self.dbms,
-                int_binary_row_collector=self.int_binary_row_collector,
+                binary_row_collector=self.binary_row_collector,
                 dec_text_row_collector=self.dec_text_row_collector,
             )
             return self.row_collector

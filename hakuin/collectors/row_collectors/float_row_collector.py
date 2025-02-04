@@ -7,18 +7,19 @@ from .row_collector import RowCollector
 
 
 class FloatRowCollector(RowCollector):
-    def __init__(self, requester, dbms, int_binary_row_collector, dec_text_row_collector):
+    '''Float row collector.'''
+    def __init__(self, requester, dbms, binary_row_collector, dec_text_row_collector):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
-            int_binary_row_collector (IntBinaryRowCollector): int binary row collector
+            binary_row_collector (BinaryRowCollector): int binary row collector
                 for the integer part
             dec_text_row_collector (StringCollector): text row collector for the decimal part
         '''
         super().__init__(requester=requester, dbms=dbms)
-        self.int_binary_row_collector = int_binary_row_collector
+        self.binary_row_collector = binary_row_collector
         self.dec_text_row_collector = dec_text_row_collector
 
 
@@ -31,7 +32,7 @@ class FloatRowCollector(RowCollector):
         Returns:
             float: collected row
         '''
-        int_part = await self.int_binary_row_collector.run(ctx=self._make_int_ctx(ctx))
+        int_part = await self.binary_row_collector.run(ctx=self._make_int_ctx(ctx))
 
         if int_part == 0:
             # int(-0.123) and int(0.123) are both 0, so we need to check positivity
@@ -69,13 +70,13 @@ class FloatRowCollector(RowCollector):
         int_part = int(int_part)
 
         sign_cost = 1.0 if int_part == 0 else 0.0
-        int_cost = await self.int_binary_row_collector.stats.success_cost()
+        int_cost = await self.binary_row_collector.stats.success_cost()
         dec_cost = await self.dec_text_row_collector.stats.success_cost()
 
         if int_cost and dec_cost:
             await self.stats.update(is_success=True, cost=sign_cost + int_cost + dec_cost)
 
-        await self.int_binary_row_collector.update(ctx, value=int_part, row_guessed=row_guessed)
+        await self.binary_row_collector.update(ctx, value=int_part, row_guessed=row_guessed)
 
         sign = '' if value >= 0.0 else '-'
         buffer = f'{sign}{abs(int_part)}.'

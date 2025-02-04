@@ -197,6 +197,7 @@ class HK:
             except Exception as e:
                 res[column] = None
                 tqdm.tqdm.write(f'(err) Failed to extract "{table}.{column}": {e}')
+                raise e
         return res
 
 

@@ -36,8 +36,8 @@ class OfflineRequester(Requester):
             self.db = None
 
 
-    async def request(self, query):
-        query = f'SELECT cast(({query.render()}) as bool)'
+    async def request(self, query, ctx):
+        query = f'SELECT cast(({query.render(ctx)}) as bool)'
         return bool(self.db.execute(query).fetchone()[0])
 
 

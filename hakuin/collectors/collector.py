@@ -23,7 +23,7 @@ class Collector(metaclass=ABCMeta):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
             row_collector (RowCollector): fallback row collector
             guessing_row_collector (GuessingRowCollector): guessing row collector

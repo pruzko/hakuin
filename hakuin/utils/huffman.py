@@ -60,11 +60,11 @@ class HuffmanNode:
 
 
 
-def make_tree(probabilities):
-    if not probabilities:
+def make_tree(probs):
+    if not probs:
         return None
 
-    heap = [HuffmanNode(value=key, prob=prob) for key, prob in probabilities.items()]
+    heap = [HuffmanNode(value=key, prob=prob) for key, prob in probs.items()]
     while len(heap) > 1:
         heap.sort(key=lambda node: node.prob)
         left = heap.pop(0)

@@ -1,7 +1,5 @@
 from sqlglot import parse_one, exp
 
-from hakuin.utils import EOS
-
 from .dbms import DBMS
 
 

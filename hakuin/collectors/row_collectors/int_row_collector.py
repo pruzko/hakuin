@@ -3,18 +3,18 @@ from .row_collector import RowCollector
 
 
 class IntRowCollector(RowCollector):
-    def __init__(self, requester, dbms, int_binary_row_collector, int_auto_inc_row_collector=None):
+    def __init__(self, requester, dbms, binary_row_collector, auto_inc_row_collector=None):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
-            int_binary_row_collector (IntBinaryRowCollector): int binary row collector
-            int_auto_inc_row_collector (IntAutoIncRowCollector|None): int auto-inc row collector
+            binary_row_collector (BinaryRowCollector): int binary row collector
+            auto_inc_row_collector (AutoIncRowCollector|None): int auto-inc row collector
         '''
         super().__init__(requester=requester, dbms=dbms)
-        self.int_binary_row_collector = int_binary_row_collector
-        self.int_auto_inc_row_collector = int_auto_inc_row_collector
+        self.binary_row_collector = binary_row_collector
+        self.auto_inc_row_collector = auto_inc_row_collector
 
 
     async def run(self, ctx):
@@ -27,17 +27,18 @@ class IntRowCollector(RowCollector):
             int: collected row
         '''
         res = None
-        bin_cost = await self.int_binary_row_collector.stats.success_cost()
+        bin_cost = await self.binary_row_collector.stats.success_cost()
 
-        if bin_cost and self.int_auto_inc_row_collector:
-            auto_inc_cost = await self.int_auto_inc_row_collector.stats.expected_cost(fallback_cost=bin_cost)
+        if bin_cost and self.auto_inc_row_collector:
+            auto_inc_stats = self.auto_inc_row_collector.stats
+            auto_inc_cost = await auto_inc_stats.expected_cost(fallback_cost=bin_cost)
 
             if auto_inc_cost and auto_inc_cost < bin_cost:
-                res = await self.int_auto_inc_row_collector.run(ctx)
+                res = await self.auto_inc_row_collector.run(ctx)
                 if res is not None:
                     return res
 
-        return await self.int_binary_row_collector.run(ctx)
+        return await self.binary_row_collector.run(ctx)
 
 
     async def update(self, ctx, value, row_guessed):
@@ -48,18 +49,19 @@ class IntRowCollector(RowCollector):
             value (int): collected row
             row_guessed (bool): row was successfully guessed flag
         '''
-        bin_cost = await self.int_binary_row_collector.stats.success_cost()
+        bin_cost = await self.binary_row_collector.stats.success_cost()
 
         if bin_cost:
-            if self.int_auto_inc_row_collector:
-                auto_inc_cost = await self.int_auto_inc_row_collector.stats.expected_cost(fallback_cost=bin_cost)
+            if self.auto_inc_row_collector:
+                auto_inc_stats = self.auto_inc_row_collector.stats
+                auto_inc_cost = await auto_inc_stats.expected_cost(fallback_cost=bin_cost)
             else:
                 auto_inc_cost = None
 
             cost = min(bin_cost, auto_inc_cost) if auto_inc_cost else bin_cost
             await self.stats.update(is_success=True, cost=cost)
 
-        if self.int_auto_inc_row_collector:
-            await self.int_auto_inc_row_collector.update(ctx, value=value, row_guessed=row_guessed)                
+        if self.auto_inc_row_collector:
+            await self.auto_inc_row_collector.update(ctx, value=value, row_guessed=row_guessed)
 
-        await self.int_binary_row_collector.update(ctx, value=value, row_guessed=row_guessed)
+        await self.binary_row_collector.update(ctx, value=value, row_guessed=row_guessed)

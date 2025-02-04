@@ -4,12 +4,13 @@ from .row_collector import RowCollector
 
 
 
-class IntAutoIncRowCollector(RowCollector):
+class AutoIncRowCollector(RowCollector):
+    '''Auto-increment row collector.'''
     def __init__(self, requester, dbms):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
         '''
         super().__init__(requester=requester, dbms=dbms)

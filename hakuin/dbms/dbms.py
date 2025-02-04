@@ -1,7 +1,7 @@
 from sqlglot import exp, parse_one
 
 from hakuin.collectors import StringContext
-from hakuin.utils import BYTE_MAX, EOS, snake_to_pascal_case
+from hakuin.utils import BYTE_MAX, Symbol, snake_to_pascal_case
 
 
 
@@ -369,7 +369,7 @@ class DBMS:
 
 
         def emulate(self, correct):
-            return correct.isascii()
+            return True if type(correct) is Symbol else correct.isascii()
 
 
 
@@ -434,7 +434,7 @@ class DBMS:
 
 
         def emulate(self, correct):
-            if correct == EOS:
+            if correct == Symbol.EOS:
                 return self.has_eos
             return correct in self.values_str
 
@@ -461,16 +461,16 @@ class DBMS:
     class QueryTextCharInString(QueryCharInString):
         def __init__(self, dbms, values):
             super().__init__(dbms)
-            self.has_eos = EOS in values
-            self.values_str = ''.join([v for v in values if v != EOS])
+            self.has_eos = Symbol.EOS in values
+            self.values_str = ''.join([v for v in values if v != Symbol.EOS])
 
 
 
     class QueryBlobCharInString(QueryCharInString):
         def __init__(self, dbms, values):
             super().__init__(dbms)
-            self.has_eos = EOS in values
-            self.values_str = b''.join([v for v in values if v != EOS])
+            self.has_eos = Symbol.EOS in values
+            self.values_str = b''.join([v for v in values if v != Symbol.EOS])
 
 
 
@@ -493,7 +493,7 @@ class DBMS:
 
 
         def emulate(self, correct):
-            if correct == EOS:
+            if correct == Symbol.EOS:
                 return False
             return ord(correct) < self.n
 
@@ -515,7 +515,7 @@ class DBMS:
 
 
         def emulate(self, correct):
-            if correct == EOS:
+            if correct == Symbol.EOS:
                 return False
             return correct[0] < self.n
 

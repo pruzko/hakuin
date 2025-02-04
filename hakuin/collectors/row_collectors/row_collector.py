@@ -10,7 +10,7 @@ class RowCollector(metaclass=ABCMeta):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
         '''
         self.requester = requester

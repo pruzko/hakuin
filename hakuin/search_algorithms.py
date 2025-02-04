@@ -9,7 +9,7 @@ class SearchAlgorithm(metaclass=ABCMeta):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
             query_cls (Type[Query]): Query class
         '''
@@ -33,7 +33,7 @@ class BinarySearch(SearchAlgorithm):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
             query_cls (Type[Query]): Query class
             lower (int): lower bound of search range (included)
@@ -143,7 +143,7 @@ class ListSearch(SearchAlgorithm):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
             query_cls (Type[Query]): Query class
             values (list): list of values to search
@@ -188,7 +188,7 @@ class TreeSearch(SearchAlgorithm):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
+            requester (Requester): requester
             dbms (DBMS): database engine
             query_cls (Type[Query]): Query class
             tree (utils.huffman.Node): Huffman tree to search
