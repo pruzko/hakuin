@@ -1,18 +1,15 @@
 import asyncio
 import sys
 import tqdm
-from abc import ABCMeta, abstractmethod
 
 from hakuin.search_algorithms import BinarySearch
 from hakuin.utils import info
 
-from .row_collectors import GuessingRowCollector
 
 
-
-class Collector(metaclass=ABCMeta):
+class ColumnCollector:
     '''Column collector base class. Column collectors repeatidly run row collectors
-    to extract rows.
+        to extract rows.
     '''
     COLUMN_CHECKS = [
         lambda self, ctx: self.basic_check(ctx, flag='rows_have_null'),
@@ -71,8 +68,9 @@ class Collector(metaclass=ABCMeta):
             await queue.put(row_idx)
 
         with tqdm.tqdm(total=ctx.n_rows, file=sys.stderr, leave=False) as progress:
-            tasks = [self._task_collect_row(ctx, queue, data, progress) for _ in range(self.n_tasks)]
-            await asyncio.gather(*tasks)
+            await asyncio.gather(*[
+                self._task_collect_row(ctx, queue, data, progress) for _ in range(self.n_tasks)
+            ])
 
         return data
 
@@ -131,6 +129,7 @@ class Collector(metaclass=ABCMeta):
 
 
     async def basic_check(self, ctx, flag):
+        # TODO revert
         res = getattr(ctx, flag)
         if res is None:
             query = self.dbms.query_cls(flag)(dbms=self.dbms)
@@ -154,25 +153,3 @@ class Collector(metaclass=ABCMeta):
 
         query = self.dbms.QueryRowIsNull(dbms=self.dbms)
         return await self.requester.run(query=query, ctx=ctx)
-
-
-
-    class Builder(metaclass=ABCMeta):
-        def __init__(self, requester, dbms, n_tasks=1):
-            self.requester = requester
-            self.dbms = dbms
-            self.n_tasks = n_tasks
-            self.row_collector = None
-            self.guessing_row_collector = None
-
-
-        def add_guessing_row_collector(self):
-            self.guessing_row_collector = GuessingRowCollector(
-                requester=self.requester,
-                dbms=self.dbms,
-            )
-
-
-        @abstractmethod
-        def build(self, **kwargs):
-            raise NotImplementedError

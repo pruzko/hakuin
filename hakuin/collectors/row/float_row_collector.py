@@ -50,7 +50,14 @@ class FloatRowCollector(RowCollector):
 
 
     async def check_row_is_positive(self, ctx):
-        '''TODO'''
+        '''Checks if the current row is positive.
+
+        Params:
+            ctx (NumericContext): collection context
+
+        Returns:
+            bool: row is positive flag
+        '''
         if ctx.rows_are_positive is True:
             return True
 

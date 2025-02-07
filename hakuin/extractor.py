@@ -1,6 +1,12 @@
-from hakuin import get_model
-from hakuin.collectors import BlobCollector, FloatCollector, IntCollector, TextCollector
+from hakuin import Model, get_model
 from hakuin.collectors import IntContext, FloatContext, TextContext, BlobContext
+from hakuin.collectors.builders import (
+    IntCollectorBuilder,
+    FloatCollectorBuilder,
+    TextCollectorBuilder,
+    MetaCollectorBuilder,
+    BlobCollectorBuilder,
+)
 from hakuin.dbms import DBMS_DICT
 from hakuin.search_algorithms import BinarySearch
 
@@ -47,13 +53,13 @@ class Extractor:
             find_upper=True,
         ).run(ctx)
 
-        builder = TextCollector.MetaBuilder(
+        builder = MetaCollectorBuilder(
             requester=self.requester,
             dbms=self.dbms,
             n_tasks=self.n_tasks,
         )
         if use_models:
-            builder.add_fivegram_char_collector(model=get_model('schemas'))
+            builder.add('fivegram_char_collector', model=get_model('schemas'))
 
         collector = builder.build()
         return await collector.run(ctx)
@@ -80,13 +86,13 @@ class Extractor:
             find_upper=True,
         ).run(ctx)
 
-        builder = TextCollector.MetaBuilder(
+        builder = MetaCollectorBuilder(
             requester=self.requester,
             dbms=self.dbms,
             n_tasks=self.n_tasks,
         )
         if use_models:
-            builder.add_fivegram_char_collector(model=get_model('tables'))
+            builder.add('fivegram_char_collector', model=get_model('tables'))
 
         collector = builder.build()
         return await collector.run(ctx)
@@ -114,13 +120,13 @@ class Extractor:
             find_upper=True,
         ).run(ctx)
 
-        builder = TextCollector.MetaBuilder(
+        builder = MetaCollectorBuilder(
             requester=self.requester,
             dbms=self.dbms,
             n_tasks=self.n_tasks,
         )
         if use_models:
-            builder.add_fivegram_char_collector(model=get_model('columns'))
+            builder.add('fivegram_char_collector', model=get_model('columns'))
 
         collector = builder.build()
         return await collector.run(ctx)
@@ -249,15 +255,15 @@ class Extractor:
         '''
         ctx = IntContext(target='column', schema=schema, table=table, column=column)
 
-        builder = IntCollector.Builder(
+        builder = IntCollectorBuilder(
             requester=self.requester,
             dbms=self.dbms,
             n_tasks=self.n_tasks,
         )
         if use_auto_inc:
-            builder.add_auto_inc_row_collector()
+            builder.add('auto_inc_row_collector')
         if use_guessing:
-            builder.add_guessing_row_collector()
+            builder.add('guessing_row_collector')
 
         collector = builder.build()
         return await collector.run(ctx)
@@ -280,17 +286,16 @@ class Extractor:
         '''
         ctx = FloatContext(target='column', schema=schema, table=table, column=column)
 
-        builder = FloatCollector.Builder(
+        builder = FloatCollectorBuilder(
             requester=self.requester,
             dbms=self.dbms,
             n_tasks=self.n_tasks,
         )
-        builder.add_list_char_collector()
         if use_models:
-            builder.add_unigram_char_collector()
-            builder.add_fivegram_char_collector()
+            builder.add('unigram_char_collector', model=Model(1))
+            builder.add('fivegram_char_collector', model=Model(5))
         if use_guessing:
-            builder.add_guessing_row_collector()
+            builder.add('guessing_row_collector')
 
         collector = builder.build()
         return await collector.run(ctx)
@@ -314,17 +319,17 @@ class Extractor:
         '''
         ctx = TextContext(target='column', schema=schema, table=table, column=column)
 
-        builder = TextCollector.Builder(
+        builder = TextCollectorBuilder(
             requester=self.requester,
             dbms=self.dbms,
             n_tasks=self.n_tasks,
         )
-        builder.add_binary_char_collector()
+        builder.add('binary_char_collector')
         if use_models:
-            builder.add_unigram_char_collector()
-            builder.add_fivegram_char_collector()
+            builder.add('unigram_char_collector', model=Model(1))
+            builder.add('fivegram_char_collector', model=Model(5))
         if use_guessing:
-            builder.add_guessing_row_collector()
+            builder.add('guessing_row_collector')
 
         collector = builder.build()
         return await collector.run(ctx)
@@ -347,17 +352,17 @@ class Extractor:
         '''
         ctx = BlobContext(target='column', schema=schema, table=table, column=column)
 
-        builder = BlobCollector.Builder(
+        builder = BlobCollectorBuilder(
             requester=self.requester,
             dbms=self.dbms,
             n_tasks=self.n_tasks,
         )
-        builder.add_binary_char_collector()
+        builder.add('binary_char_collector')
         if use_models:
-            builder.add_unigram_char_collector()
-            builder.add_fivegram_char_collector()
+            builder.add('unigram_char_collector', model=Model(1))
+            builder.add('fivegram_char_collector', model=Model(5))
         if use_guessing:
-            builder.add_guessing_row_collector()
+            builder.add('guessing_row_collector')
 
         collector = builder.build()
         return await collector.run(ctx)
