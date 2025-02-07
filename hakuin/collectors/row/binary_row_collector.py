@@ -95,12 +95,19 @@ class _Bounds:
         return await getattr(self, f'get_{name}')()
 
 
-    async def update_hist(self, value):
-        '''Updates the history with a new value.
+    async def update(self, ctx, value, row_collector):
+        '''Updates the bounds with a new value.
 
         Params:
+            ctx (Context): collection context
             value (int): new value
+            row_collector (BinaryRowCollector): row collector
         '''
+        for bounds, stats in self.stats.items():
+            lower, upper = await self.get_by_name(bounds)
+            cost, _ = await row_collector._emulate(ctx, lower=lower, upper=upper, correct=value)
+            await stats.update(is_success=True, cost=cost)
+
         async with self._lock:
             self._hist.append(value)
 
@@ -187,10 +194,4 @@ class BinaryRowCollector(RowCollector):
         lower, upper = await self.bounds.get_best()
         cost, _ = await self._emulate(ctx, lower=lower, upper=upper, correct=value)
         await self.stats.update(is_success=True, cost=cost)
-
-        for bounds, stats in self.bounds.stats.items():
-            lower, upper = await self.bounds.get_by_name(bounds)
-            cost, _ = await self._emulate(ctx, lower=lower, upper=upper, correct=value)
-            await stats.update(is_success=True, cost=cost)
-
-        await self.bounds.update_hist(value)
+        await self.bounds.update(ctx, value=value, row_collector=self)
