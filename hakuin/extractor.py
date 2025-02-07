@@ -42,7 +42,7 @@ class Extractor:
         Returns:
             list: list of extracted schema names
         '''
-        ctx = TextContext(target='schema_names', rows_have_null=False)
+        ctx = TextContext(target='schema_names', column_has_null=False)
         ctx.n_rows = await BinarySearch(
             requester=self.requester,
             dbms=self.dbms,
@@ -75,7 +75,7 @@ class Extractor:
         Returns:
             list: list of extracted table names
         '''
-        ctx = TextContext(target='table_names', schema=schema, rows_have_null=False)
+        ctx = TextContext(target='table_names', schema=schema, column_has_null=False)
         ctx.n_rows = await BinarySearch(
             requester=self.requester,
             dbms=self.dbms,
@@ -109,7 +109,7 @@ class Extractor:
         Returns:
             list: list of extracted column names
         '''
-        ctx = TextContext(target='column_names', schema=schema, table=table, rows_have_null=False)
+        ctx = TextContext(target='column_names', schema=schema, table=table, column_has_null=False)
         ctx.n_rows = await BinarySearch(
             requester=self.requester,
             dbms=self.dbms,

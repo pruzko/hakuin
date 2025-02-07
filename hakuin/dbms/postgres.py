@@ -128,7 +128,7 @@ class Postgres(DBMS):
 
 
 
-    class QueryRowsAreAscii(DBMS.QueryRowsAreAscii):
+    class QueryColumnIsAscii(DBMS.QueryColumnIsAscii):
         AST_TEMPLATE = parse_one(
             sql="select bool_and(is_ascii(column)) from table",
             dialect='postgres'

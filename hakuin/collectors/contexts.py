@@ -14,7 +14,7 @@ class Context:
     cast_to: str = None
     n_rows: int = None
     row_idx: int = None
-    rows_have_null: bool = None
+    column_has_null: bool = None
 
 
     def clone(self):
@@ -29,22 +29,25 @@ class Context:
 
 @dataclass
 class NumericContext(Context):
-    '''Int collection state.'''
-    rows_are_positive: bool = None
+    '''Numeric collection state.'''
+    column_is_positive: bool = None
 
 
 @dataclass
 class IntContext(NumericContext):
+    '''Int collection state.'''
     column_type: str = 'int'
 
 
 @dataclass
 class FloatContext(NumericContext):
+    '''Float collection state.'''
     column_type: str = 'float'
 
 
 @dataclass
 class StringContext(Context):
+    '''String collection state.'''
     buffer: str = ''
     start_offset: int = 0
 
@@ -53,7 +56,7 @@ class StringContext(Context):
 class TextContext(StringContext):
     '''Text collection state.'''
     column_type: str = 'text'
-    rows_are_ascii: bool = None
+    column_is_ascii: bool = None
     row_is_ascii: bool = None
 
 

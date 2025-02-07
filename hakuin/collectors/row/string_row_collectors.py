@@ -1,4 +1,5 @@
 from hakuin import Model
+from hakuin.collectors.checks import check_flag
 from hakuin.utils import Symbol
 
 from .row_collector import RowCollector
@@ -125,27 +126,14 @@ class TextRowCollector(StringRowCollector):
         Returns:
             str: collected row
         '''
-        ctx.row_is_ascii = await self.check_row_is_ascii(ctx)
+        ctx.row_is_ascii = await check_flag(
+            requester=self.requester,
+            dbms=self.dbms,
+            ctx=ctx,
+            name='row_is_ascii',
+            true_if_true='column_is_ascii',
+        )
         return await super().run(ctx)
-
-
-    async def check_row_is_ascii(self, ctx):
-        '''Checks if row is ascii.
-
-        Params:
-            ctx (StringContext): collection context
-
-        Returns:
-            bool: row is ascii flag
-        '''
-        if ctx.rows_are_ascii:
-            return True
-
-        if ctx.row_is_ascii is None:
-            query = self.dbms.QueryRowIsAscii(dbms=self.dbms)
-            return await self.requester.run(query=query, ctx=ctx)
-
-        return ctx.row_is_ascii
 
 
 

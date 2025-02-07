@@ -2,6 +2,7 @@ import asyncio
 import sys
 import tqdm
 
+from hakuin.collectors.checks import check_flag
 from hakuin.search_algorithms import BinarySearch
 from hakuin.utils import info
 
@@ -11,9 +12,7 @@ class ColumnCollector:
     '''Column collector base class. Column collectors repeatidly run row collectors
         to extract rows.
     '''
-    COLUMN_CHECKS = [
-        lambda self, ctx: self.basic_check(ctx, flag='rows_have_null'),
-    ]
+    FLAG_CHECKS = ['column_has_null']
 
 
     def __init__(self, requester, dbms, row_collector, guessing_row_collector=None, n_tasks=1):
@@ -59,8 +58,10 @@ class ColumnCollector:
         if ctx.n_rows == 0:
             return []
 
-        for check in self.COLUMN_CHECKS:
-            await check(self, ctx)
+        for name in self.FLAG_CHECKS:
+            flag = await check_flag(requester=self.requester, dbms=self.dbms, ctx=ctx, name=name)
+            setattr(ctx, name, flag)
+
 
         data = [None] * ctx.n_rows
         queue = asyncio.Queue()
@@ -85,10 +86,15 @@ class ColumnCollector:
             row_ctx = ctx.clone()
             row_ctx.row_idx = row_idx
 
-            if await self.check_row_is_null(row_ctx):
-                res = None
-            else:
-                res = await self.collect_row(row_ctx)
+            row_is_null = await check_flag(
+                requester=self.requester,
+                dbms=self.dbms,
+                ctx=row_ctx,
+                name='row_is_null',
+                false_if_false='column_has_null',
+            )
+
+            res = None if row_is_null else await self.collect_row(row_ctx)
 
             data[row_ctx.row_idx] = res
 
@@ -128,28 +134,27 @@ class ColumnCollector:
         return res
 
 
-    async def basic_check(self, ctx, flag):
-        # TODO revert
-        res = getattr(ctx, flag)
-        if res is None:
-            query = self.dbms.query_cls(flag)(dbms=self.dbms)
-            res = await self.requester.run(query=query, ctx=ctx)
 
-        setattr(ctx, flag, res)
-        return res
+class IntColumnCollector(ColumnCollector):
+    '''Integer column collector. Column collectors repeatidly run row collectors to extract
+        rows.
+    '''
+    FLAG_CHECKS = [*ColumnCollector.FLAG_CHECKS, 'column_is_positive']
 
 
-    async def check_row_is_null(self, ctx):
-        '''Checks if the current row is NULL.
 
-        Params:
-            ctx (Context): collection context
+class FloatColumnCollector(ColumnCollector):
+    '''Float column collector. Column collectors repeatidly run row collectors to extract rows.'''
+    FLAG_CHECKS = [*ColumnCollector.FLAG_CHECKS, 'column_is_positive']
 
-        Returns:
-            bool: row is NULL flag
-        '''
-        if ctx.rows_have_null is False:
-            return False
 
-        query = self.dbms.QueryRowIsNull(dbms=self.dbms)
-        return await self.requester.run(query=query, ctx=ctx)
+
+class TextColumnCollector(ColumnCollector):
+    '''Text column collector. Column collectors repeatidly run row collectors to extract rows.'''
+    FLAG_CHECKS = [*ColumnCollector.FLAG_CHECKS, 'column_is_ascii']
+
+
+
+class BlobColumnCollector(ColumnCollector):
+    '''Blob column collector. Column collectors repeatidly run row collectors to extract rows.'''
+    pass

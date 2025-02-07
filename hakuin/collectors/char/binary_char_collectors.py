@@ -1,3 +1,4 @@
+from hakuin.collectors.checks import check_flag
 from hakuin.search_algorithms import BinarySearch
 from hakuin.utils import BYTE_MAX, ASCII_MAX, UNICODE_MAX, Symbol
 
@@ -16,7 +17,15 @@ class TextBinaryCharCollector(CharCollector):
         Returns:
             str|bytes: collected char
         '''
-        if ctx.row_is_ascii or await self.check_char_is_ascii(requester=requester, ctx=ctx):
+        char_is_ascii = await check_flag(
+            requester=requester,
+            dbms=self.dbms,
+            ctx=ctx,
+            name='char_is_ascii',
+            true_if_true='row_is_ascii',
+        )
+
+        if char_is_ascii:
             res = await BinarySearch(
                 requester=requester,
                 dbms=self.dbms,
@@ -38,22 +47,6 @@ class TextBinaryCharCollector(CharCollector):
             find_upper=False,
         ).run(ctx)
         return chr(res) if res <= UNICODE_MAX else Symbol.EOS
-
-
-    async def check_char_is_ascii(self, requester, ctx):
-        '''Checks if char is ascii.
-
-        Params:
-            ctx (Context): collection context
-
-        Returns:
-            bool: char is ascii flag
-        '''
-        if ctx.row_is_ascii is True:
-            return True
-
-        query = self.dbms.QueryCharIsAscii(dbms=self.dbms)
-        return await requester.run(query=query, ctx=ctx)
 
 
 

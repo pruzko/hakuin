@@ -7,7 +7,7 @@ from .char_collector import CharCollector
 
 class ModelCharCollector(CharCollector):
     '''Base class for model char collectors.'''
-    QUERY_CLS_LOOKUP = None
+    QUERY_CLS_NAME = None
 
 
     def __init__(self, requester, dbms, model, adaptive=True):
@@ -39,7 +39,7 @@ class ModelCharCollector(CharCollector):
         return await TreeSearch(
             requester=requester,
             dbms=self.dbms,
-            query_cls=self.dbms.query_cls(self.QUERY_CLS_LOOKUP),
+            query_cls=self.dbms.query_cls_lookup(self.QUERY_CLS_NAME),
             tree=make_tree(probs),
         ).run(ctx)
 
@@ -59,10 +59,10 @@ class ModelCharCollector(CharCollector):
 
 class TextModelCharCollector(ModelCharCollector):
     '''Text model char collector.'''
-    QUERY_CLS_LOOKUP = 'text_char_in_string'
+    QUERY_CLS_NAME = 'QueryTextCharInString'
 
 
 
 class BlobModelCharCollector(ModelCharCollector):
     '''Blob model char collector.'''
-    QUERY_CLS_LOOKUP = 'blob_char_in_string'
+    QUERY_CLS_NAME = 'QueryBlobCharInString'

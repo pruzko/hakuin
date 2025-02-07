@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from hakuin.collectors.column import ColumnCollector
+from hakuin.collectors.column_collectors import ColumnCollector
 from hakuin.collectors.row import GuessingRowCollector
 
 

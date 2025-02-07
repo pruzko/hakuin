@@ -9,20 +9,21 @@ class DBMS:
     DIALECT = None
 
 
-    def query_cls(self, name):
+    def query_cls_lookup(self, name):
         '''Retrieves the target query class.
 
         Params:
-            name (str): snake_case query name (e.g., 'row_is_null' for QueryRowIsNull)
+            name (str): query name
 
         Returns:
             Type[Query]: query class
         '''
-        name = f'Query{snake_to_pascal_case(name)}'
         if hasattr(self, name):
-            return getattr(self, name)
+            query_cls = getattr(self, name)
+            if issubclass(query_cls, self.Query):
+                return query_cls
 
-        return None
+        raise AttributeError(f'Query "{name}" not found.')
 
 
     def wrap_ast(self, ast):
@@ -286,7 +287,7 @@ class DBMS:
 
 
 
-    class QueryRowsHaveNull(Query):
+    class QueryColumnHasNull(Query):
         AST_TEMPLATE = parse_one(
             sql='select logical_or(column is null) from table',
             dialect='sqlite',
@@ -310,7 +311,7 @@ class DBMS:
 
 
 
-    class QueryRowsArePositive(Query):
+    class QueryColumnIsPositive(Query):
         AST_TEMPLATE = parse_one(
             sql='select min(column) >= 0 from table',
             dialect='sqlite',
@@ -334,7 +335,7 @@ class DBMS:
 
 
 
-    class QueryRowsAreAscii(Query):
+    class QueryColumnIsAscii(Query):
         AST_TEMPLATE = parse_one(
             sql='select logical_and(is_ascii(column)) from table',
             dialect='sqlite',

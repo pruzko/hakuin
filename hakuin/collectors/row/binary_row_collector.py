@@ -166,7 +166,7 @@ class BinaryRowCollector(RowCollector):
             lower: initial lower bound
             upper: initial upper bound
         '''
-        if ctx.rows_are_positive:
+        if ctx.column_is_positive:
             lower = max(lower, 0)
             find_lower = lower > 0
         else:

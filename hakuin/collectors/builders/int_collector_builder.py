@@ -1,6 +1,6 @@
 from .collector_builder import CollectorBuilder
 
-from hakuin.collectors.column import IntColumnCollector
+from hakuin.collectors.column_collectors import IntColumnCollector
 from hakuin.collectors.row import AutoIncRowCollector, BinaryRowCollector, IntRowCollector
 
 

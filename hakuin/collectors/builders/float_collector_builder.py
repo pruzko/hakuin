@@ -2,7 +2,7 @@ from .collector_builder import CollectorBuilder
 from .int_collector_builder import IntCollectorBuilder
 from .string_collector_builders import TextCollectorBuilder
 
-from hakuin.collectors.column import FloatColumnCollector
+from hakuin.collectors.column_collectors import FloatColumnCollector
 from hakuin.collectors.row import FloatRowCollector
 from hakuin.utils import CHARSET_DIGITS
 

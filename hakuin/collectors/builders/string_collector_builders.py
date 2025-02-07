@@ -8,7 +8,7 @@ from hakuin.collectors.char import (
     BlobListCharCollector,
     BlobModelCharCollector,
 )
-from hakuin.collectors.column import TextColumnCollector, BlobColumnCollector
+from hakuin.collectors.column_collectors import TextColumnCollector, BlobColumnCollector
 from hakuin.collectors.row import (
     StringRowCollector,
     TextRowCollector,

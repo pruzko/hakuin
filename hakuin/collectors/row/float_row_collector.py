@@ -1,6 +1,7 @@
 from dataclasses import asdict
 
 from hakuin.collectors import TextContext
+from hakuin.collectors.checks import check_flag
 
 from .row_collector import RowCollector
 
@@ -36,7 +37,13 @@ class FloatRowCollector(RowCollector):
 
         if int_part == 0:
             # int(-0.123) and int(0.123) are both 0, so we need to check positivity
-            is_positive = ctx.rows_are_positive or await self.check_row_is_positive(ctx)
+            is_positive = await check_flag(
+                requester=self.requester,
+                dbms=self.dbms,
+                ctx=ctx,
+                name='row_is_positive',
+                true_if_true='column_is_positive',
+            )
         else:
             is_positive = int_part > 0
 
@@ -47,22 +54,6 @@ class FloatRowCollector(RowCollector):
         buffer += await self.dec_text_row_collector.run(text_ctx)
 
         return float(buffer)
-
-
-    async def check_row_is_positive(self, ctx):
-        '''Checks if the current row is positive.
-
-        Params:
-            ctx (NumericContext): collection context
-
-        Returns:
-            bool: row is positive flag
-        '''
-        if ctx.rows_are_positive is True:
-            return True
-
-        query = self.dbms.QueryRowIsPositive(dbms=self.dbms)
-        return await self.requester.run(query=query, ctx=ctx)
 
 
     async def update(self, ctx, value, row_guessed):
@@ -102,9 +93,9 @@ class FloatRowCollector(RowCollector):
     @staticmethod
     def _make_text_ctx(ctx, start_offset):
         kwargs = asdict(ctx)
-        kwargs.pop('rows_are_positive')
+        kwargs.pop('column_is_positive')
         kwargs['start_offset'] = start_offset
-        kwargs['rows_are_ascii'] = True
+        kwargs['column_is_ascii'] = True
         kwargs['row_is_ascii'] = True
         kwargs['cast_to'] = 'text'
         return TextContext(**kwargs)

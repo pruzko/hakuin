@@ -7,7 +7,7 @@ from .char_collector import CharCollector
 
 class ListCharCollector(CharCollector):
     '''Base class for list char collectors.'''
-    QUERY_CLS_LOOKUP = None
+    QUERY_CLS_NAME = None
 
 
     def __init__(self, requester, dbms, charset):
@@ -35,17 +35,17 @@ class ListCharCollector(CharCollector):
         return await ListSearch(
             requester=requester,
             dbms=self.dbms,
-            query_cls=self.dbms.query_cls(self.QUERY_CLS_LOOKUP),
+            query_cls=self.dbms.query_cls_lookup(self.QUERY_CLS_NAME),
             values=self.charset,
         ).run(ctx)
 
 
 class TextListCharCollector(ListCharCollector):
     '''Text list char collector.'''
-    QUERY_CLS_LOOKUP = 'text_char_in_string'
+    QUERY_CLS_NAME = 'QueryTextCharInString'
 
 
 
 class BlobListCharCollector(ListCharCollector):
     '''Blob list char collector.'''
-    QUERY_CLS_LOOKUP = 'blob_char_in_string'
+    QUERY_CLS_NAME = 'QueryBlobCharInString'

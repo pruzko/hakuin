@@ -128,14 +128,14 @@ class MSSQL(DBMS):
         )
 
 
-    class QueryRowsHaveNull(DBMS.QueryRowsHaveNull):
+    class QueryColumnHasNull(DBMS.QueryColumnHasNull):
         AST_TEMPLATE = parse_one(
             sql='select count(*) > 0 from table where column is null',
             dialect='tsql',
         )
 
 
-    class QueryRowsAreAscii(DBMS.QueryRowsAreAscii):
+    class QueryColumnIsAscii(DBMS.QueryColumnIsAscii):
         AST_TEMPLATE = parse_one(
             sql='select count(*) = 0 from table where not is_ascii(column)',
             dialect='tsql',
