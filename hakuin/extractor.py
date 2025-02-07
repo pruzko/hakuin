@@ -59,7 +59,7 @@ class Extractor:
             n_tasks=self.n_tasks,
         )
         if use_models:
-            builder.add('fivegram_char_collector', model=get_model('schemas'))
+            builder.add('model_char_collector', model=get_model('schemas'))
 
         collector = builder.build()
         return await collector.run(ctx)
@@ -92,7 +92,7 @@ class Extractor:
             n_tasks=self.n_tasks,
         )
         if use_models:
-            builder.add('fivegram_char_collector', model=get_model('tables'))
+            builder.add('model_char_collector', model=get_model('tables'))
 
         collector = builder.build()
         return await collector.run(ctx)
@@ -126,7 +126,7 @@ class Extractor:
             n_tasks=self.n_tasks,
         )
         if use_models:
-            builder.add('fivegram_char_collector', model=get_model('columns'))
+            builder.add('model_char_collector', model=get_model('columns'))
 
         collector = builder.build()
         return await collector.run(ctx)
@@ -292,8 +292,8 @@ class Extractor:
             n_tasks=self.n_tasks,
         )
         if use_models:
-            builder.add('unigram_char_collector', model=Model(1))
-            builder.add('fivegram_char_collector', model=Model(5))
+            builder.add('model_char_collector', model=Model(1))
+            builder.add('model_char_collector', model=Model(5))
         if use_guessing:
             builder.add('guessing_row_collector')
 
@@ -326,8 +326,8 @@ class Extractor:
         )
         builder.add('binary_char_collector')
         if use_models:
-            builder.add('unigram_char_collector', model=Model(1))
-            builder.add('fivegram_char_collector', model=Model(5))
+            builder.add('model_char_collector', model=Model(1))
+            builder.add('model_char_collector', model=Model(5))
         if use_guessing:
             builder.add('guessing_row_collector')
 
@@ -359,8 +359,8 @@ class Extractor:
         )
         builder.add('binary_char_collector')
         if use_models:
-            builder.add('unigram_char_collector', model=Model(1))
-            builder.add('fivegram_char_collector', model=Model(5))
+            builder.add('model_char_collector', model=Model(1))
+            builder.add('model_char_collector', model=Model(5))
         if use_guessing:
             builder.add('guessing_row_collector')
 

@@ -42,7 +42,7 @@ class CollectorBuilder(metaclass=ABCMeta):
         self.collectors[collector_name] = self.COLLECTOR_MAP[collector_name](
             requester=self.requester,
             dbms=self.dbms,
-            **kwargs
+            **kwargs,
         )
 
 

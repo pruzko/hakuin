@@ -6,10 +6,7 @@ from .row_collector import RowCollector
 
 
 class StringRowCollector(RowCollector):
-    def __init__(
-            self, requester, dbms, binary_char_collector, unigram_char_collector=None,
-            fivegram_char_collector=None,
-        ):
+    def __init__(self, requester, dbms, binary_char_collector, model_char_collectors=[]):
         '''Constructor.
 
         Params:
@@ -17,13 +14,11 @@ class StringRowCollector(RowCollector):
             dbms (DBMS): database engine
             binary_char_collector (BinaryCharCollector|ListBinaryCharCollector): binary char
                 collector
-            unigram_char_collector (ModelCharCollector|None): unigram char collector
-            fivegram_char_collector (ModelCharCollector|None): fivegram char collector
+            model_char_collectors (list): model char collectors
         '''
         super().__init__(requester=requester, dbms=dbms)
         self.binary_char_collector = binary_char_collector
-        self.unigram_char_collector = unigram_char_collector
-        self.fivegram_char_collector = fivegram_char_collector
+        self.model_char_collectors = model_char_collectors
 
 
     async def run(self, ctx):
@@ -76,13 +71,9 @@ class StringRowCollector(RowCollector):
         bin_cost = await self.binary_char_collector.stats.success_cost()
         costs.append((bin_cost, self.binary_char_collector))
 
-        if self.unigram_char_collector:
-            cost = await self.unigram_char_collector.stats.expected_cost(fallback_cost=bin_cost)
-            costs.append((cost, self.unigram_char_collector))
-
-        if self.fivegram_char_collector:
-            cost = await self.fivegram_char_collector.stats.expected_cost(fallback_cost=bin_cost)
-            costs.append((cost, self.fivegram_char_collector))
+        for model_char_collector in self.model_char_collectors:
+            cost = await model_char_collector.stats.expected_cost(fallback_cost=bin_cost)
+            costs.append((cost, model_char_collector))
 
         return min(costs, key=lambda x: x[0] or float('inf'))[1]
 
@@ -117,11 +108,9 @@ class StringRowCollector(RowCollector):
             ctx (Context): collection context
             value (str): collected char
         '''
-        if self.unigram_char_collector:
-            await self.unigram_char_collector.update(ctx, value=value)
-        if self.fivegram_char_collector:
-            await self.fivegram_char_collector.update(ctx, value=value)
         await self.binary_char_collector.update(ctx, value=value)
+        for model_char_collector in self.model_char_collectors:
+            await model_char_collector.update(ctx, value=value)
 
 
 
@@ -162,24 +151,6 @@ class TextRowCollector(StringRowCollector):
 
 class MetaTextRowCollector(TextRowCollector):
     '''Meta row collector.'''
-    def __init__(self, requester, dbms, binary_char_collector, fivegram_char_collector=None):
-        '''Constructor.
-
-        Params:
-            requester (Requester): requester
-            dbms (DBMS): database engine
-            binary_char_collector (BinaryCharCollector|ListBinaryCharCollector): binary char
-                collector
-            fivegram_char_collector (ModelCharCollector|None): fivegram char collector
-        '''
-        super().__init__(
-            requester=requester,
-            dbms=dbms,
-            binary_char_collector=binary_char_collector,
-            fivegram_char_collector=fivegram_char_collector,
-        )
-
-
     async def collect_char(self, ctx):
         '''Collects a single char.
 
@@ -190,8 +161,8 @@ class MetaTextRowCollector(TextRowCollector):
             str: collected char
         '''
         res = None
-        if self.fivegram_char_collector:
-            res = await self.fivegram_char_collector.run(ctx)
+        if self.model_char_collectors:
+            res = await self.model_char_collectors[0].run(ctx)
         if res is None:
             res = await self.binary_char_collector.run(ctx)
 
