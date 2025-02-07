@@ -1,6 +1,6 @@
 from .collector_builder import CollectorBuilder
 
-from hakuin.collectors.char import (
+from hakuin.collectors.char_collectors import (
     TextBinaryCharCollector,
     TextListCharCollector,
     TextModelCharCollector,
@@ -9,7 +9,7 @@ from hakuin.collectors.char import (
     BlobModelCharCollector,
 )
 from hakuin.collectors.column_collectors import TextColumnCollector, BlobColumnCollector
-from hakuin.collectors.row import (
+from hakuin.collectors.row_collectors import (
     StringRowCollector,
     TextRowCollector,
     MetaTextRowCollector,
