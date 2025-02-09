@@ -78,6 +78,10 @@ class DBMS:
         return exp.HexString(this=value.hex())
 
 
+    def get_schema_name(self, ctx):
+        return self.literal_text(ctx.schema) if ctx.schema else exp.CurrentSchema()
+
+
 
     class Query:
         '''Base class for queries.'''

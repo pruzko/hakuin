@@ -68,13 +68,6 @@ class MySQL(DBMS):
         return ast
 
 
-    def get_schema_name(self, ctx):
-        # TODO this should be in DBMS after sqlglot
-        if ctx.schema:
-            return self.literal_text(ctx.schema)
-        return exp.func('schema')
-
-
 
     class QueryColumnTypeIsInt(DBMS.QueryColumnTypeIsInt):
         AST_TEMPLATE = parse_one(

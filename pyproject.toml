@@ -5,15 +5,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hakuin"
-version = "0.1.10"
+version = "0.2.0"
 description = "Blind SQL Injection optimization and automation framework"
 authors = [{ name = "Jakub Pruzinec", email = "j.pruzinec@gmail.com" }]
 readme = "README.md"
-requires-python = ">=3"
+requires-python = ">=3.6"
 dependencies = [
     "aiohttp",
     "nltk",
-    "sqlglot",
+    "sqlglot>=26.4.1",
     "tqdm",
 ]
 scripts = { hk = "hakuin.hk:main" }
