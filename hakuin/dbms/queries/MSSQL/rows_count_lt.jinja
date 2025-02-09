@@ -1,8 +1,0 @@
-{% extends 'base.jinja' %}
-
-
-{% block select %}
-SELECT  CASE WHEN
-            count(*) < {{ n }}
-        THEN 1 ELSE 0 END
-{% endblock %}

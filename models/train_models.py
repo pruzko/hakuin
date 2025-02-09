@@ -4,8 +4,6 @@ import pickle
 import sys
 import tqdm
 
-from nltk.lm import MLE
-
 from hakuin import Model
 from hakuin.utils import DIR_MODELS
 
@@ -24,6 +22,7 @@ def fetch_data(fname):
 
 
 async def main():
+    # for m_type in tqdm.tqdm(['schemas']):
     for m_type in tqdm.tqdm(['schemas', 'tables', 'columns']):
         tqdm.tqdm.write(f'Training {m_type}. This may take a while...', file=sys.stderr)
         data = fetch_data(os.path.join(DIR_CORPORA, f'{m_type}.csv'))
@@ -32,7 +31,7 @@ async def main():
 
         tqdm.tqdm.write(f'Saving {m_type}...', file=sys.stderr)
         with open(os.path.join(DIR_MODELS, f'model_{m_type}.pkl'), 'wb') as f:
-            pickle.dump(m.model, f)
+            pickle.dump(m, f)
 
         tqdm.tqdm.write(f'Done.', file=sys.stderr)
 

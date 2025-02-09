@@ -1,6 +1,0 @@
-{% set single_row = true %}
-{% extends 'base.jinja' %}
-
-{% block select %}
-SELECT  {{ column | sql_to_text | sql_char_at(ctx.buffer | length) | sql_is_ascii }}
-{% endblock %}

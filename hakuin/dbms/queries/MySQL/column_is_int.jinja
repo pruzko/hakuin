@@ -1,8 +1,0 @@
-{% extends 'column_type_in_str_set.jinja' %}
-
-
-{% block select %}
-SELECT  {{ 'int' | sql_str_lit | sql_in_str('lower(DATA_TYPE)') }}
-        AND NOT
-        {{ 'point' | sql_str_lit | sql_in_str('lower(DATA_TYPE)') }}
-{% endblock %}

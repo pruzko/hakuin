@@ -1,9 +1,0 @@
-{% set single_row = true %}
-{% extends 'base.jinja' %}
-
-
-{% block select %}
-SELECT  {{ column | sql_len }} != {{ ctx.buffer | length }}
-        AND
-        {{ column | sql_char_at(ctx.buffer | length) | sql_to_unicode }} < {{ n }}
-{% endblock %}

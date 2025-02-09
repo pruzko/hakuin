@@ -1,51 +1,59 @@
+import asyncio
 from abc import ABCMeta, abstractmethod
-
-from hakuin.utils import split_at
-
 
 
 
 class SearchAlgorithm(metaclass=ABCMeta):
-    '''Abstract class for various search algorithms.'''
-    def __init__(self, requester, query_cb):
+    '''Search algorithm base class.'''
+    def __init__(self, requester, dbms, query_cls):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
-            query_cb (function): query construction function
+            requester (Requester): requester
+            dbms (DBMS): database engine
+            query_cls (Type[Query]): Query class
         '''
         self.requester = requester
-        self.query_cb = query_cb
+        self.dbms = dbms
+        self.query_cls = query_cls
 
 
     @abstractmethod
-    async def run(self, ctx, correct=None):
+    async def run(self, ctx):
         '''Runs the search algorithm.'''
         raise NotImplementedError()
 
 
 
-class NumericBinarySearch(SearchAlgorithm):
+class BinarySearch(SearchAlgorithm):
     '''Exponential and binary search for numeric values.'''
-    def __init__(self, requester, query_cb, lower=0, upper=16, find_lower=False, find_upper=False, correct=None):
+    def __init__(
+        self, requester, dbms, query_cls, lower=0, upper=16, find_lower=False, find_upper=False
+    ):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
-            query_cb (function): query construction function
-            lower (int): lower bound of search range
-            upper (int): upper bound of search range
-            find_lower (bool): exponentially expands the lower bound until the correct value is within
-            find_upper (bool): exponentially expands the upper bound until the correct value is within
-            correct (int|None): correct value. If provided, the search is emulated
+            requester (Requester): requester
+            dbms (DBMS): database engine
+            query_cls (Type[Query]): Query class
+            lower (int): lower bound of search range (included)
+            upper (int): upper bound of search range (excluded)
+            find_lower (bool): exponentially expands the lower bound
+                until the correct value is within
+            find_upper (bool): exponentially expands the upper bound
+                until the correct value is within
         '''
-        super().__init__(requester, query_cb)
+        assert lower != upper, f'Lower and uppper bounds cannot be the same: {lower}'
+
+        super().__init__(requester, dbms, query_cls)
         self.lower = lower
         self.upper = upper
         self.find_lower = find_lower
         self.find_upper = find_upper
-        self.correct = correct
-        self.n_queries = 0
+        self._lower = None
+        self._upper = None
+        self._f_lower = None
+        self._f_upper = None
 
 
     async def run(self, ctx):
@@ -57,14 +65,18 @@ class NumericBinarySearch(SearchAlgorithm):
         Returns:
             int|None: inferred number or None on fail
         '''
-        self.n_queries = 0
+        self._lower = self.lower
+        self._upper = self.upper
+        self._f_lower = self.find_lower
+        self._f_upper = self.find_upper
+        step = self._upper - self._lower
 
-        if self.find_lower:
-            await self._find_lower(ctx, self.upper - self.lower)
-        if self.find_upper:
-            await self._find_upper(ctx, self.upper - self.lower)
+        if self._f_lower:
+            await self._find_lower(ctx, step=step)
+        if self._f_upper:
+            await self._find_upper(ctx, step=step)
 
-        return await self._search(ctx, self.lower, self.upper)
+        return await self._search(ctx, lower=self._lower, upper=self._upper)
 
 
     async def _find_lower(self, ctx, step):
@@ -74,12 +86,14 @@ class NumericBinarySearch(SearchAlgorithm):
             ctx (Context): collection context
             step (int): initial step
         '''
-        if not await self._query(ctx, self.lower):
+        query = self.query_cls(dbms=self.dbms, n=self._lower)
+        if not await self.requester.run(query=query, ctx=ctx):
             return
 
-        self.upper = self.lower
-        self.lower -= step
-        await self._find_lower(ctx, step * 2)
+        self._upper = self._lower
+        self._f_upper = False
+        self._lower -= step
+        return await self._find_lower(ctx, step=step * 2)
 
 
     async def _find_upper(self, ctx, step):
@@ -88,13 +102,15 @@ class NumericBinarySearch(SearchAlgorithm):
         Params:
             ctx (Context): collection context
             step (int): initial step
+        query = self.query_cls(dbms=self.dbms, n=n)
         '''
-        if await self._query(ctx, self.upper):
+        query = self.query_cls(dbms=self.dbms, n=self._upper)
+        if await self.requester.run(query=query, ctx=ctx):
             return
 
-        self.lower = self.upper
-        self.upper += step
-        await self._find_upper(ctx, step * 2)
+        self._lower = self._upper
+        self._upper += step
+        return await self._find_upper(ctx, step=step * 2)
 
 
     async def _search(self, ctx, lower, upper):
@@ -112,38 +128,28 @@ class NumericBinarySearch(SearchAlgorithm):
             return lower
 
         middle = (lower + upper) // 2
-        if await self._query(ctx, middle):
-            return await self._search(ctx, lower, middle)
 
-        return await self._search(ctx, middle, upper)
+        query = self.query_cls(dbms=self.dbms, n=middle)
+        if await self.requester.run(query=query, ctx=ctx):
+            return await self._search(ctx, lower=lower, upper=middle)
 
-
-    async def _query(self, ctx, n):
-        self.n_queries += 1
-
-        if self.correct is None:
-            query_string = self.query_cb(ctx, n)
-            return await self.requester.request(ctx, query_string)
-
-        return self.correct < n
+        return await self._search(ctx, lower=middle, upper=upper)
 
 
 
-class BinarySearch(SearchAlgorithm):
+class ListSearch(SearchAlgorithm):
     '''Binary search for lists of values.'''
-    def __init__(self, requester, query_cb, values, correct=None):
+    def __init__(self, requester, dbms, query_cls, values):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
-            query_cb (function): query construction function
+            requester (Requester): requester
+            dbms (DBMS): database engine
+            query_cls (Type[Query]): Query class
             values (list): list of values to search
-            correct (value|None): correct value. If provided, the search is emulated
         '''
-        super().__init__(requester, query_cb)
+        super().__init__(requester, dbms, query_cls)
         self.values = values
-        self.correct = correct
-        self.n_queries = 0
 
 
     async def run(self, ctx):
@@ -155,7 +161,6 @@ class BinarySearch(SearchAlgorithm):
         Returns:
             value|None: inferred value or None on fail
         '''
-        self.n_queries = 0
         return await self._search(ctx, self.values)
 
 
@@ -166,43 +171,30 @@ class BinarySearch(SearchAlgorithm):
         if len(values) == 1:
             return values[0]
 
-        left, right = split_at(values, len(values) // 2)
+        middle = len(values) // 2
+        left, right = values[:middle], values[middle:]
 
-        if await self._query(ctx, left):
+        query = self.query_cls(dbms=self.dbms, values=left)
+        if await self.requester.run(query=query, ctx=ctx):
             return await self._search(ctx, left)
 
         return await self._search(ctx, right)
 
 
-    async def _query(self, ctx, values):
-        self.n_queries += 1
-
-        if self.correct is None:
-            query_string = self.query_cb(ctx, values)
-            return await self.requester.request(ctx, query_string)
-
-        return self.correct in values
-
-
-
 
 class TreeSearch(SearchAlgorithm):
     '''Huffman tree search.'''
-    def __init__(self, requester, query_cb, tree, in_tree=False, correct=None):
+    def __init__(self, requester, dbms, query_cls, tree):
         '''Constructor.
 
         Params:
-            requester (Requester): Requester instance
-            query_cb (function): query construction function
+            requester (Requester): requester
+            dbms (DBMS): database engine
+            query_cls (Type[Query]): Query class
             tree (utils.huffman.Node): Huffman tree to search
-            in_tree (bool): True if the correct value is known to be in the tree
-            correct (value|None): correct value. If provided, the search is emulated
         '''
-        super().__init__(requester, query_cb)
+        super().__init__(requester, dbms, query_cls)        
         self.tree = tree
-        self.in_tree = in_tree
-        self.correct = correct
-        self.n_queries = 0
 
 
     async def run(self, ctx):
@@ -214,11 +206,10 @@ class TreeSearch(SearchAlgorithm):
         Returns:
             value|None: inferred value or None on fail
         '''
-        self.n_queries = 0
-        return await self._search(ctx, self.tree, in_tree=self.in_tree)
+        return await self._search(ctx, tree=self.tree)
 
 
-    async def _search(self, ctx, tree, in_tree):
+    async def _search(self, ctx, tree, in_tree=False):
         '''Tree search.
         
         Params:
@@ -232,27 +223,20 @@ class TreeSearch(SearchAlgorithm):
         if tree is None:
             return None
 
-        if tree.is_leaf():
+        if tree.is_leaf:
             if in_tree:
-                return tree.values()[0]
-            if await self._query(ctx, tree.values()):
-                return tree.values()[0]
+                return tree.value
+
+            query = self.query_cls(dbms=self.dbms, values=[tree.value])
+            if await self.requester.run(query=query, ctx=ctx):
+                return tree.value
             return None
 
-        if await self._query(ctx, tree.left.values()):
-            return await self._search(ctx, tree.left, True)
+        query = self.query_cls(dbms=self.dbms, values=tree.left.values())
+        if await self.requester.run(query=query, ctx=ctx):
+            return await self._search(ctx, tree=tree.left, in_tree=True)
 
         if tree.right is None:
             return None
 
-        return await self._search(ctx, tree.right, in_tree)
-
-
-    async def _query(self, ctx, values):
-        self.n_queries += 1
-
-        if self.correct is None:
-            query_string = self.query_cb(ctx, values)
-            return await self.requester.request(ctx, query_string)
-
-        return self.correct in values
+        return await self._search(ctx, tree=tree.right, in_tree=in_tree)

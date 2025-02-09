@@ -1,50 +1,84 @@
 import os
+import re
 import string
+import sys
+from enum import Enum
+
+from tqdm import tqdm
+
+from .info_messages import _INFO_MESSAGES
 
 
 
 DIR_FILE = os.path.dirname(os.path.realpath(__file__))
 DIR_ROOT = os.path.abspath(os.path.join(DIR_FILE, '..'))
-DIR_QUERIES = os.path.join(DIR_ROOT, 'dbms', 'queries')
 DIR_MODELS = os.path.join(DIR_ROOT, 'models')
-DIR_MODELS = DIR_MODELS if os.path.isdir(DIR_MODELS) else os.path.abspath(os.path.join(DIR_ROOT, '..', 'models'))
+if not os.path.isdir(DIR_MODELS):
+    DIR_MODELS = os.path.abspath(os.path.join(DIR_ROOT, '..', 'models'))
+
+
+RE_CAMEL_CASE = re.compile("(?<!^)(?=[A-Z])")
+
 
 ASCII_MAX = 0x7f
 UNICODE_MAX = 0x10ffff
 BYTE_MAX = 0xff
 
-CHARSET_DIGITS = list(string.digits) + ['-', '.', '</s>']
 
-SOS = '<s>'
-EOS = '</s>'
-
-
-def split_at(s, i):
-    '''Splits sequence.
-
-    Params:
-        s (list|str): sequence
-        i (int): index to split at
-
-    Returns:
-        (list|str, list|str): split sequences
-    '''
-    return s[:i], s[i:]
+class Symbol(Enum):
+    '''Special character symbols.'''
+    SOS = '<s>'
+    EOS = '</s>'
 
 
-def tokenize(s, add_sos=True, add_eos=True, pad_left=1):
-    '''Converts string to list of tokens.
+CHARSET_DIGITS = list(string.digits) + [Symbol.EOS]
+
+
+
+
+def info(msg, *args, progress=None):
+    '''Prints debug information.
 
     Params:
-        s (str): string to tokenize
-        add_sos (bool): True if SOS should be included
-        add_eos (bool): True if EOS should be included
-        pad_left (int): specifies how many SOS should be included if add_sos is on
+        msg (str): message name
+        *args: format string arguments
+        progress (tqdm.tqdm|None): progress object
+    '''
+    progress = progress or tqdm
+    progress.write(_INFO_MESSAGES[msg].format(*args), file=sys.stderr)    
+
+
+def pascal_to_snake_case(s):
+    '''Converts PascalCase to snake_case.
+    
+    Params:
+        s (str): string in PascalCase
 
     Returns:
-        list: tokens
+        str: string in snake_case
     '''
-    tokens = [SOS] * pad_left if add_sos else []
-    tokens += list(s)
-    tokens += [EOS] if add_eos else []
-    return tokens
+    return RE_CAMEL_CASE.sub('_', s).lower()
+
+
+def snake_to_pascal_case(s):
+    '''Converts snake_case to PascalCase.
+    
+    Params:
+        s (str): string in snake_case
+        
+    Returns:
+        str: string in PascalCase
+    '''
+    return ''.join(w.capitalize() for w in s.split('_'))
+
+
+def to_chars(s):
+    '''Converts a string into a list of characters.
+
+    Params:
+        s (str|bytes): string
+
+    Returns:
+        list: characters
+    '''
+    return [bytes([b]) for b in s] if type(s) is bytes else list(s)

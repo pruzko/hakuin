@@ -1,4 +1,4 @@
-class Node:
+class HuffmanNode:
     def __init__(self, value, prob, left=None, right=None):
         self.value = value
         self.prob = prob
@@ -6,62 +6,73 @@ class Node:
         self.right = right
 
 
+    @property
     def is_leaf(self):
-        return self.left is None
+        return self.left is None and self.right is None
+
+
+    @property
+    def leaves(self):
+        if self.is_leaf:
+            return [self]
+        
+        leaves = []
+        if self.left:
+            leaves.extend(self.left.leaves)
+        if self.right:
+            leaves.extend(self.right.leaves)
+        return leaves
+
+
+    @property
+    def height(self):
+        l = self.left.height if self.left else 0
+        r = self.right.height if self.right else 0
+        return max([l, r]) + 1
 
 
     def values(self):
-        if self.is_leaf():
-            return [self.value] if self.value is not None else []
+        return [node.value for node in self.leaves]
 
-        res = self.left.values()
+
+    def probs(self):
+        return [node.prob for node in self.leaves]
+
+
+    def success_prob(self):
+        return sum(self.probs())
+
+
+    def success_cost(self, n=0):
+        if self.is_leaf:
+            return n * self.prob
+
+        cost = self.left.success_cost(n + 1)
         if self.right:
-            res += self.right.values()
-        return res
+            cost += self.right.success_cost(n + 1)
+        return cost
 
 
-    def probabilities(self):
-        if self.is_leaf():
-            return [self.prob] if self.value is not None else []
-
-        res = self.left.probabilities()
-        if self.right:
-            res += self.right.probabilities()
-        return res
-
-
-    def search_cost(self):
-        return self._search_cost(0)
-
-
-    def _search_cost(self, n=0):
-        if self.is_leaf():
-            return None if self.value is None else n * self.prob
-
-        exp_h = self.left._search_cost(n + 1)
-        if self.right:
-            exp_h += self.right._search_cost(n + 1)
-        return exp_h
+    def fail_cost(self):
+        if self.right is None:
+            return 1.0
+        return self.right.fail_cost() + 1.0
 
 
 
-def make_tree(probabilities):
-    if not probabilities:
+def make_tree(probs):
+    if not probs:
         return None
 
-    nodes = [Node(c, s) for c, s in probabilities.items()]
+    heap = [HuffmanNode(value=key, prob=prob) for key, prob in probs.items()]
+    while len(heap) > 1:
+        heap.sort(key=lambda node: node.prob)
+        left = heap.pop(0)
+        right = heap.pop(0)
 
-    if len(nodes) == 1:
-        return Node(None, nodes[0].prob, nodes[0], None)
-
-    while len(nodes) > 1:
-        nodes.sort(key=lambda n: n.prob)
-        l = nodes.pop(0)
-        r = nodes.pop(0)
-
-        if max(l.probabilities()) >= max(r.probabilities()):
-            nodes.append(Node(None, l.prob + r.prob, l, r))
+        if max(left.probs()) >=  max(right.probs()):
+            heap.append(HuffmanNode(value=None, prob=left.prob + right.prob, left=left, right=right))
         else:
-            nodes.append(Node(None, l.prob + r.prob, r, l))
+            heap.append(HuffmanNode(value=None, prob=left.prob + right.prob, left=right, right=left))
 
-    return nodes[0]
+    return heap[0]
