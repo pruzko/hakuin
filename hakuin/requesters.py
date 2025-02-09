@@ -2,6 +2,8 @@ import asyncio
 import functools
 from abc import ABCMeta, abstractmethod
 
+import aiohttp
+
 
 
 class Requester(metaclass=ABCMeta):
@@ -52,14 +54,31 @@ class Requester(metaclass=ABCMeta):
             return self._n_requests
 
 
-    async def initialize(self):
-        '''Initialization hook invoked by "hk.py".'''
+    async def __aenter__(self):
+        return self
+
+
+    async def __aexit__(self, *args, **kwargs):
         pass
 
 
-    async def cleanup(self):
-        '''Clean-up hook invoked by "hk.py".'''
-        pass
+
+class SessionRequester(Requester):
+    '''Requester with an AioHTTP.ClientSession.'''
+    def __init__(self):
+        super().__init__()
+        self.session = None
+
+
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession()
+
+
+    async def __aexit__(self, *args, **kwargs):
+        if self.session:
+            await self.session.close()
+            self.session = None
+        
 
 
 

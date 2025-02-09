@@ -8,10 +8,8 @@ import sys
 import tqdm
 import urllib.parse
 
-import aiohttp
-
 from hakuin.dbms import DBMS_DICT
-from hakuin import Extractor, Requester
+from hakuin import Extractor, Requester, SessionRequester
 
 
 
@@ -24,14 +22,13 @@ class BytesEncoder(json.JSONEncoder):
 
 
 
-class UniversalRequester(Requester):
+class UniversalRequester(SessionRequester):
     RE_INFERENCE = re.compile(r'^(not_)?(.+):(.*)$')
     RE_QUERY_TAG = re.compile(r'{query}')
 
 
     def __init__(self, args):
         super().__init__()
-        self.http = None
         self.url = args.url
         self.method = args.method
         self.headers = self._process_dict(args.headers)
@@ -41,14 +38,33 @@ class UniversalRequester(Requester):
         self.dbg = args.dbg
 
 
-    async def initialize(self):
-        self.http = aiohttp.ClientSession()
+    async def request(self, query, ctx):
+        query = query.render(ctx)
+        url = self.RE_QUERY_TAG.sub(urllib.parse.quote(query), self.url)
+        headers = {self.RE_QUERY_TAG.sub(query, k): self.RE_QUERY_TAG.sub(query, v) for k, v in self.headers.items()}
+        cookies = {self.RE_QUERY_TAG.sub(query, k): self.RE_QUERY_TAG.sub(query, v) for k, v in self.cookies.items()}
+        body = self.RE_QUERY_TAG.sub(query, self.body) if self.body else None
 
+        async with self.session.request(method=self.method, url=url, headers=headers, cookies=cookies, data=body) as resp:
+            if resp.status not in [200, 404]:
+                tqdm.tqdm.write(f'(err) {query}')
+                raise AssertionError(f'Invalid response code: {resp.status}')
 
-    async def cleanup(self):
-        if self.http:
-            await self.http.close()
-            self.http = None
+            if self.inference['type'] == 'status':
+                result = resp.status == self.inference['content']
+            elif self.inference['type'] == 'header':
+                result = any(self.inference['content'] in v for v in resp.headers.keys() + resp.headers.values())
+            elif self.inference['type'] == 'body':
+                content = await resp.text()
+                result = self.inference['content'] in content
+
+        if self.inference['is_negated']:
+            result = not result
+
+        if self.dbg:
+            tqdm.tqdm.write(f'{await self.n_requests() + 1} {"(err)" if resp.status == 500 else str(result)[0]} {query}')
+
+        return result
 
 
     def _process_dict(self, dict_str):
@@ -77,35 +93,6 @@ class UniversalRequester(Requester):
         return inf
 
 
-    async def request(self, query, ctx):
-        query = query.render(ctx)
-        url = self.RE_QUERY_TAG.sub(urllib.parse.quote(query), self.url)
-        headers = {self.RE_QUERY_TAG.sub(query, k): self.RE_QUERY_TAG.sub(query, v) for k, v in self.headers.items()}
-        cookies = {self.RE_QUERY_TAG.sub(query, k): self.RE_QUERY_TAG.sub(query, v) for k, v in self.cookies.items()}
-        body = self.RE_QUERY_TAG.sub(query, self.body) if self.body else None
-
-        async with self.http.request(method=self.method, url=url, headers=headers, cookies=cookies, data=body) as resp:
-            if resp.status not in [200, 404]:
-                tqdm.tqdm.write(f'(err) {query}')
-                raise AssertionError(f'Invalid response code: {resp.status}')
-
-            if self.inference['type'] == 'status':
-                result = resp.status == self.inference['content']
-            elif self.inference['type'] == 'header':
-                result = any(self.inference['content'] in v for v in resp.headers.keys() + resp.headers.values())
-            elif self.inference['type'] == 'body':
-                content = await resp.text()
-                result = self.inference['content'] in content
-
-        if self.inference['is_negated']:
-            result = not result
-
-        if self.dbg:
-            tqdm.tqdm.write(f'{await self.n_requests() + 1} {"(err)" if resp.status == 500 else str(result)[0]} {query}')
-
-        return result
-
-
 
 class HK:
     def __init__(self):
@@ -118,14 +105,9 @@ class HK:
         else:
             requester = UniversalRequester(args)
 
-        await requester.initialize()
-
-        self.ext = Extractor(requester=requester, dbms=args.dbms, n_tasks=args.tasks)
-
-        try:
+        async with requester:
+            self.ext = Extractor(requester=requester, dbms=args.dbms, n_tasks=args.tasks)
             await self._run(args)
-        finally:
-            await requester.cleanup()
 
 
     async def _run(self, args):

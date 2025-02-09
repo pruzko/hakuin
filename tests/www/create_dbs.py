@@ -16,8 +16,8 @@ DB_URIS = {
     'sqlite': f'sqlite:///{os.path.join(DIR_DBS, "test_db.sqlite")}',
     'mysql': 'mysql+pymysql://hakuin:hakuin@localhost/hakuindb',
     'mssql': 'mssql+pyodbc://hakuin:hakuin@localhost/hakuindb?driver=ODBC+Driver+17+for+SQL+Server',
-    'oracledb': 'oracle+cx_oracle://hakuin:hakuin@localhost/?service_name=freepdb1',
-    'psql': 'postgresql+psycopg2://hakuin:hakuin@localhost/hakuindb',
+    'oracle': 'oracle+cx_oracle://hakuin:hakuin@localhost/?service_name=freepdb1',
+    'postgres': 'postgresql+psycopg2://hakuin:hakuin@localhost/hakuindb',
 }
 DBS_ENG = {key: create_engine(uri) for key, uri in DB_URIS.items()}
 DBS = {key: sessionmaker(bind=eng)() for key, eng, in DBS_ENG.items()}
@@ -92,7 +92,7 @@ def create_data_types_table(db):
     db.add(TestDataTypes(
         id=10,
         test_integers=1,
-        test_floats=-1.1,
+        test_floats=-0.0123,
         test_blobs=bytes.fromhex('deadbeef'),
         test_texts='hello',
         test_nullable=None,

@@ -1,0 +1,1308 @@
+{
+    "actual_treatments": [
+        "result",
+        "victim_id",
+        "date_time_from",
+        "hospital_id",
+        "date_time_to",
+        "possible_treatment_code"
+    ],
+    "suppliers": [
+        "phone",
+        "name",
+        "address_id",
+        "email",
+        "id",
+        "cell_phone",
+        "other_details"
+    ],
+    "calendar": [
+        "day_number",
+        "day_date",
+        "business_day_yn",
+        "period_id"
+    ],
+    "flight_schedules": [
+        "origin_airport_code",
+        "airline_code",
+        "destination_airport_code",
+        "flight_number",
+        "arrival_date_time",
+        "usual_aircraft_type_code",
+        "departure_date_time"
+    ],
+    "passengers": [
+        "email_address",
+        "city",
+        "second_name",
+        "other_details",
+        "id",
+        "country",
+        "state_province_county",
+        "last_name",
+        "address_lines",
+        "first_name",
+        "phone_number"
+    ],
+    "client_addresses": [
+        "date_address_from",
+        "address_id",
+        "date_address_to",
+        "client_id"
+    ],
+    "generic_medications": [
+        "details",
+        "id"
+    ],
+    "brand_name_medications": [
+        "name",
+        "id",
+        "company_id",
+        "cost",
+        "description"
+    ],
+    "games_deliverables": [
+        "deliverable_id",
+        "games_id"
+    ],
+    "itinerary_legs": [
+        "leg_id",
+        "reservation_id"
+    ],
+    "incidents": [
+        "date_time_incident_started",
+        "status_code",
+        "type_code",
+        "id",
+        "date_time_incident_ended",
+        "outcome_code",
+        "description",
+        "other_details"
+    ],
+    "incident_status": [
+        "description",
+        "code"
+    ],
+    "incident_outcomes": [
+        "description",
+        "code"
+    ],
+    "job_types": [
+        "name",
+        "code"
+    ],
+    "collections": [
+        "catalog_id",
+        "name",
+        "id",
+        "parent_collection_id",
+        "description"
+    ],
+    "inventory_levels": [
+        "stock_taking_date",
+        "quantity_in_stock",
+        "plant_id"
+    ],
+    "violater_vehicles": [
+        "violater_id",
+        "vehicle_licence_number"
+    ],
+    "victim_status": [
+        "description",
+        "code"
+    ],
+    "ranks": [
+        "name",
+        "code",
+        "description"
+    ],
+    "associates": [
+        "associate_person_id",
+        "id",
+        "person_id",
+        "date_association_started",
+        "last_name",
+        "first_name",
+        "other_details",
+        "middle_name"
+    ],
+    "vehicle_manufacturers": [
+        "name",
+        "code"
+    ],
+    "clients": [
+        "kpi_billings_to_date",
+        "kpi_client_project_count",
+        "name",
+        "id",
+        "kpi_avg_billable_rate",
+        "from_date",
+        "other_details"
+    ],
+    "plants": [
+        "reorder_level",
+        "name",
+        "average_weekly_sales",
+        "category_code",
+        "id",
+        "reorder_quantity",
+        "nursery_id",
+        "description",
+        "other_details"
+    ],
+    "people_addresses": [
+        "to_date",
+        "address_id",
+        "from_date",
+        "person_id"
+    ],
+    "judges": [
+        "gender",
+        "name",
+        "other_details",
+        "id"
+    ],
+    "skills": [
+        "code",
+        "name",
+        "category_code",
+        "description"
+    ],
+    "legs": [
+        "origin_airport_code",
+        "destination_airport_code",
+        "actual_departure_time",
+        "id",
+        "flight_number",
+        "actual_arrival_time"
+    ],
+    "people_in_incidents": [
+        "incident_id",
+        "role_code",
+        "person_id"
+    ],
+    "collection_subset_members": [
+        "id",
+        "related_collection_id",
+        "collection_id"
+    ],
+    "organisation_addresses": [
+        "id",
+        "to_date",
+        "from_date",
+        "organisation_id"
+    ],
+    "staff_addresses": [
+        "address_id",
+        "date_address_to",
+        "staff_id",
+        "date_address_from"
+    ],
+    "court_types": [
+        "description",
+        "code"
+    ],
+    "organisations": [
+        "phone",
+        "name",
+        "category_code",
+        "type_code",
+        "id",
+        "description",
+        "other_details"
+    ],
+    "deliverables": [
+        "name",
+        "situation_id",
+        "description",
+        "id"
+    ],
+    "role_uniforms": [
+        "comments",
+        "role_id",
+        "uniform_id"
+    ],
+    "itinerary_reservations": [
+        "reservation_status_code",
+        "number_in_party",
+        "passenger_id",
+        "ticket_type_code",
+        "id",
+        "travel_class_code",
+        "agent_id",
+        "date_reservation_made"
+    ],
+    "club_personnel": [
+        "email_address",
+        "title",
+        "name",
+        "address",
+        "home_phone_number",
+        "id",
+        "cell_mobile_phone_number",
+        "gender",
+        "other_details",
+        "club_id"
+    ],
+    "tribal_customs": [
+        "details",
+        "situation_id",
+        "id"
+    ],
+    "vehicles": [
+        "details",
+        "licence_number",
+        "model",
+        "vehicle_type_code",
+        "manufacturer_code",
+        "year_of_manufacture"
+    ],
+    "usual_suspects": [
+        "details",
+        "role_id",
+        "situation_id",
+        "id"
+    ],
+    "fees": [
+        "total_fees",
+        "period_id",
+        "client_id"
+    ],
+    "document_subset_memebers": [
+        "id",
+        "related_document_object_id",
+        "document_object_id"
+    ],
+    "uniforms": [
+        "name",
+        "situation_id",
+        "description",
+        "id"
+    ],
+    "physical_contact": [
+        "description",
+        "code"
+    ],
+    "document_objects": [
+        "id",
+        "owner",
+        "description",
+        "other_details",
+        "parent_document_object_id"
+    ],
+    "organizations": [
+        "details",
+        "organization_type_code",
+        "id"
+    ],
+    "skill_levels": [
+        "name",
+        "code"
+    ],
+    "products_and_services": [
+        "details",
+        "quantity",
+        "product_svc_type_code",
+        "id"
+    ],
+    "organization_types": [
+        "description",
+        "code"
+    ],
+    "countries": [
+        "languages_spoken",
+        "currency",
+        "name",
+        "usd_exchange_date",
+        "code",
+        "usd_exchange_rate"
+    ],
+    "invoice_status": [
+        "description",
+        "code"
+    ],
+    "medications": [
+        "medication_type_code",
+        "name",
+        "id",
+        "cost",
+        "description",
+        "other_details"
+    ],
+    "period_codes": [
+        "description",
+        "code"
+    ],
+    "customer_orders": [
+        "order_delivered_datetime",
+        "order_shipping_charges",
+        "order_status_code",
+        "start_date",
+        "id",
+        "customer_id",
+        "shipping_method_code",
+        "first_payment_date",
+        "order_placed_datetime",
+        "order_date",
+        "last_payment_date",
+        "end_date",
+        "other_details"
+    ],
+    "services_in_events": [
+        "service_id",
+        "event_id"
+    ],
+    "staff_skills": [
+        "skill_level_code",
+        "staff_id",
+        "skill_code"
+    ],
+    "titles": [
+        "description",
+        "code"
+    ],
+    "roles": [
+        "name",
+        "id",
+        "description",
+        "desciption",
+        "code"
+    ],
+    "flight_costs": [
+        "aircraft_type_code",
+        "valid_from_date",
+        "cost",
+        "valid_to_date",
+        "flight_number"
+    ],
+    "game_players": [
+        "position_id",
+        "games_id",
+        "person_id"
+    ],
+    "premises_type": [
+        "description",
+        "code"
+    ],
+    "shipment_items": [
+        "order_item_id",
+        "shipment_id"
+    ],
+    "games": [
+        "date",
+        "result",
+        "opponent_club_id",
+        "location_id",
+        "id",
+        "description",
+        "value_system_id",
+        "club_id"
+    ],
+    "reference_material": [
+        "title",
+        "source",
+        "situation_id",
+        "id",
+        "person_id",
+        "description",
+        "club_id"
+    ],
+    "invoice_status_codes": [
+        "description",
+        "code"
+    ],
+    "financial_transactions": [
+        "transaction_type_code",
+        "transaction_amount",
+        "transaction_date",
+        "id",
+        "invoice_number",
+        "transaction_comment",
+        "account_id",
+        "other_details"
+    ],
+    "victim_associate_contacts": [
+        "comments",
+        "victim_id",
+        "id",
+        "physical_contact_code",
+        "associate_id",
+        "contact_start_datetime",
+        "contact_end_datetime"
+    ],
+    "plant_suppliers": [
+        "value_supplied_to_date",
+        "last_item_supplied_date",
+        "percentage_discount",
+        "minimum_order_quantity",
+        "supplier_id",
+        "first_item_supplied_date",
+        "other_details",
+        "standard_price",
+        "id",
+        "plant_id",
+        "delivery_lead_time",
+        "maximum_order_quantity",
+        "quantity_supplied_to_date"
+    ],
+    "prescription_status": [
+        "description",
+        "code"
+    ],
+    "prescriptions": [
+        "payment_method_code",
+        "details",
+        "prescription_status_code",
+        "doctor_id",
+        "received",
+        "sent_to_company",
+        "customer_id",
+        "id",
+        "renewal",
+        "filled",
+        "sent_to_doctor"
+    ],
+    "mailshot_customers": [
+        "mailshot_id",
+        "outcome_code",
+        "date",
+        "customer_id"
+    ],
+    "shipping_methods": [
+        "description",
+        "shipping_charges",
+        "code"
+    ],
+    "people": [
+        "address_id",
+        "date_in",
+        "master_status_code",
+        "from_date",
+        "email_address",
+        "comments",
+        "id",
+        "organisation_id",
+        "phone_number",
+        "gender",
+        "master_person_id",
+        "first_name",
+        "other_details",
+        "title_code",
+        "date_of_birth",
+        "date_out",
+        "last_name",
+        "to_date",
+        "cell_phone",
+        "middle_name"
+    ],
+    "merchants": [
+        "details",
+        "name",
+        "id"
+    ],
+    "victims_in_hospital": [
+        "victim_id",
+        "hospital_id"
+    ],
+    "violations": [
+        "officer_badge_number",
+        "vehicle_licence_number",
+        "document_type_code",
+        "violater_id",
+        "id",
+        "datetime_violation",
+        "datetime_order_delivered",
+        "other_details"
+    ],
+    "water_bills": [
+        "date_period_to",
+        "meter_reading_id",
+        "amount_due",
+        "id",
+        "bill_status_code",
+        "date_payment_due",
+        "date_period_from",
+        "other_details"
+    ],
+    "document_types": [
+        "description",
+        "code"
+    ],
+    "bill_status_codes": [
+        "description",
+        "code"
+    ],
+    "courts": [
+        "phone",
+        "judge_id",
+        "location_id",
+        "id",
+        "court_type_code",
+        "other_details"
+    ],
+    "party": [
+        "description",
+        "party_type_code",
+        "id"
+    ],
+    "event_outcomes": [
+        "description",
+        "code"
+    ],
+    "meters": [
+        "type",
+        "manufacturer",
+        "id",
+        "location",
+        "other_details"
+    ],
+    "hospital": [
+        "name",
+        "hospital_location_id",
+        "other_details",
+        "id"
+    ],
+    "staff": [
+        "staff_name",
+        "phone",
+        "name",
+        "email",
+        "id",
+        "job_type_code",
+        "gender",
+        "usual_staff_type_code",
+        "other_details"
+    ],
+    "collection_subsets": [
+        "details",
+        "name",
+        "id"
+    ],
+    "student_addresses": [
+        "address_type_code",
+        "date_to",
+        "address_id",
+        "date_from",
+        "student_id"
+    ],
+    "victims_movements": [
+        "victim_id",
+        "date_departed",
+        "location_id",
+        "date_arrived"
+    ],
+    "education": [
+        "details",
+        "situation_id",
+        "id"
+    ],
+    "locations": [
+        "details",
+        "name",
+        "address_id",
+        "id",
+        "location_type_code",
+        "building_id",
+        "description",
+        "other_details",
+        "address"
+    ],
+    "payment_type_codes": [
+        "description",
+        "code"
+    ],
+    "order_status_codes": [
+        "code",
+        "description"
+    ],
+    "ebola_victims": [
+        "date_of_death",
+        "address",
+        "date_confirmed",
+        "date_first_suspected",
+        "id",
+        "victim_status_code",
+        "last_name",
+        "first_name",
+        "other_details",
+        "middle_name"
+    ],
+    "buildings": [
+        "zipcode",
+        "name",
+        "other_details",
+        "id",
+        "state",
+        "city",
+        "address"
+    ],
+    "officers": [
+        "dept_code",
+        "rank_code",
+        "address_id",
+        "date_of_birth",
+        "id",
+        "date_became_officer",
+        "middie_name",
+        "badge_number",
+        "last_name",
+        "gender",
+        "first_name",
+        "other_details"
+    ],
+    "payments": [
+        "amount",
+        "date",
+        "id",
+        "bill_id",
+        "date_of_payment",
+        "amount_of_payment",
+        "payment_status_code",
+        "payment_type_code",
+        "other_details"
+    ],
+    "banks": [
+        "details",
+        "name",
+        "id"
+    ],
+    "booking_agents": [
+        "details",
+        "name",
+        "id"
+    ],
+    "address_types": [
+        "description",
+        "code"
+    ],
+    "generic_to_brand_name_correspondence": [
+        "brand_medication_id",
+        "generic_medication_id"
+    ],
+    "medication_type": [
+        "description",
+        "code"
+    ],
+    "addresses": [
+        "line_4_other",
+        "zip_or_postcode",
+        "line_1_number_building",
+        "line_3",
+        "line_3_area_locality",
+        "address_id",
+        "details",
+        "zip_postcode",
+        "id",
+        "line_3_area_locality_suburb",
+        "state_province_county",
+        "other_details",
+        "city_town",
+        "line_2",
+        "town_city",
+        "city",
+        "state_provice_county",
+        "country_code",
+        "line_2_number_street",
+        "state_province",
+        "country",
+        "line_1"
+    ],
+    "doctors": [
+        "phone",
+        "address_id",
+        "email",
+        "id",
+        "last_name",
+        "gender",
+        "first_name",
+        "other_details"
+    ],
+    "officer_shifts": [
+        "shift_id",
+        "date_sended",
+        "officer_id",
+        "date_started"
+    ],
+    "payment_status_codes": [
+        "description",
+        "code"
+    ],
+    "projects": [
+        "name",
+        "start_date",
+        "id",
+        "client_id",
+        "end_date",
+        "description",
+        "other_details"
+    ],
+    "students": [
+        "name",
+        "phone_email",
+        "other_details",
+        "id"
+    ],
+    "product_categories": [
+        "description",
+        "code"
+    ],
+    "people_skills": [
+        "skill_level",
+        "skill_code",
+        "person_id"
+    ],
+    "movement_locations": [
+        "shipment_id",
+        "date_started",
+        "id",
+        "from_location_id",
+        "date_completed",
+        "to_location_id",
+        "other_details"
+    ],
+    "service_categories": [
+        "description",
+        "code",
+        "parent_service_category_code"
+    ],
+    "fees_status": [
+        "description",
+        "code"
+    ],
+    "reservation_payments": [
+        "payment_id",
+        "reservation_id"
+    ],
+    "incident_types": [
+        "description",
+        "code"
+    ],
+    "banks_interfaces": [
+        "details",
+        "student_fees_id",
+        "account_id",
+        "id"
+    ],
+    "customer_payment_methods": [
+        "payment_method_code",
+        "details",
+        "credit_card_number",
+        "customer_id",
+        "id"
+    ],
+    "location_types": [
+        "country_code",
+        "code",
+        "description"
+    ],
+    "service_types": [
+        "description",
+        "code"
+    ],
+    "events": [
+        "tribal_customs_id",
+        "event_type_code",
+        "value_system_id",
+        "name",
+        "to_date",
+        "other_details",
+        "location_id",
+        "start_date",
+        "id",
+        "results",
+        "from_date",
+        "objective",
+        "organisation_id",
+        "event_outcome_code",
+        "end_date",
+        "description",
+        "occupational_health_regulations_id"
+    ],
+    "product_types": [
+        "product_type_description",
+        "parent_production_type_code",
+        "vat_rating",
+        "description",
+        "parent_product_type_code",
+        "code"
+    ],
+    "pharmaceutical_companies": [
+        "name",
+        "other_details",
+        "id"
+    ],
+    "shifts": [
+        "end_time",
+        "start_time",
+        "description",
+        "id"
+    ],
+    "jargon": [
+        "phrase",
+        "meaning",
+        "situation_id",
+        "id"
+    ],
+    "customer_meters": [
+        "meter_id",
+        "date_to",
+        "customer_id",
+        "date_from",
+        "id",
+        "other_details"
+    ],
+    "payment_methods": [
+        "descriptions",
+        "description",
+        "code"
+    ],
+    "staff_on_projects": [
+        "project_id",
+        "from_datetime",
+        "hourly_rate",
+        "id",
+        "to_datetime",
+        "role_code",
+        "staff_id"
+    ],
+    "violaters": [
+        "payment_method_code",
+        "phone",
+        "name",
+        "violater_address_id",
+        "id",
+        "emai",
+        "date_of_first_violation",
+        "other_details"
+    ],
+    "people_roles": [
+        "date_to",
+        "comments",
+        "date_from",
+        "person_id",
+        "people_role_code"
+    ],
+    "meter_readings": [
+        "customer_meter_id",
+        "id",
+        "reading_value",
+        "date_of_reading",
+        "other_details"
+    ],
+    "ebola_victims_associates": [
+        "victim_id",
+        "associate_id",
+        "date_from"
+    ],
+    "order_status": [
+        "description",
+        "code"
+    ],
+    "customer_addresses": [
+        "address_type_code",
+        "date_to",
+        "date_address_to",
+        "premise_id",
+        "address_id",
+        "date_from",
+        "customer_id",
+        "id",
+        "date_address_from"
+    ],
+    "orders": [
+        "details",
+        "order_status_code",
+        "id",
+        "customer_id",
+        "date_order_placed"
+    ],
+    "staff_at_courts": [
+        "start_date",
+        "court_id",
+        "position_id",
+        "end_date",
+        "staff_id"
+    ],
+    "document_subsets": [
+        "details",
+        "name",
+        "id"
+    ],
+    "fees_types": [
+        "description",
+        "code"
+    ],
+    "consolidated_view": [
+        "bailiff_staff_name",
+        "court_reporter_staff_name",
+        "building",
+        "court",
+        "coordinator_staff_name",
+        "id",
+        "assistant_clerk_name",
+        "clerk_staff_name",
+        "judge",
+        "location"
+    ],
+    "prescription_items": [
+        "prescription_id",
+        "quantity",
+        "medication_id",
+        "instructions_to_customer"
+    ],
+    "mailshot_campaigns": [
+        "target_population",
+        "objectives",
+        "name",
+        "product_category_code",
+        "start_date",
+        "id",
+        "end_date",
+        "other_details"
+    ],
+    "organisation_categories": [
+        "description",
+        "code"
+    ],
+    "situations": [
+        "name",
+        "description",
+        "id"
+    ],
+    "shipments_products_and_services": [
+        "quantity",
+        "product_svc_id",
+        "shipment_id"
+    ],
+    "occupational_health_regulations": [
+        "details",
+        "id"
+    ],
+    "student_loans": [
+        "regular_repayment_amount",
+        "standard_load_id",
+        "guarantor_id",
+        "other_details",
+        "id",
+        "load_period",
+        "last_payment_date",
+        "first_repayment_date",
+        "initial_loan_amount"
+    ],
+    "nurseries": [
+        "email_address",
+        "nursery_name",
+        "address_id",
+        "office_phone",
+        "id",
+        "cell_mobile_phone",
+        "other_details"
+    ],
+    "party_and_roles_in_events": [
+        "details",
+        "role_id",
+        "id",
+        "party_id",
+        "event_id"
+    ],
+    "invoices": [
+        "details",
+        "date_issued",
+        "invoice_status_code",
+        "date",
+        "discount",
+        "total_fees",
+        "period_id",
+        "id",
+        "amount_payable",
+        "date_paid",
+        "number",
+        "client_id",
+        "order_id",
+        "other_details"
+    ],
+    "accounts": [
+        "name",
+        "date_account_opened",
+        "id",
+        "customer_id",
+        "student_id",
+        "bank_id",
+        "account_number",
+        "account_type_code",
+        "other_details"
+    ],
+    "airports": [
+        "name",
+        "location",
+        "code",
+        "other_details"
+    ],
+    "customer_payment_details": [
+        "payment_method_code",
+        "customer_id",
+        "details",
+        "id"
+    ],
+    "services": [
+        "period_code",
+        "name",
+        "id",
+        "parent_service_id",
+        "service_category_code",
+        "price_per_period",
+        "description",
+        "other_details",
+        "service_type_code"
+    ],
+    "student_tuition_fees": [
+        "details",
+        "id"
+    ],
+    "products": [
+        "color",
+        "name",
+        "category_code",
+        "id",
+        "size",
+        "product_type_code",
+        "price",
+        "description",
+        "other_details",
+        "production_type_code"
+    ],
+    "order_item_status": [
+        "description",
+        "code"
+    ],
+    "order_items": [
+        "rma_issued_date",
+        "monthly_payment_amount",
+        "quantity",
+        "quality",
+        "status_code",
+        "rma_issued_by",
+        "rma_number",
+        "id",
+        "order_item_status_code",
+        "service_id",
+        "product_id",
+        "order_quantity",
+        "monthly_payment_date",
+        "order_id",
+        "delivered_datetime",
+        "price",
+        "other_details",
+        "product_quantity"
+    ],
+    "customers": [
+        "address_id",
+        "address_line_3",
+        "address_line_2",
+        "email",
+        "login_name",
+        "county",
+        "email_address",
+        "payment_method_code",
+        "phone",
+        "login_password",
+        "password",
+        "address_line_1",
+        "id",
+        "phone_number",
+        "gender",
+        "first_name",
+        "state_county_province",
+        "other_details",
+        "date_card_expiry",
+        "date_originally_joined",
+        "middle_initial",
+        "town_city",
+        "organisation_or_person",
+        "emai",
+        "last_name",
+        "address_line_4",
+        "address",
+        "login",
+        "organisation_name",
+        "name",
+        "credit_card_number",
+        "country",
+        "number",
+        "commercial_or_domestic",
+        "middle_name"
+    ],
+    "invoice_line_items": [
+        "order_item_id",
+        "product_title",
+        "product_price",
+        "derived_product_cost",
+        "invoice_number",
+        "product_id",
+        "derived_total_cost",
+        "derived_vat_payable",
+        "other_details",
+        "product_quantity"
+    ],
+    "order_item_status_codes": [
+        "description",
+        "code"
+    ],
+    "transaction_types": [
+        "description",
+        "code"
+    ],
+    "items_ordered": [
+        "prescription_id",
+        "quantity_received",
+        "date_received",
+        "medication_id",
+        "date_ordered",
+        "quantity_ordered"
+    ],
+    "documents_in_collections": [
+        "collection_id",
+        "document_object_id"
+    ],
+    "event_types": [
+        "code",
+        "description"
+    ],
+    "student_fees_due": [
+        "amount",
+        "comments",
+        "merchant_id",
+        "fees_type_code",
+        "fees_status_code",
+        "id",
+        "student_id",
+        "due_date",
+        "collected_date",
+        "other_details"
+    ],
+    "possible_treatments": [
+        "effectiveness",
+        "description",
+        "code"
+    ],
+    "officers_in_incidents": [
+        "incident_id",
+        "role_code",
+        "officer_id"
+    ],
+    "departments": [
+        "description",
+        "code",
+        "parent_dept_code"
+    ],
+    "ticket_status": [
+        "description",
+        "code"
+    ],
+    "tickets": [
+        "ticket_status_code",
+        "date_paid",
+        "number",
+        "violation_id",
+        "other_details",
+        "date_cancelled"
+    ],
+    "product_and_service_types": [
+        "description",
+        "code"
+    ],
+    "student_fees_collected": [
+        "payment_method_code",
+        "details",
+        "amount",
+        "comments",
+        "credit_card_number",
+        "id",
+        "student_id",
+        "due_date",
+        "collected_date"
+    ],
+    "credit_cards": [
+        "details",
+        "student_id",
+        "number",
+        "card_type_code"
+    ],
+    "football_clubs": [
+        "name",
+        "clothing_id",
+        "id",
+        "jargon_id",
+        "colours",
+        "description",
+        "other_details"
+    ],
+    "shipments": [
+        "tracking_number",
+        "details",
+        "from_organization_id",
+        "date",
+        "id",
+        "invoice_number",
+        "order_id",
+        "to_organization_id"
+    ],
+    "student_fines": [
+        "amount_due",
+        "status_code",
+        "id",
+        "payment_due_date",
+        "other_details"
+    ],
+    "staff_types": [
+        "description",
+        "code"
+    ],
+    "positions": [
+        "name",
+        "description",
+        "id"
+    ],
+    "premises": [
+        "details",
+        "premises_type_code",
+        "id"
+    ],
+    "merchants_interfaces": [
+        "details",
+        "merchant_id",
+        "student_fees_id",
+        "id"
+    ],
+    "plant_categories": [
+        "parent_plant_category_code",
+        "description",
+        "code"
+    ],
+    "vehicle_types": [
+        "description",
+        "code"
+    ],
+    "organisation_relstionships": [
+        "organisation_2_id",
+        "to_date",
+        "type_code",
+        "organisation_1_id",
+        "from_date",
+        "other_details"
+    ],
+    "value_systems": [
+        "name",
+        "situation_id",
+        "description",
+        "id"
+    ],
+    "party_types": [
+        "description",
+        "code"
+    ],
+    "other_fees": [
+        "details",
+        "id"
+    ]
+}
