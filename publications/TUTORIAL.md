@@ -19,7 +19,7 @@ def users():
 
 The `name` parameter is not sanitized, so the endpoint is vulnerable to BSQLI.
 
-To exploit the vulnerability, you need to instruct Hakuin on how to inject its queries. This is done by deriving the `Requester` class and overriding the `request` method. Aside from injecting queries, the method must determine whether they resolved to `True` or `False`.
+To exploit the vulnerability, you need to instruct Hakuin on how to inject its queries. This is done by deriving the `Requester` class and overriding the `request` method. Aside from injecting queries, the method must determine whether they resolve to `True` or `False`.
 ```python
 from hakuin import Requester
 
@@ -27,13 +27,13 @@ class SimpleRequester(Requester):
     async def request(self, query, ctx):
         # inject the query
         payload = query.render(ctx)
-        url = f'http://target.com/users?search=XXX" OR ({payload}) --'
+        url = f'http://target.com/users?name=XXX" OR ({payload}) --'
         async with aiohttp.request('GET', url) as resp:
             # determine the query result
             return resp.status == 200
 ```
 
-Pay attention to the glue code in `search=XXX" OR ({payload})`. The`XXX"` part escapes the string literal in `WHERE name="{name}"`, the `--` turns the extra `"` into a comment to avoid breaking the SQL syntax, and the `OR ({payload})` ensures the SQL statement resolves to true if the payload is logically true and vice versa. There are many ways to glue the payload to the SQL statement, be creative!
+Pay attention to the glue code in `name=XXX" OR ({payload})`. The`XXX"` part escapes the string literal in `WHERE name="{name}"`, the `--` turns the extra `"` into a comment to avoid breaking the SQL syntax, and the `OR ({payload})` ensures the SQL statement resolves to true if the payload is logically true and vice versa. There are many ways to glue the payload to the SQL statement, be creative!
 
 Also, notice that there are many ways to infer the boolean result of the injected query. In the example above, we checked, whether the `resp.status == 200`, but we could just as well check whether the response includes the string `"found"`.
 
@@ -112,7 +112,7 @@ def register():
     return 'oops', 404
 ```
 
-Here, the user provided `name` is stored on the server via the `/register` endpoint and only then it is inserted into the SQL statement via `/profile`.
+Here, the user-provided `name` is stored on the server via the `/register` endpoint and only then it is inserted into the SQL statement via `/profile`.
 
 This second-order vulnerability can be exploited with the following code:
 ```python
