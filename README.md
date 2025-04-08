@@ -2,9 +2,10 @@
     <img width="150" src="https://raw.githubusercontent.com/pruzko/hakuin/main/logo.png">
 </p>
 
-Hakuin is a Blind SQL Injection (BSQLI) optimization and automation framework written in Python 3. It abstracts away the extraction logic and allows users to easily and efficiently dumps databases from vulnerable web applications. To speed up the process, Hakuin utilizes a variety of optimization methods, including pre-trained and adaptive language models, opportunistic guessing, statistical modeling, parallelism, and much more.
+Hakuin is a Blind SQL Injection (BSQLI) optimization and automation framework written in Python 3. It abstracts away the extraction logic and allows users to easily and efficiently dump databases from vulnerable web applications. To speed up the process, Hakuin utilizes a variety of optimization methods, including pre-trained and adaptive language models, opportunistic guessing, statistical modeling, parallelism, and much more.
 
 Hakuin has been presented at esteemed academic and industrial conferences:
+- [BSides, Bratislava](https://bsidesba.sk/schedule), 2025
 - [BlackHat MEA, Riyadh](https://blackhatmea.com/session/hakuin-injecting-brain-blind-sql-injection), 2023
 - [Hack in the Box, Phuket](https://conference.hitb.org/hitbsecconf2023hkt/session/hakuin-injecting-brains-into-blind-sql-injection/), 2023
 - [IEEE S&P Workshop on Offsensive Technology (WOOT)](https://wootconference.org/papers/woot23-paper17.pdf), 2023

