@@ -2,8 +2,8 @@ import asyncio
 from collections import Counter
 
 from hakuin.requesters import EmulationRequester
-from hakuin.search_algorithms import TreeSearch
-from hakuin.utils.huffman import make_tree
+from hakuin.search_algorithms import TreeSearch, TernaryTreeSearch
+from hakuin.tree import make_huffman_tree
 
 from .row_collector import RowCollector
 
@@ -66,14 +66,16 @@ class GuessingRowCollector(RowCollector):
     TOTAL_PROB_TH = 0.5
 
 
-    def __init__(self, requester, dbms):
+    def __init__(self, requester, dbms, use_ternary=False):
         '''Constructor.
 
         Params:
             requester (Requester): requester
             dbms (DBMS): database engine
+            use_ternary (bool): use ternary search flag
         '''
         super().__init__(requester=requester, dbms=dbms)
+        self.use_ternary = use_ternary
         self.counter = GuessCounter()
 
 
@@ -94,7 +96,7 @@ class GuessingRowCollector(RowCollector):
 
         Params:
             ctx (Context): collection context
-            tree (HuffmanNode): guessing tree
+            tree (Node): guessing tree
             correct: correct value
 
         Returns:
@@ -112,12 +114,13 @@ class GuessingRowCollector(RowCollector):
         Params:
             requester (Requester): requester to be used
             ctx (Context): collection context
-            tree (HuffmanNode): guessing tree
+            tree (Node): guessing tree
 
         Returns:
             value: collected row
         '''
-        return await TreeSearch(
+        SearchAlg = TernaryTreeSearch if self.use_ternary else TreeSearch
+        return await SearchAlg(
             requester=requester,
             dbms=self.dbms,
             query_cls=self.dbms.QueryValueInList,
@@ -132,7 +135,7 @@ class GuessingRowCollector(RowCollector):
             fallback_cost (float): fallback cost
 
         Returns:
-            HuffmanNode|None: guessing tree or None if unavailable
+            Node|None: guessing tree or None if unavailable
         '''
         guesses = {}
         prob = 0.0
@@ -142,7 +145,7 @@ class GuessingRowCollector(RowCollector):
 
         for guess, guess_prob in await self.counter.guesses():
             guesses[guess] = guess_prob
-            tree = make_tree(guesses)
+            tree = make_huffman_tree(guesses, use_ternary=self.use_ternary)
             prob += guess_prob
             cost = prob * tree.success_cost() + ((1 - prob) * (tree.fail_cost() + fallback_cost))
 
@@ -163,7 +166,7 @@ class GuessingRowCollector(RowCollector):
             ctx (Context): collection context
             value (value): collected row
             row_guessed (bool): row was successfully guessed flag
-            tree (HuffmanNode|None): guessing tree or None if not available
+            tree (Node|None): guessing tree or None if not available
         '''
         if tree:
             cost, res = await self._emulate(ctx, tree=tree, correct=value)

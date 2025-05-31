@@ -1,6 +1,7 @@
 from sqlglot import exp, parse_one
 
 from hakuin.collectors import StringContext
+from hakuin.exceptions import ServerError
 from hakuin.utils import BYTE_MAX, Symbol, snake_to_pascal_case
 
 
@@ -78,13 +79,21 @@ class DBMS:
         return exp.HexString(this=value.hex())
 
 
+    def force_server_error(self):
+        return exp.Literal.number(1) / 0
+
+
     def get_schema_name(self, ctx):
         return self.literal_text(ctx.schema) if ctx.schema else exp.CurrentSchema()
 
 
 
     class Query:
-        '''Base class for queries.'''
+        '''Base class for queries.
+
+        Attributes:
+            AST_TEMPLATE (sqlglot.Expression): query AST template
+        '''
         AST_TEMPLATE = None
 
 
@@ -244,6 +253,52 @@ class DBMS:
 
             resolver = f'literal_{type_map[type(value)]}'
             return getattr(self.dbms, resolver)(value)
+
+
+
+    class QueryTernary(Query):
+        '''Ternary query that combines two subqueries into one.'''
+        AST_TERNARY = parse_one(
+            sql='@cond1 or not(@cond2) and @error',
+            dialect='sqlite',
+        )
+
+
+        def __init__(self, dbms, query1, query2):
+            '''Constructor.
+
+            Params:
+                dbms (DBMS): DBMS instance used to render queries
+                query1 (Query): first subquery
+                query2 (Query): second subquery
+            '''
+            super().__init__(dbms)
+            self.query1 = query1
+            self.query2 = query2
+
+
+        def ast(self, ctx):
+            ast1 = self.query1.ast(ctx)
+            ast2 = self.query2.ast(ctx)
+
+            case = self.resolve_params(ast=self.AST_TERNARY.copy(), ctx=ctx, params={
+                'cond1': ast1.expressions[0],
+                'cond2': ast2.expressions[0],
+                'error': self.dbms.force_server_error(),
+            })
+
+            ast1.set('expressions', [case])
+            return ast1
+
+
+        def emulate(self, correct):
+            if self.query1.emulate(correct):
+                return True
+            elif self.query2.emulate(correct):
+                return False
+            else:
+                raise ServerError
+
 
 
 

@@ -81,6 +81,26 @@ class MSSQL(DBMS):
         return exp.National(this=value)
 
 
+    def force_server_error(self):
+        return exp.func('log', 0).eq(0)
+
+
+
+    class QueryTernary(DBMS.QueryTernary):
+        def ast(self, ctx):
+            ast1 = self.query1.ast(ctx)
+            ast2 = self.query2.ast(ctx)
+
+            case = self.resolve_params(ast=self.AST_TERNARY.copy(), ctx=ctx, params={
+                'cond1': ast1.expressions[0].this,
+                'cond2': ast2.expressions[0].this,
+                'error': self.dbms.force_server_error(),
+            })
+
+            ast1.set('expressions', [case])
+            return self.dbms.wrap_ast(ast=ast1)
+
+
 
     class QueryColumnTypeIsInt(DBMS.QueryColumnTypeIsInt):
         AST_TEMPLATE = parse_one(

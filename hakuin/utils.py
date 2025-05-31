@@ -6,12 +6,9 @@ from enum import Enum
 
 from tqdm import tqdm
 
-from .info_messages import _INFO_MESSAGES
 
 
-
-DIR_FILE = os.path.dirname(os.path.realpath(__file__))
-DIR_ROOT = os.path.abspath(os.path.join(DIR_FILE, '..'))
+DIR_ROOT = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 DIR_MODELS = os.path.join(DIR_ROOT, 'models')
 if not os.path.isdir(DIR_MODELS):
     DIR_MODELS = os.path.abspath(os.path.join(DIR_ROOT, '..', 'models'))
@@ -34,6 +31,13 @@ class Symbol(Enum):
 CHARSET_DIGITS = list(string.digits) + [Symbol.EOS]
 
 
+_INFO_MESSAGES = {
+    'extracting_column': 'Extracting column "{}.{}"',
+    'extracting_column_names': 'Extracting column names of "{}"',
+    'extracting_table_names': 'Extracting tables names.',
+    'extracting_schema_names': 'Extracting schema names.',
+    'row_extracted': '({}/{}): {}',
+}
 
 
 def info(msg, *args, progress=None):

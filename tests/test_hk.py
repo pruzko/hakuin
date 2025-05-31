@@ -134,7 +134,7 @@ class HKTests(metaclass=ABCMeta):
 
     def test_column_integers(self):
         n_requests, data = self.run_hk(args={'-t': 'test_data_types', '-c': 'test_floats'})
-        self.assertEqual(n_requests, 110)
+        self.assertEqual(n_requests, 113)
         self.assertEqual(data, list(DB_DATA['test_data_types']['test_floats']))
 
 
@@ -164,7 +164,7 @@ class HKTests(metaclass=ABCMeta):
 
     def test_int_optimizations(self):
         n_requests, data = self.run_hk(args={'-t': 'test_int_optimizations', '-c': 'norm_dist'})
-        self.assertEqual(n_requests, 607)
+        self.assertEqual(n_requests, 614)
         self.assertEqual(data, list(DB_DATA['test_int_optimizations']['norm_dist']))
 
 

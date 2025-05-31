@@ -8,8 +8,9 @@ import sys
 import tqdm
 import urllib.parse
 
-from hakuin.dbms import DBMS_DICT
 from hakuin import Extractor, Requester, SessionRequester
+from hakuin.dbms import DBMS_DICT
+from hakuin.exceptions import ServerError
 
 
 
@@ -46,9 +47,10 @@ class UniversalRequester(SessionRequester):
         body = self.RE_QUERY_TAG.sub(query, self.body) if self.body else None
 
         async with self.session.request(method=self.method, url=url, headers=headers, cookies=cookies, data=body) as resp:
-            if resp.status not in [200, 404]:
-                tqdm.tqdm.write(f'(err) {query}')
-                raise AssertionError(f'Invalid response code: {resp.status}')
+            if resp.status in range(500, 600):
+                if self.dbg:
+                    tqdm.tqdm.write(f'{await self.n_requests() + 1} E {query}')
+                raise ServerError
 
             if self.inference['type'] == 'status':
                 result = resp.status == self.inference['content']
@@ -62,7 +64,7 @@ class UniversalRequester(SessionRequester):
             result = not result
 
         if self.dbg:
-            tqdm.tqdm.write(f'{await self.n_requests() + 1} {"(err)" if resp.status == 500 else str(result)[0]} {query}')
+            tqdm.tqdm.write(f'{await self.n_requests() + 1} {str(result)[0]} {query}')
 
         return result
 
@@ -106,7 +108,15 @@ class HK:
             requester = UniversalRequester(args)
 
         async with requester:
-            self.ext = Extractor(requester=requester, dbms=args.dbms, n_tasks=args.tasks)
+            self.ext = Extractor(
+                requester=requester,
+                dbms=args.dbms,
+                n_tasks=args.tasks,
+                use_models=not args.no_models,
+                use_auto_inc=not args.no_auto_inc,
+                use_guessing=not args.no_guessing,
+                use_ternary=args.use_ternary,
+            )
             await self._run(args)
 
 
@@ -119,13 +129,13 @@ class HK:
             else:
                 res = await self.extract_tables(args)
         elif args.extract == 'meta':
-            res = await self.ext.extract_meta(schema=args.schema, use_models=not args.no_models)
+            res = await self.ext.extract_meta(schema=args.schema)
         elif args.extract == 'schemas':
-            res = await self.ext.extract_schema_names(use_models=not args.no_models)
+            res = await self.ext.extract_schema_names()
         elif args.extract == 'tables':
-            res = await self.ext.extract_table_names(schema=args.schema, use_models=not args.no_models)
+            res = await self.ext.extract_table_names(schema=args.schema)
         elif args.extract == 'columns':
-            res = await self.ext.extract_column_names(table=args.table, schema=args.schema, use_models=not args.no_models)
+            res = await self.ext.extract_column_names(table=args.table, schema=args.schema)
 
         res = {
             'stats': {
@@ -141,18 +151,12 @@ class HK:
             table=args.table,
             column=args.column,
             schema=args.schema,
-            use_models=not args.no_models,
-            use_auto_inc=not args.no_auto_inc,
-            use_guessing=not args.no_guessing,
         )
 
 
     async def extract_tables(self, args):
         res = {}
-        tables = await self.ext.extract_table_names(
-            schema=args.schema,
-            use_models=not args.no_models,
-        )
+        tables = await self.ext.extract_table_names(schema=args.schema)
 
         for table in tables:
             res[table] = await self.extract_table(args, table=table)
@@ -165,17 +169,11 @@ class HK:
         columns = await self.ext.extract_column_names(
             table=table,
             schema=args.schema,
-            use_models=not args.no_models,
         )
 
         for column in columns:
             try:
-                res[column] = await self.ext.extract_column(
-                    table=table,
-                    column=column,
-                    use_models=not args.no_models,
-                    use_guessing=not args.no_guessing,
-                )
+                res[column] = await self.ext.extract_column(table=table, column=column)
             except Exception as e:
                 res[column] = None
                 tqdm.tqdm.write(f'(err) Failed to extract "{table}.{column}": {e}')
@@ -227,6 +225,7 @@ def main():
     parser.add_argument('-t', '--table', help='Select this table. If not provided, all tables are selected.')
     parser.add_argument('-c', '--column', help='Select this column. If not provided, all columns are selected.')
 
+    parser.add_argument('--use_ternary', action='store_true', help='Turn on ternary search.')
     parser.add_argument('--no_models', action='store_true', help='Turn off language models.')
     parser.add_argument('--no_guessing', action='store_true', help='Turn off value guessing.')
     parser.add_argument('--no_auto_inc', action='store_true', help='Turn off auto increment guessing.')

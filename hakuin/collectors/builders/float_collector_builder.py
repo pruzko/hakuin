@@ -18,15 +18,16 @@ class FloatCollectorBuilder(CollectorBuilder):
     COLUMN_COLLECTOR_CLS = FloatColumnCollector
 
 
-    def __init__(self, requester, dbms, n_tasks=1):
+    def __init__(self, requester, dbms, use_ternary=False, n_tasks=1):
         '''Constructor.
 
         Params:
             requester (Requester): requester
             dbms (DBMS): database engine
+            use_ternary (bool): use ternary search flag
             n_tasks (int): number of extraction tasks to run in parallel
         '''
-        super().__init__(requester, dbms, n_tasks)
+        super().__init__(requester, dbms, use_ternary, n_tasks)
         self.int_collector_builder = IntCollectorBuilder(
             requester=self.requester,
             dbms=self.dbms,

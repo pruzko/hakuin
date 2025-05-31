@@ -1,5 +1,5 @@
 from hakuin.collectors.checks import check_flag
-from hakuin.search_algorithms import BinarySearch
+from hakuin.search_algorithms import SectionSearch, TernarySectionSearch
 from hakuin.utils import BYTE_MAX, ASCII_MAX, UNICODE_MAX, Symbol
 
 from .char_collector import CharCollector
@@ -25,8 +25,9 @@ class TextBinaryCharCollector(CharCollector):
             true_if_true='row_is_ascii',
         )
 
+        SearchAlg = TernarySectionSearch if self.use_ternary else SectionSearch
         if char_is_ascii:
-            res = await BinarySearch(
+            res = await SearchAlg(
                 requester=requester,
                 dbms=self.dbms,
                 query_cls=self.dbms.QueryTextCharLt,
@@ -37,7 +38,7 @@ class TextBinaryCharCollector(CharCollector):
             ).run(ctx)
             return chr(res) if res <= ASCII_MAX else Symbol.EOS
 
-        res = await BinarySearch(
+        res = await SearchAlg(
             requester=requester,
             dbms=self.dbms,
             query_cls=self.dbms.QueryTextCharLt,
@@ -61,7 +62,8 @@ class BlobBinaryCharCollector(CharCollector):
         Returns:
             str|bytes: collected char
         '''
-        res = await BinarySearch(
+        SearchAlg = TernarySectionSearch if self.use_ternary else SectionSearch
+        res = await SearchAlg(
             requester=requester,
             dbms=self.dbms,
             query_cls=self.dbms.QueryBlobCharLt,

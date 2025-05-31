@@ -24,10 +24,11 @@ class Requester(metaclass=ABCMeta):
         Returns:
             bool: query result
         '''
-        res = await self.request(query=query, ctx=ctx)
-        async with self._lock:
-            self._n_requests += 1
-        return res
+        try:
+            return await self.request(query=query, ctx=ctx)
+        finally:
+            async with self._lock:
+                self._n_requests += 1
 
 
     @abstractmethod
@@ -72,6 +73,7 @@ class SessionRequester(Requester):
 
     async def __aenter__(self):
         self.session = aiohttp.ClientSession()
+        return self
 
 
     async def __aexit__(self, *args, **kwargs):

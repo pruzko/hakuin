@@ -6,6 +6,7 @@ import unittest
 
 from hakuin import Extractor, Requester
 from hakuin.utils import DIR_ROOT
+from hakuin.exceptions import ServerError
 
 
 
@@ -14,21 +15,24 @@ DIR_DBS = os.path.abspath(os.path.join(DIR_ROOT, '..', 'tests', 'dbs'))
 
 
 class OfflineRequester(Requester):
-    def __init__(self, db_file):
+    DB_PATH = None
+    def __init__(self):
         super().__init__()
         self.db = None
         self.cursor = None
-        self.db_file = db_file
 
 
     async def request(self, query, ctx):
         query = f'SELECT cast(({query.render(ctx)}) as bool)'
-        return bool(self.db.execute(query).fetchone()[0])
+        try:
+            return bool(self.db.execute(query).fetchone()[0])
+        except sqlite3.OperationalError:
+            raise ServerError
 
 
     async def __aenter__(self):
-        assert os.path.exists(self.db_file), f'DB not found: {self.db_file}'
-        self.db = sqlite3.connect(self.db_file)
+        assert os.path.exists(self.DB_PATH), f'DB not found: {self.DB_PATH}'
+        self.db = sqlite3.connect(self.DB_PATH)
         self.cursor = self.db.cursor()
         return self
 
@@ -44,7 +48,17 @@ class OfflineRequester(Requester):
 
 
 
-@unittest.skip('Offline tests are disabled.')
+class OfflineMetaRequester(OfflineRequester):
+    DB_PATH = f'{DIR_DBS}/test_meta.sqlite'
+
+
+class OfflineContentRequester(OfflineRequester):
+    DB_PATH = f'{DIR_DBS}/test_content.sqlite'
+
+
+
+
+# @unittest.skip('Offline tests are disabled.')
 class OfflineTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -56,7 +70,7 @@ class OfflineTests(unittest.TestCase):
 
 
     async def dump_meta(self):
-        requester = OfflineRequester(db_file=f'{DIR_DBS}/test_meta.sqlite')
+        requester = OfflineMetaRequester()
         async with requester:
             ext = Extractor(requester=requester, dbms='sqlite')
             data = await ext.extract_meta()
@@ -66,7 +80,7 @@ class OfflineTests(unittest.TestCase):
 
     
     async def dump_column(self, table, column):
-        requester = OfflineRequester(db_file=f'{DIR_DBS}/test_content.sqlite')
+        requester = OfflineContentRequester()
         async with requester:
             ext = Extractor(requester=requester, dbms='sqlite')
             data = await ext.extract_column(table=table, column=column)

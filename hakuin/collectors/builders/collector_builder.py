@@ -18,16 +18,18 @@ class CollectorBuilder(metaclass=ABCMeta):
     }
 
 
-    def __init__(self, requester, dbms, n_tasks=1):
+    def __init__(self, requester, dbms, use_ternary=False, n_tasks=1):
         '''Constructor.
 
         Params:
             requester (Requester): requester
             dbms (DBMS): database engine
+            use_ternary (bool): use ternary search flag
             n_tasks (int): number of extraction tasks to run in parallel
         '''
         self.requester = requester
         self.dbms = dbms
+        self.use_ternary = use_ternary
         self.n_tasks = n_tasks
         self.collectors = {}
 
@@ -67,5 +69,6 @@ class CollectorBuilder(metaclass=ABCMeta):
             dbms=self.dbms,
             row_collector=self.build_row_collector(),
             guessing_row_collector=self.collectors.get('guessing_row_collector'),
+            use_ternary=self.use_ternary,
             n_tasks=self.n_tasks,
         )

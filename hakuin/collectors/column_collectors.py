@@ -3,7 +3,7 @@ import sys
 import tqdm
 
 from hakuin.collectors.checks import check_flag
-from hakuin.search_algorithms import BinarySearch
+from hakuin.search_algorithms import SectionSearch, TernarySectionSearch
 from hakuin.utils import info
 
 
@@ -15,7 +15,10 @@ class ColumnCollector:
     FLAG_CHECKS = ['column_has_null']
 
 
-    def __init__(self, requester, dbms, row_collector, guessing_row_collector=None, n_tasks=1):
+    def __init__(
+            self, requester, dbms, row_collector, guessing_row_collector=None, use_ternary=False,
+            n_tasks=1,
+        ):
         '''Constructor.
 
         Params:
@@ -23,12 +26,14 @@ class ColumnCollector:
             dbms (DBMS): database engine
             row_collector (RowCollector): fallback row collector
             guessing_row_collector (GuessingRowCollector): guessing row collector
+            use_ternary (bool): use ternary search flag
             n_tasks (int): number of extraction tasks to run in parallel
         '''
         self.requester = requester
         self.dbms = dbms
         self.row_collector = row_collector
         self.guessing_row_collector = guessing_row_collector
+        self.use_ternary = use_ternary
         self.n_tasks = n_tasks
 
 
@@ -45,12 +50,13 @@ class ColumnCollector:
             info(f'extracting_{ctx.target}', ctx.table, ctx.column)
 
         if ctx.n_rows is None:
-            ctx.n_rows = await BinarySearch(
+            SearchAlg = TernarySectionSearch if self.use_ternary else SectionSearch
+            ctx.n_rows = await SearchAlg(
                 requester=self.requester,
                 dbms=self.dbms,
                 query_cls=self.dbms.QueryRowsCountLt,
                 lower=0,
-                upper=128,
+                upper=128 if ctx.target == 'column' else 8,
                 find_lower=False,
                 find_upper=True,
             ).run(ctx)
@@ -61,7 +67,6 @@ class ColumnCollector:
         for name in self.FLAG_CHECKS:
             flag = await check_flag(requester=self.requester, dbms=self.dbms, ctx=ctx, name=name)
             setattr(ctx, name, flag)
-
 
         data = [None] * ctx.n_rows
         queue = asyncio.Queue()

@@ -1,6 +1,8 @@
 import asyncio
 from abc import ABCMeta, abstractmethod
 
+from hakuin.exceptions import ServerError
+
 
 
 class SearchAlgorithm(metaclass=ABCMeta):
@@ -25,8 +27,8 @@ class SearchAlgorithm(metaclass=ABCMeta):
 
 
 
-class BinarySearch(SearchAlgorithm):
-    '''Exponential and binary search for numeric values.'''
+class SectionSearch(SearchAlgorithm):
+    '''Exponential and section search for numeric values.'''
     def __init__(
         self, requester, dbms, query_cls, lower=0, upper=16, find_lower=False, find_upper=False
     ):
@@ -43,7 +45,7 @@ class BinarySearch(SearchAlgorithm):
             find_upper (bool): exponentially expands the upper bound
                 until the correct value is within
         '''
-        assert lower != upper, f'Lower and uppper bounds cannot be the same: {lower}'
+        assert lower < upper, f'Lower bound must be lower than the upper bound.'
 
         super().__init__(requester, dbms, query_cls)
         self.lower = lower
@@ -54,6 +56,7 @@ class BinarySearch(SearchAlgorithm):
         self._upper = None
         self._f_lower = None
         self._f_upper = None
+        self._step = None
 
 
     async def run(self, ctx):
@@ -69,132 +72,191 @@ class BinarySearch(SearchAlgorithm):
         self._upper = self.upper
         self._f_lower = self.find_lower
         self._f_upper = self.find_upper
-        step = self._upper - self._lower
 
         if self._f_lower:
-            await self._find_lower(ctx, step=step)
+            await self._find_lower(ctx)
         if self._f_upper:
-            await self._find_upper(ctx, step=step)
+            await self._find_upper(ctx)
 
-        return await self._search(ctx, lower=self._lower, upper=self._upper)
+        return await self._search(ctx)
 
 
-    async def _find_lower(self, ctx, step):
+    async def _find_lower(self, ctx):
         '''Exponentially expands the lower bound until the correct value is within.
 
         Params:
             ctx (Context): collection context
-            step (int): initial step
         '''
-        query = self.query_cls(dbms=self.dbms, n=self._lower)
-        if not await self.requester.run(query=query, ctx=ctx):
-            return
+        self._step = self._upper - self._lower
 
-        self._upper = self._lower
-        self._f_upper = False
-        self._lower -= step
-        return await self._find_lower(ctx, step=step * 2)
+        while True:
+            query = self.query_cls(dbms=self.dbms, n=self._lower)
+            if not await self.requester.run(query=query, ctx=ctx):
+                return
+            self._expand_lower()
 
 
-    async def _find_upper(self, ctx, step):
+    async def _find_upper(self, ctx):
         '''Exponentially expands the upper bound until the correct value is within.
 
         Params:
             ctx (Context): collection context
-            step (int): initial step
-        query = self.query_cls(dbms=self.dbms, n=n)
         '''
-        query = self.query_cls(dbms=self.dbms, n=self._upper)
-        if await self.requester.run(query=query, ctx=ctx):
-            return
+        self._step = self._upper - self._lower
 
+        while True:
+            query = self.query_cls(dbms=self.dbms, n=self._upper)
+            if await self.requester.run(query=query, ctx=ctx):
+                return
+            self._expand_upper()
+
+
+    def _expand_lower(self, factor=2):
+        '''Helper function to expand the lower bound of the search range.
+
+        Params:
+            factor (int): step multiplication factor
+        '''
+        self._upper = self._lower
+        self._f_upper = False
+        self._lower -= self._step
+        self._step *= factor
+
+
+    def _expand_upper(self, factor=2):
+        '''Helper function to expand the upper bound of the search range.
+
+        Params:
+            factor (int): step multiplication factor
+        '''
         self._lower = self._upper
-        self._upper += step
-        return await self._find_upper(ctx, step=step * 2)
+        self._f_lower = False
+        self._upper += self._step
+        self._step *= factor
 
 
-    async def _search(self, ctx, lower, upper):
-        '''Numeric binary search.
+    async def _search(self, ctx):
+        '''Numeric section search.
 
         Params:
             ctx (Context): collection context
-            lower (int): lower bound
-            upper (int): upper bound
 
         Returns:
             int: inferred number
         '''
-        if lower + 1 == upper:
-            return lower
+        while True:
+            if self._lower + 1 == self._upper:
+                return self._lower
 
-        middle = (lower + upper) // 2
+            section = (self._lower + self._upper) // 2
 
-        query = self.query_cls(dbms=self.dbms, n=middle)
-        if await self.requester.run(query=query, ctx=ctx):
-            return await self._search(ctx, lower=lower, upper=middle)
+            query = self.query_cls(dbms=self.dbms, n=section)
+            if await self.requester.run(query=query, ctx=ctx):
+                self._upper = section
+            else:
+                self._lower = section
 
-        return await self._search(ctx, lower=middle, upper=upper)
 
 
-
-class ListSearch(SearchAlgorithm):
-    '''Binary search for lists of values.'''
-    def __init__(self, requester, dbms, query_cls, values):
-        '''Constructor.
+class TernarySectionSearch(SectionSearch):
+    '''Ternary exponential and section search for numeric values.'''
+    async def _find_lower(self, ctx):
+        '''Exponentially expands the lower bound until the correct value is within.
 
         Params:
-            requester (Requester): requester
-            dbms (DBMS): database engine
-            query_cls (Type[Query]): Query class
-            values (list): list of values to search
+            ctx (Context): collection context
         '''
-        super().__init__(requester, dbms, query_cls)
-        self.values = values
+        self._step = self._upper - self._lower
+
+        while True:
+            query1 = self.query_cls(dbms=self.dbms, n=self._lower - self._step)
+            query2 = self.query_cls(dbms=self.dbms, n=self._lower)
+            query = self.dbms.QueryTernary(dbms=self.dbms, query1=query1, query2=query2)
+
+            try:
+                if await self.requester.run(query=query, ctx=ctx):
+                    self._expand_lower(factor=3)
+                    self._expand_lower(factor=3)
+                else:
+                    self._expand_lower(factor=3)
+                    return
+            except ServerError:
+                return
 
 
-    async def run(self, ctx):
-        '''Runs the search algorithm.
+    async def _find_upper(self, ctx):
+        '''Exponentially expands the upper bound until the correct value is within.
+
+        Params:
+            ctx (Context): collection context
+        '''
+        self._step = self._upper - self._lower
+
+        while True:
+            query1 = self.query_cls(dbms=self.dbms, n=self._upper)
+            query2 = self.query_cls(dbms=self.dbms, n=self._upper + self._step)
+            query = self.dbms.QueryTernary(dbms=self.dbms, query1=query1, query2=query2)
+
+            try:
+                if await self.requester.run(query=query, ctx=ctx):
+                    return
+                else:
+                    self._expand_upper(factor=3)
+                    return
+            except ServerError:
+                self._expand_upper(factor=3)
+                self._expand_upper(factor=3)
+
+
+    async def _search(self, ctx):
+        '''Numeric section search.
 
         Params:
             ctx (Context): collection context
 
         Returns:
-            value|None: inferred value or None on fail
+            int: inferred number
         '''
-        return await self._search(ctx, self.values)
+        while True:
+            if self._lower + 1 == self._upper:
+                return self._lower
 
+            diff = (self._upper - self._lower) // 3
+            diff = diff or 1
+            section1 = self._lower + diff
+            section2 = self._lower + diff * 2
 
-    async def _search(self, ctx, values):
-        if not values:
-            return None
+            query1 = self.query_cls(dbms=self.dbms, n=section1)
+            query2 = self.query_cls(dbms=self.dbms, n=section2)
+            query = self.dbms.QueryTernary(dbms=self.dbms, query1=query1, query2=query2)
 
-        if len(values) == 1:
-            return values[0]
-
-        middle = len(values) // 2
-        left, right = values[:middle], values[middle:]
-
-        query = self.query_cls(dbms=self.dbms, values=left)
-        if await self.requester.run(query=query, ctx=ctx):
-            return await self._search(ctx, left)
-
-        return await self._search(ctx, right)
+            try:
+                if await self.requester.run(query=query, ctx=ctx):
+                    self._upper = section1
+                else:
+                    self._lower = section1
+                    self._upper = section2
+            except ServerError:
+                self._lower = section2
 
 
 
 class TreeSearch(SearchAlgorithm):
     '''Huffman tree search.'''
-    def __init__(self, requester, dbms, query_cls, tree):
+    def __init__(self, requester, dbms, query_cls, tree, in_tree=False):
         '''Constructor.
 
         Params:
             requester (Requester): requester
             dbms (DBMS): database engine
             query_cls (Type[Query]): Query class
-            tree (utils.huffman.Node): Huffman tree to search
+            tree (Node): Huffman tree to search
+            in_tree (bool): value is guaranteed to be in the tree flag
+            is_ternary (bool): is ternary flag
         '''
         super().__init__(requester, dbms, query_cls)        
         self.tree = tree
+        self.in_tree = in_tree
 
 
     async def run(self, ctx):
@@ -206,37 +268,80 @@ class TreeSearch(SearchAlgorithm):
         Returns:
             value|None: inferred value or None on fail
         '''
-        return await self._search(ctx, tree=self.tree)
+        return await self._search(ctx)
 
 
-    async def _search(self, ctx, tree, in_tree=False):
+    async def _search(self, ctx):
         '''Tree search.
         
         Params:
             ctx (Context): collection context
-            tree (utils.huffman.Node): Huffman tree to search
-            in_tree (bool): True if the correct value is known to be in the tree
 
         Returns:
             value|None: inferred value or None on fail
         '''
-        if tree is None:
-            return None
+        tree = self.tree
+        in_tree = self.in_tree
 
-        if tree.is_leaf:
-            if in_tree:
-                return tree.value
+        while True:
+            if tree is None:
+                return None
 
-            query = self.query_cls(dbms=self.dbms, values=[tree.value])
+            if tree.is_leaf:
+                if in_tree:
+                    return tree.value
+
+                query = self.query_cls(dbms=self.dbms, values=[tree.value])
+                if await self.requester.run(query=query, ctx=ctx):
+                    return tree.value
+                return None
+
+            query = self.query_cls(dbms=self.dbms, values=tree.left.values())
             if await self.requester.run(query=query, ctx=ctx):
-                return tree.value
-            return None
+                tree = tree.left
+                in_tree = True
+            else:
+                tree = tree.right
 
-        query = self.query_cls(dbms=self.dbms, values=tree.left.values())
-        if await self.requester.run(query=query, ctx=ctx):
-            return await self._search(ctx, tree=tree.left, in_tree=True)
 
-        if tree.right is None:
-            return None
 
-        return await self._search(ctx, tree=tree.right, in_tree=in_tree)
+class TernaryTreeSearch(TreeSearch):
+    '''Ternary Huffman tree search.'''
+    async def _search(self, ctx):
+        '''Tree search.
+        
+        Params:
+            ctx (Context): collection context
+
+        Returns:
+            value|None: inferred value or None on fail
+        '''
+        tree = self.tree
+        in_tree = self.in_tree
+
+        while True:
+            if tree is None:
+                return None
+
+            if tree.is_leaf:
+                if in_tree:
+                    return tree.value
+
+                query = self.query_cls(dbms=self.dbms, values=[tree.value])
+                if await self.requester.run(query=query, ctx=ctx):
+                    return tree.value
+                return None
+
+            query1 = self.query_cls(dbms=self.dbms, values=tree.left.values())
+            query2 = self.query_cls(dbms=self.dbms, values=tree.middle.values())
+            query = self.dbms.QueryTernary(dbms=self.dbms, query1=query1, query2=query2)
+
+            try:
+                if await self.requester.run(query=query, ctx=ctx):
+                    tree = tree.left
+                    in_tree = True
+                else:
+                    tree = tree.middle
+                    in_tree = True
+            except ServerError:
+                    tree = tree.right

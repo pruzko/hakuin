@@ -68,6 +68,11 @@ class MySQL(DBMS):
         return ast
 
 
+    def force_server_error(self):
+        # alternatively json_extract('x', '$.y') works
+        return exp.func('exp', 999)
+
+
 
     class QueryColumnTypeIsInt(DBMS.QueryColumnTypeIsInt):
         AST_TEMPLATE = parse_one(

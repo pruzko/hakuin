@@ -7,15 +7,17 @@ from hakuin.requesters import EmulationRequester
 
 class CharCollector(metaclass=ABCMeta):
     '''Char collector base class.'''
-    def __init__(self, requester, dbms):
+    def __init__(self, requester, dbms, use_ternary=False):
         '''Constructor.
 
         Params:
             requester (Requester): requester
             dbms (DBMS): database engine
+            use_ternary (bool): use ternary search flag
         '''
         self.requester = requester
         self.dbms = dbms
+        self.use_ternary = use_ternary
         self.stats = Stats()
 
 

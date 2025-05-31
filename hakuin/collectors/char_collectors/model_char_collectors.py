@@ -1,5 +1,5 @@
-from hakuin.search_algorithms import TreeSearch
-from hakuin.utils.huffman import make_tree
+from hakuin.search_algorithms import TreeSearch, TernaryTreeSearch
+from hakuin.tree import make_huffman_tree
 
 from .char_collector import CharCollector
 
@@ -10,7 +10,7 @@ class ModelCharCollector(CharCollector):
     QUERY_CLS_NAME = None
 
 
-    def __init__(self, requester, dbms, model, adaptive=True):
+    def __init__(self, requester, dbms, model, adaptive=True, use_ternary=False):
         '''Constructor.
 
         Params:
@@ -18,8 +18,9 @@ class ModelCharCollector(CharCollector):
             dbms (DBMS): database engine
             model (Model): language model
             adaptive (bool): adaptively train model on collected characters
+            use_ternary (bool): use ternary search flag
         '''
-        super().__init__(requester=requester, dbms=dbms)
+        super().__init__(requester=requester, dbms=dbms, use_ternary=use_ternary)
         self.model = model
         self.adaptive = adaptive
 
@@ -36,11 +37,12 @@ class ModelCharCollector(CharCollector):
         '''
         probs = await self.model.predict(buffer=ctx.buffer)
 
-        return await TreeSearch(
+        SearchAlg = TernaryTreeSearch if self.use_ternary else TreeSearch
+        return await SearchAlg(
             requester=requester,
             dbms=self.dbms,
             query_cls=self.dbms.query_cls_lookup(self.QUERY_CLS_NAME),
-            tree=make_tree(probs),
+            tree=make_huffman_tree(probs=probs, use_ternary=self.use_ternary),
         ).run(ctx)
 
 

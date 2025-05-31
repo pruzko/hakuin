@@ -84,6 +84,14 @@ class Oracle(DBMS):
 
 
 
+    class QueryTernary(DBMS.QueryTernary):
+        def __init__(self, dbms, query1, query2):
+            # unfortunately, oracle does not enforce short circuiting (despite clearly stating
+            # it does in the docs), so conditional errors may pop randomly
+            raise NotImplementedError('Oracle does not support conditional errors.')
+
+
+
     class QueryColumnTypeIsInt(DBMS.QueryColumnTypeIsInt):
         AST_TEMPLATE = parse_one(
             sql="select lower(column) = 'number' and nvl(data_scale, 0) = 0 from table",

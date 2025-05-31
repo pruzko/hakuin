@@ -5,7 +5,7 @@ from collections import deque
 
 from hakuin.collectors import Stats
 from hakuin.requesters import EmulationRequester
-from hakuin.search_algorithms import BinarySearch
+from hakuin.search_algorithms import SectionSearch, TernarySectionSearch
 
 from .row_collector import RowCollector
 
@@ -45,12 +45,10 @@ class _Bounds:
 
             lower = min(self._hist)
             upper = max(self._hist)
-            mean = (upper + lower) // 2
-            diff = (upper - lower) / 2
-            step = math.ceil(math.log2(diff)) if diff else 0
-            step = max(step, 0)
-            margin = 2 ** step
-            return mean - margin, mean + margin
+            if lower == upper:
+                upper += 1
+
+            return lower, upper
 
 
     async def get_norm_dist(self):
@@ -63,12 +61,15 @@ class _Bounds:
             if len(self._hist) < 2:
                 return await self.get_const()
 
-            mean = int(round(statistics.mean(self._hist)))
+            mean = statistics.mean(self._hist)
             stdev = statistics.stdev(self._hist)
-            step = math.ceil(math.log2(stdev / 4)) if stdev else 0
-            step = max(step, 0)
-            margin = 2 ** step
-            return mean - margin, mean + margin
+
+            lower = math.floor(mean - stdev / 2)
+            upper = math.ceil(mean + stdev / 2)
+            if lower == upper:
+                upper += 1
+
+            return lower, upper
 
 
     async def get_best(self):
@@ -115,14 +116,16 @@ class _Bounds:
 
 class BinaryRowCollector(RowCollector):
     '''Binary row collector for integers.'''
-    def __init__(self, requester, dbms):
+    def __init__(self, requester, dbms, use_ternary=False):
         '''Constructor.
 
         Params:
             requester (Requester): requester
             dbms (DBMS): database engine
+            use_ternary (bool): use ternary search flag
         '''
         super().__init__(requester=requester, dbms=dbms)
+        self.use_ternary = use_ternary
         self.bounds = _Bounds()
 
 
@@ -137,6 +140,33 @@ class BinaryRowCollector(RowCollector):
         '''
         lower, upper = await self.bounds.get_best()
         return await self._run(requester=self.requester, ctx=ctx, lower=lower, upper=upper)
+
+
+    async def _run(self, requester, ctx, lower, upper):
+        '''Collects a single row.
+
+        Params:
+            requester (Requester): requester to be used
+            ctx (NumericContext): collection context
+            lower: initial lower bound
+            upper: initial upper bound
+        '''
+        if ctx.column_is_positive:
+            lower = max(lower, 0)
+            find_lower = lower > 0
+        else:
+            find_lower = True
+
+        SearchAlg = TernarySectionSearch if self.use_ternary else SectionSearch
+        return await SearchAlg(
+            requester=requester,
+            dbms=self.dbms,
+            query_cls=self.dbms.QueryIntLt,
+            lower=lower,
+            upper=upper,
+            find_lower=find_lower,
+            find_upper=True,
+        ).run(ctx)
 
 
     async def _emulate(self, ctx, lower, upper, correct):
@@ -155,32 +185,6 @@ class BinaryRowCollector(RowCollector):
         res = await self._run(requester=requester, ctx=ctx, lower=lower, upper=upper)
         n_requests = await requester.n_requests()
         return n_requests, res
-
-
-    async def _run(self, requester, ctx, lower, upper):
-        '''Collects a single row.
-
-        Params:
-            requester (Requester): requester to be used
-            ctx (NumericContext): collection context
-            lower: initial lower bound
-            upper: initial upper bound
-        '''
-        if ctx.column_is_positive:
-            lower = max(lower, 0)
-            find_lower = lower > 0
-        else:
-            find_lower = True
-
-        return await BinarySearch(
-            requester=requester,
-            dbms=self.dbms,
-            query_cls=self.dbms.QueryIntLt,
-            lower=lower,
-            upper=upper,
-            find_lower=find_lower,
-            find_upper=True,
-        ).run(ctx)
 
 
     async def update(self, ctx, value, row_guessed):

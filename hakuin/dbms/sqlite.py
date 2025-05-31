@@ -24,8 +24,7 @@ class SQLite(DBMS):
             dialect='sqlite',
         )
         where_filter = query.resolve_params(ast=where_filter, ctx=ctx, params={
-            # TODO clean after sqlglot
-            'schema_name': self.literal_text(ctx.schema or 'main'),
+            'schema_name': self.get_schema_name(ctx),
         })
         ast.where(where_filter, copy=False)
 
@@ -49,6 +48,19 @@ class SQLite(DBMS):
         ast.where(where_filter, copy=False)
 
         return ast
+
+
+    def force_server_error(self):
+        return exp.func('load_extension', 0)
+
+
+
+    class QueryTernary(DBMS.QueryTernary):
+        AST_TERNARY = parse_one(
+            # sqlite does not short-circuit logical expressions, only case statements
+            sql='case when @cond1 then true when @cond2 then false else @error end',
+            dialect='sqlite',
+        )
 
 
 
