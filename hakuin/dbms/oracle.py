@@ -83,12 +83,32 @@ class Oracle(DBMS):
         return exp.to_identifier('user')
 
 
+    def force_server_error(self):
+        return exp.func('log', 0, 0)
+
+
 
     class QueryTernary(DBMS.QueryTernary):
-        def __init__(self, dbms, query1, query2):
-            # unfortunately, oracle does not enforce short circuiting (despite clearly stating
-            # it does in the docs), so conditional errors may pop randomly
-            raise NotImplementedError('Oracle does not support conditional errors.')
+        AST_TEMPLATE = parse_one(
+            sql='select @ternary_exp from (@select_row)',
+            dialect='postgres',
+        )
+
+        def ast(self, ctx):
+            ast1 = self.query1.ast(ctx)
+            ast2 = self.query2.ast(ctx)
+
+            ternary_exp = self.resolve_params(ast=self.AST_TERNARY.copy(), ctx=ctx, params={
+                'cond1': ast1.expressions[0],
+                'cond2': ast2.expressions[0],
+                'error': self.dbms.force_server_error(),
+            })
+
+            ast1.set('expressions', [exp.Star()])
+            return self.resolve_params(ast=self.AST_TEMPLATE.copy(), ctx=ctx, params={
+                'ternary_exp': ternary_exp,
+                'select_row': ast1,
+            })
 
 
 

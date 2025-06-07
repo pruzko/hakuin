@@ -39,7 +39,7 @@ class StringCollectorBuilder(CollectorBuilder):
             n_tasks (int): number of extraction tasks to run in parallel
         '''
         super().__init__(requester, dbms, use_ternary, n_tasks)
-        self.add('binary_char_collector')
+        self.add('binary_char_collector', use_ternary=self.use_ternary)
         self.collectors['model_char_collectors'] = []
 
 

@@ -34,7 +34,7 @@ class IntCollectorBuilder(CollectorBuilder):
             n_tasks (int): number of extraction tasks to run in parallel
         '''
         super().__init__(requester, dbms, use_ternary, n_tasks)
-        self.add('binary_row_collector')
+        self.add('binary_row_collector', use_ternary=self.use_ternary)
 
 
     def build_row_collector(self):

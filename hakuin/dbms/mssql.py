@@ -91,13 +91,13 @@ class MSSQL(DBMS):
             ast1 = self.query1.ast(ctx)
             ast2 = self.query2.ast(ctx)
 
-            case = self.resolve_params(ast=self.AST_TERNARY.copy(), ctx=ctx, params={
+            ternary_exp = self.resolve_params(ast=self.AST_TERNARY.copy(), ctx=ctx, params={
                 'cond1': ast1.expressions[0].this,
                 'cond2': ast2.expressions[0].this,
                 'error': self.dbms.force_server_error(),
             })
 
-            ast1.set('expressions', [case])
+            ast1.set('expressions', [ternary_exp])
             return self.dbms.wrap_ast(ast=ast1)
 
 

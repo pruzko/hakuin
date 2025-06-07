@@ -38,8 +38,8 @@ class FloatCollectorBuilder(CollectorBuilder):
             dbms=self.dbms,
             n_tasks=self.n_tasks,
         )
-        self.add('binary_row_collector')
-        self.add('list_char_collector', charset=CHARSET_DIGITS)
+        self.add('binary_row_collector', use_ternary=self.use_ternary)
+        self.add('list_char_collector', charset=CHARSET_DIGITS, use_ternary=self.use_ternary)
 
 
     def add(self, collector_name, **kwargs):
