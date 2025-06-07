@@ -66,6 +66,7 @@ class HKTests(metaclass=ABCMeta):
 
         arg_list = [args.pop('url')]
         arg_list.extend(chain.from_iterable(args.items()))
+        arg_list = [arg for arg in arg_list if arg is not None]
 
         res = subprocess.run(['python', self.HK_PATH, *arg_list], capture_output=True, text=True)
         self.assertEqual(
@@ -166,6 +167,24 @@ class HKTests(metaclass=ABCMeta):
         n_requests, data = self.run_hk(args={'-t': 'test_int_optimizations', '-c': 'norm_dist'})
         self.assertEqual(n_requests, 614)
         self.assertEqual(data, list(DB_DATA['test_int_optimizations']['norm_dist']))
+
+
+    def test_meta_ternary(self):
+        n_requests, data = self.run_hk(args={'-x': 'meta', '--use_ternary': None})
+
+        db_data = copy.deepcopy(DB_DATA)
+        for table, colunms in db_data.items():
+            db_data[table] = list(colunms)
+
+        self.assertEqual(n_requests, 427)
+        self.assertEqualUnordered(data, db_data)
+
+
+    def test_columns_ternary(self):
+        n_requests, data = self.run_hk(args={'--use_ternary': None})
+
+        self.assertEqual(n_requests, 1683)
+        self.assertEqual(data, DB_DATA)
 
 
 

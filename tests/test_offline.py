@@ -69,20 +69,20 @@ class OfflineTests(unittest.TestCase):
             cls.db_data_content = json.load(f)
 
 
-    async def dump_meta(self):
+    async def dump_meta(self, use_ternary=False):
         requester = OfflineMetaRequester()
         async with requester:
-            ext = Extractor(requester=requester, dbms='sqlite')
+            ext = Extractor(requester=requester, dbms='sqlite', use_ternary=use_ternary)
             data = await ext.extract_meta()
             n_requests = await requester.n_requests()
 
         return n_requests, data
 
     
-    async def dump_column(self, table, column):
+    async def dump_column(self, table, column, use_ternary=False):
         requester = OfflineContentRequester()
         async with requester:
-            ext = Extractor(requester=requester, dbms='sqlite')
+            ext = Extractor(requester=requester, dbms='sqlite', use_ternary=use_ternary)
             data = await ext.extract_column(table=table, column=column)
             n_requests = await requester.n_requests()
 
@@ -116,4 +116,18 @@ class OfflineTests(unittest.TestCase):
     def test_column_users_password(self):
         n_requests, data = asyncio.run(self.dump_column('users', 'password'))
         self.assertEqual(n_requests, 137119)
+        self.assertEqual(data, self.db_data_content['users']['password'])
+
+
+    def test_meta_ternary(self):
+        n_requests, data = asyncio.run(self.dump_meta(use_ternary=True))
+        self.assertEqual(n_requests, 19899)
+        self.assertEqual(data, self.db_data_meta)
+
+
+    def test_column_ternary(self):
+        n_requests, data = asyncio.run(
+            self.dump_column('users', 'password', use_ternary=True)
+        )
+        self.assertEqual(n_requests, 91261)
         self.assertEqual(data, self.db_data_content['users']['password'])
